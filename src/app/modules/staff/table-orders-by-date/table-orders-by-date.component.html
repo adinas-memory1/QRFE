@@ -127,10 +127,10 @@
                   <td>{{ row.order.createdOn | date: 'short' }}</td>
                   <td>
                     <div class="d-flex flex-wrap gap-1">
-                      @if (row.order.isOrderOpen) {
-                        <c-badge color="warning">{{ 'orderHistory.statusOpen' | transloco }}</c-badge>
-                      } @else {
+                      @if (isClosedOrder(row)) {
                         <c-badge color="success">{{ 'orderHistory.statusClosed' | transloco }}</c-badge>
+                      } @else {
+                        <c-badge color="warning">{{ 'orderHistory.statusOpen' | transloco }}</c-badge>
                       }
                       @if (showFiscalActions && isClosedOrder(row)) {
                         @switch (fiscalStornoStateForRow(row)) {
@@ -230,14 +230,25 @@
                           <strong class="small">{{ 'orderHistory.fiscalDocumentsTitle' | transloco }}</strong>
                           <ul class="mb-0 ps-3 small">
                             @for (doc of documentsForOrder(orderIdForRow(row)); track doc.id) {
-                              <li>
-                                {{ documentTypeLabel(doc.documentType) }}
-                                — {{ documentStatusLabel(doc.status) }}
-                                @if (doc.fiscalNumber) {
-                                  — #{{ doc.fiscalNumber }}
-                                }
-                                @if (documentIsStorned(doc, orderIdForRow(row))) {
-                                  — {{ 'orderHistory.fiscalDocStorned' | transloco }}
+                              <li class="d-flex align-items-center justify-content-between gap-2">
+                                <span>
+                                  {{ documentTypeLabel(doc.documentType) }}
+                                  — {{ documentStatusLabel(doc.status) }}
+                                  @if (doc.fiscalNumber) {
+                                    — #{{ doc.fiscalNumber }}
+                                  }
+                                  @if (documentIsStorned(doc, orderIdForRow(row))) {
+                                    — {{ 'orderHistory.fiscalDocStorned' | transloco }}
+                                  }
+                                </span>
+                                @if (canDownloadFiscalPdf(doc, orderIdForRow(row))) {
+                                  <app-fiscal-receipt-actions
+                                    [restaurantId]="restaurantId"
+                                    [orderId]="orderIdForRow(row)"
+                                    [fiscalDocumentId]="doc.id"
+                                    [apiScope]="apiScope"
+                                    [compact]="true"
+                                  />
                                 }
                               </li>
                             }

@@ -400,7 +400,24 @@
     "ecoBonCopyLink": "Copiază link",
     "ecoBonError": "Nu s-a putut genera ECO BON. Încearcă din nou.",
     "ecoBonShareCopied": "Link ECO BON copiat.",
-    "ecoBonRateLimited": "Prea multe solicitări ECO BON. Așteaptă și încearcă din nou."
+    "ecoBonRateLimited": "Prea multe solicitări ECO BON. Așteaptă și încearcă din nou.",
+    "fiscalReceiptPdf": {
+      "title": "Factură fiscală",
+      "menu": "Acțiuni factură fiscală",
+      "download": "Descarcă factura PDF",
+      "email": "Trimite factura pe email",
+      "emailTitle": "Trimite factura fiscală",
+      "emailLabel": "Adresă email",
+      "emailPlaceholder": "tu@exemplu.ro",
+      "emailSubmit": "Trimite",
+      "cancel": "Anulează",
+      "emailSent": "Factura fiscală a fost trimisă pe email.",
+      "emailError": "Nu s-a putut trimite factura fiscală. Încearcă din nou.",
+      "downloadError": "Nu s-a putut descărca factura fiscală. Încearcă din nou.",
+      "rateLimited": "Prea multe solicitări. Așteaptă și încearcă din nou.",
+      "preparing": "Factura fiscală este în curs de emitere…",
+      "readyHint": "Factura fiscală este disponibilă:"
+    }
   },
   "forgotPassword": {
     "title": "Resetare parolă",

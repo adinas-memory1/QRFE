@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 export interface OrderCheckoutCompletionResult {
   success: boolean;
   alreadyClosed: boolean;
+  orderId?: string | null;
   message?: string | null;
 }
 

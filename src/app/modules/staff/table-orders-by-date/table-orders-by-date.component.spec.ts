@@ -177,6 +177,24 @@ describe('TableOrdersByDateComponent', () => {
     expect(component.showFiscalActions).toBeTrue();
   });
 
+  it('should show fiscal actions for IT invoice flow when printer is configured', () => {
+    component.fiscalCountryCode = 'IT';
+    component.fiscalPrintingEnabled = false;
+    component.defaultFiscalPrinterId = 'printer-1';
+    component.supportsInvoice = true;
+    expect(component.showFiscalActions).toBeTrue();
+  });
+
+  it('should enable invoice for closed IT order without fiscal documents', () => {
+    component.fiscalCountryCode = 'IT';
+    component.fiscalPrintingEnabled = true;
+    component.defaultFiscalPrinterId = 'printer-1';
+    component.supportsInvoice = true;
+    component.fiscalDocumentsByOrder = new Map();
+
+    expect(component.canIssueInvoice(component.orderRows[0])).toBeTrue();
+  });
+
   it('should hide fiscal actions when fiscal printing is disabled', () => {
     component.fiscalCountryCode = 'RO';
     component.fiscalPrintingEnabled = false;

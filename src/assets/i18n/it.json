@@ -393,7 +393,24 @@
     "ecoBonCopyLink": "Copia link",
     "ecoBonError": "Impossibile generare l'ECO BON. Riprova.",
     "ecoBonShareCopied": "Link ECO BON copiato.",
-    "ecoBonRateLimited": "Troppe richieste ECO BON. Attendi e riprova."
+    "ecoBonRateLimited": "Troppe richieste ECO BON. Attendi e riprova.",
+    "fiscalReceiptPdf": {
+      "title": "Fattura fiscale",
+      "menu": "Azioni fattura fiscale",
+      "download": "Scarica fattura PDF",
+      "email": "Invia fattura via email",
+      "emailTitle": "Invia fattura fiscale",
+      "emailLabel": "Indirizzo email",
+      "emailPlaceholder": "tu@esempio.it",
+      "emailSubmit": "Invia",
+      "cancel": "Annulla",
+      "emailSent": "Fattura fiscale inviata via email.",
+      "emailError": "Impossibile inviare la fattura fiscale. Riprova.",
+      "downloadError": "Impossibile scaricare la fattura fiscale. Riprova.",
+      "rateLimited": "Troppe richieste. Attendi e riprova.",
+      "preparing": "La fattura fiscale è in elaborazione…",
+      "readyHint": "La tua fattura fiscale è pronta:"
+    }
   },
   "forgotPassword": {
     "title": "Reimposta password",

@@ -14,7 +14,16 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-payment-success',
   standalone: true,
-  imports: [ContainerComponent, CardComponent, CardBodyComponent, ButtonDirective, AlertComponent, SpinnerComponent, RouterLink, TranslocoPipe],
+  imports: [
+    ContainerComponent,
+    CardComponent,
+    CardBodyComponent,
+    ButtonDirective,
+    AlertComponent,
+    SpinnerComponent,
+    RouterLink,
+    TranslocoPipe,
+  ],
   templateUrl: './payment-success.component.html',
   styleUrl: './payment-success.component.scss'
 })
