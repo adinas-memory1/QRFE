@@ -23,8 +23,9 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, map, of, switchMap, catchError } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
-import { isFiscalCountrySupported, fiscalProfileForCountry } from '../../../core/fiscal/fiscal-profile';
+import { isFiscalCountrySupported, fiscalCapabilitiesForProvider } from '../../../core/fiscal/fiscal-profile';
 import type { FiscalCountryCode } from '../../../core/fiscal/fiscal-profile';
+import type { ResolvedPrinterType } from '../../../core/print/printer-agent-printer.util';
 import {
   buildFiscalInvoicePayload,
   buildFiscalStornoResoPayload,
@@ -105,6 +106,7 @@ export class TableOrdersByDateComponent implements OnInit {
   fiscalPrintingEnabled = false;
   defaultFiscalPrinterId: string | null = null;
   fiscalCountryCode: FiscalCountryCode = 'RO';
+  fiscalProvider: ResolvedPrinterType | null = null;
   supportsInvoice = false;
   supportsStornoReso = false;
   fiscalVatMapping: Record<string, number> = {};
@@ -167,9 +169,8 @@ export class TableOrdersByDateComponent implements OnInit {
       return true;
     }
 
-    const profile = fiscalProfileForCountry(this.fiscalCountryCode);
-    return (profile.supportsInvoice || profile.supportsStornoReso)
-      && !!this.defaultFiscalPrinterId?.trim();
+    const printerConfigured = !!this.defaultFiscalPrinterId?.trim();
+    return printerConfigured && (this.supportsInvoice || this.supportsStornoReso);
   }
 
   private loadFiscalSettings$() {
@@ -194,6 +195,7 @@ export class TableOrdersByDateComponent implements OnInit {
       this.fiscalCountryCode = 'RO';
       this.fiscalPrintingEnabled = false;
       this.defaultFiscalPrinterId = null;
+      this.fiscalProvider = null;
       this.supportsInvoice = false;
       this.supportsStornoReso = false;
       this.fiscalVatMapping = {};
@@ -202,11 +204,12 @@ export class TableOrdersByDateComponent implements OnInit {
     }
 
     this.fiscalCountryCode = cfg.fiscalCountryCode ?? 'RO';
-    const profile = fiscalProfileForCountry(this.fiscalCountryCode);
     this.fiscalPrintingEnabled = !!cfg.fiscalPrintingEnabled;
     this.defaultFiscalPrinterId = cfg.defaultFiscalPrinterId ?? null;
-    this.supportsInvoice = profile.supportsInvoice;
-    this.supportsStornoReso = profile.supportsStornoReso;
+    this.fiscalProvider = cfg.fiscalProvider ?? null;
+    const providerCaps = fiscalCapabilitiesForProvider(cfg.fiscalProvider);
+    this.supportsInvoice = cfg.supportsInvoice ?? providerCaps.supportsInvoice;
+    this.supportsStornoReso = cfg.supportsStornoReso ?? providerCaps.supportsStornoReso;
     this.fiscalVatMapping = cfg.vatGroupMapping ?? {};
     this.cdr.markForCheck();
   }
@@ -343,6 +346,9 @@ export class TableOrdersByDateComponent implements OnInit {
     if (!this.showFiscalActions || !this.supportsInvoice || !this.isClosedOrder(row)) {
       return false;
     }
+    if (!this.defaultFiscalPrinterId?.trim()) {
+      return false;
+    }
     return canIssueInvoiceForOrder(
       this.documentsForOrder(this.orderIdForRow(row)),
       readIsOrderOpen(row.order),
@@ -359,6 +365,10 @@ export class TableOrdersByDateComponent implements OnInit {
   fiscalActionsHint(row: OrderHistoryRow): string | null {
     if (!this.showFiscalActions || !this.isClosedOrder(row) || this.canIssueStorno(row)) {
       return null;
+    }
+
+    if (this.supportsInvoice && !this.defaultFiscalPrinterId?.trim()) {
+      return 'orderHistory.fiscalHintPrinterRequired';
     }
 
     const docs = this.documentsForOrder(this.orderIdForRow(row));
@@ -392,8 +402,16 @@ export class TableOrdersByDateComponent implements OnInit {
     return isFiscalDocumentStorned(document, this.documentsForOrder(orderId));
   }
 
+  issuedInvoiceForOrder(orderId: string): FiscalDocumentDto | null {
+    return this.documentsForOrder(orderId).find(doc =>
+      doc.documentType.trim().toLowerCase() === 'invoice'
+      && isIssuedFiscalDocumentStatus(doc.status)
+      && !this.documentIsStorned(doc, orderId),
+    ) ?? null;
+  }
+
   canDownloadFiscalPdf(document: FiscalDocumentDto, orderId: string): boolean {
-    if (!this.fiscalPrintingEnabled) {
+    if (!this.showFiscalActions) {
       return false;
     }
     if (document.documentType.trim().toLowerCase() !== 'invoice') {

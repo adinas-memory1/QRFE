@@ -577,7 +577,8 @@
     "fiscalHintPending": "Documento fiscale in attesa (l'agente non ha ancora confermato l'emissione).",
     "fiscalHintReceiptBlocksInvoice": "Esiste già uno scontrino fiscale per questo ordine. Non è possibile emettere la fattura.",
     "fiscalHintReadyForInvoice": "Ordine chiuso senza scontrino fiscale. Puoi emettere la fattura.",
-    "fiscalHintNotEligible": "I documenti fiscali presenti non consentono lo storno."
+    "fiscalHintNotEligible": "I documenti fiscali presenti non consentono lo storno.",
+    "fiscalHintPrinterRequired": "Configura la stampante fiscale predefinita nelle impostazioni del ristorante."
   },
   "manageStaff": {
     "title": "Aggiungi account staff",

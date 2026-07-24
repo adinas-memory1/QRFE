@@ -9,6 +9,16 @@ export interface FiscalProfileCapabilities {
   expectedPrinterType: ResolvedPrinterType;
 }
 
+export function fiscalCapabilitiesForProvider(
+  fiscalProvider: ResolvedPrinterType | null | undefined,
+): Pick<FiscalProfileCapabilities, 'supportsInvoice' | 'supportsStornoReso'> {
+  const isEpson = fiscalProvider === 'epson-fiscal';
+  return {
+    supportsInvoice: isEpson,
+    supportsStornoReso: isEpson,
+  };
+}
+
 export function normalizeFiscalCountryCode(value: string | null | undefined): FiscalCountryCode {
   return value?.trim().toUpperCase() === 'IT' ? 'IT' : 'RO';
 }

@@ -650,7 +650,8 @@
     "fiscalHintPending": "Document fiscal în așteptare (agentul nu a confirmat încă emiterea).",
     "fiscalHintReceiptBlocksInvoice": "Există deja un bon fiscal pentru această comandă. Factura nu poate fi emisă.",
     "fiscalHintReadyForInvoice": "Comanda este închisă fără bon fiscal. Poți emite factura.",
-    "fiscalHintNotEligible": "Documentele fiscale existente nu permit stornarea."
+    "fiscalHintNotEligible": "Documentele fiscale existente nu permit stornarea.",
+    "fiscalHintPrinterRequired": "Configurează imprimanta fiscală implicită în setările restaurantului."
   },
   "manageStaff": {
     "title": "Adaugă cont staff",
