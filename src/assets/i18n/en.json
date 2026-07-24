@@ -400,7 +400,24 @@
     "ecoBonCopyLink": "Copy link",
     "ecoBonError": "Could not generate ECO BON. Please try again.",
     "ecoBonShareCopied": "ECO BON link copied.",
-    "ecoBonRateLimited": "Too many ECO BON requests. Please wait and try again."
+    "ecoBonRateLimited": "Too many ECO BON requests. Please wait and try again.",
+    "fiscalReceiptPdf": {
+      "title": "Fiscal invoice",
+      "menu": "Fiscal invoice actions",
+      "download": "Download invoice PDF",
+      "email": "Send invoice by email",
+      "emailTitle": "Email fiscal invoice",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "emailSubmit": "Send",
+      "cancel": "Cancel",
+      "emailSent": "Fiscal invoice sent to your email.",
+      "emailError": "Could not send the fiscal invoice. Please try again.",
+      "downloadError": "Could not download the fiscal invoice. Please try again.",
+      "rateLimited": "Too many requests. Please wait and try again.",
+      "preparing": "Your fiscal invoice is being prepared…",
+      "readyHint": "Your fiscal invoice is ready:"
+    }
   },
   "forgotPassword": {
     "title": "Reset password",

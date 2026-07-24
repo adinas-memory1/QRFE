@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subject, takeUntil, timer, switchMap, tap, catchError, of, map, take, Observable } from 'rxjs';
+import { Subject, takeUntil, timer, switchMap, tap, catchError, of, map, take, Observable, retry } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { isAssignedRestaurantId } from '../../../core/auth/restaurant-id.util';
 import { SubscriptionService } from '../../../core/services/subscription-service/subscription.service';
+import { PaymentsService } from '../../../core/services/payments-service/payments.service';
 import { UserContextModel } from '../../../core/models/userContextModel';
 import { environment } from '../../../../environments/environment';
 import { ContainerComponent, CardComponent, CardBodyComponent, ButtonDirective, AlertComponent, SpinnerComponent } from '@coreui/angular';
@@ -13,7 +14,16 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-payment-success',
   standalone: true,
-  imports: [ContainerComponent, CardComponent, CardBodyComponent, ButtonDirective, AlertComponent, SpinnerComponent, RouterLink, TranslocoPipe],
+  imports: [
+    ContainerComponent,
+    CardComponent,
+    CardBodyComponent,
+    ButtonDirective,
+    AlertComponent,
+    SpinnerComponent,
+    RouterLink,
+    TranslocoPipe,
+  ],
   templateUrl: './payment-success.component.html',
   styleUrl: './payment-success.component.scss'
 })
@@ -42,6 +52,7 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private http: HttpClient,
     private subscriptionService: SubscriptionService,
+    private paymentsService: PaymentsService,
   ) {}
 
   ngOnInit(): void {
@@ -50,15 +61,33 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
       this.flow = (f === 'subscription' || f === 'order') ? (f as 'subscription' | 'order') : 'unknown';
       this.restaurantId = q.get('restaurantId');
       this.tableId = q.get('tableId');
+      const sessionId = q.get('session_id');
 
       if (this.flow === 'order' && this.restaurantId && this.tableId) {
-        this.provisioning = false;
-        this.secondsLeft = 0;
+        this.runOrderCompletion(sessionId);
         return;
       }
 
-      const sessionId = q.get('session_id');
       this.runSubscriptionProvisioning(sessionId);
+    });
+  }
+
+  private runOrderCompletion(sessionId: string | null): void {
+    if (!sessionId || !this.restaurantId) {
+      this.provisioning = false;
+      return;
+    }
+
+    this.paymentsService.completeOrderCheckout(sessionId, this.restaurantId).pipe(
+      retry({ count: 2, delay: 1500 }),
+      catchError(err => {
+        console.warn('Order checkout complete fallback failed', err);
+        return of(null);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      this.provisioning = false;
+      this.secondsLeft = 0;
     });
   }
 

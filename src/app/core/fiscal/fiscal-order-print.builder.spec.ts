@@ -1,6 +1,8 @@
 import {
   buildFiscalInvoicePayload,
   buildFiscalStornoResoPayload,
+  canIssueFiscalReceiptForOrder,
+  canIssueInvoiceForOrder,
   getOrderFiscalStornoState,
   hasIssuedInvoice,
   isFiscalDocumentStorned,
@@ -61,6 +63,18 @@ describe('fiscal-order-print.builder', () => {
 
     expect(payload['type']).toBe('fiscal-storno-reso');
     expect(payload['referencedFiscalDocumentId']).toBe('doc-1');
+  });
+
+  it('canIssueInvoiceForOrder requires closed order without receipt or invoice', () => {
+    expect(canIssueInvoiceForOrder([], true)).toBeFalse();
+    expect(canIssueInvoiceForOrder([], false)).toBeTrue();
+    expect(canIssueInvoiceForOrder([{ documentType: 'Receipt', status: 'Issued' }], false)).toBeFalse();
+    expect(canIssueInvoiceForOrder([{ documentType: 'Invoice', status: 'Pending' }], false)).toBeFalse();
+  });
+
+  it('canIssueFiscalReceiptForOrder rejects when invoice exists', () => {
+    expect(canIssueFiscalReceiptForOrder([{ documentType: 'Invoice', status: 'Issued' }])).toBeFalse();
+    expect(canIssueFiscalReceiptForOrder([])).toBeTrue();
   });
 
   it('hasIssuedInvoice detects issued invoice documents', () => {

@@ -23,13 +23,14 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, map, of, switchMap, catchError } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
-import { isFiscalCountrySupported } from '../../../core/fiscal/fiscal-profile';
+import { isFiscalCountrySupported, fiscalProfileForCountry } from '../../../core/fiscal/fiscal-profile';
 import type { FiscalCountryCode } from '../../../core/fiscal/fiscal-profile';
 import {
   buildFiscalInvoicePayload,
   buildFiscalStornoResoPayload,
+  canIssueInvoiceForOrder,
   getOrderFiscalStornoState,
-  hasIssuedInvoice,
+  hasActiveReceipt,
   isFiscalDocumentStorned,
   listStornoEligibleDocuments,
   type OrderFiscalStornoState,
@@ -37,8 +38,10 @@ import {
 import { OrderDTO, readIsOrderOpen, readOrderId } from '../../../core/models/orderingModel';
 import { TableDTO } from '../../../core/models/restaurantTablesModel';
 import { FiscalDocumentsService, type FiscalDocumentDto } from '../../../core/services/fiscal-documents/fiscal-documents.service';
+import { isIssuedFiscalDocumentStatus } from '../../../core/services/fiscal-receipt-pdf/fiscal-receipt-pdf.service';
+import { FiscalReceiptActionsComponent } from '../../../shared/fiscal-receipt-actions/fiscal-receipt-actions.component';
 import { OrdersService } from '../../../core/services/order-service/orders.service';
-import { PrintJobsService } from '../../../core/services/print-jobs/print-jobs.service';
+import { PrintJobsService, type FiscalPrinterSettingsDto } from '../../../core/services/print-jobs/print-jobs.service';
 import { TablesService } from '../../../core/services/tables-service/tables.service';
 import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 import { MiscellaneousService } from '../../../core/services/misc/miscellaneous.service';
@@ -78,7 +81,8 @@ export interface OrderHistoryPeriodTotal {
     ModalBodyComponent,
     ModalFooterComponent,
     ModalTitleDirective,
-    TranslocoPipe
+    TranslocoPipe,
+    FiscalReceiptActionsComponent,
   ],
   templateUrl: './table-orders-by-date.component.html',
   styleUrl: './table-orders-by-date.component.scss'
@@ -142,7 +146,6 @@ export class TableOrdersByDateComponent implements OnInit {
     this.endDate = today;
 
     if (this.restaurantId) {
-      this.loadFiscalSettings();
       this.loadReport();
     }
 
@@ -157,7 +160,55 @@ export class TableOrdersByDateComponent implements OnInit {
   }
 
   get showFiscalActions(): boolean {
-    return isFiscalCountrySupported(this.fiscalCountryCode) && this.fiscalPrintingEnabled;
+    if (!isFiscalCountrySupported(this.fiscalCountryCode)) {
+      return false;
+    }
+    if (this.fiscalPrintingEnabled) {
+      return true;
+    }
+
+    const profile = fiscalProfileForCountry(this.fiscalCountryCode);
+    return (profile.supportsInvoice || profile.supportsStornoReso)
+      && !!this.defaultFiscalPrinterId?.trim();
+  }
+
+  private loadFiscalSettings$() {
+    const settings$ = this.apiScope === 'admin'
+      ? this.printJobs.getFiscalPrinterSettings(this.restaurantId)
+      : this.printJobs.getDefaultFiscalPrinterForStaff(this.restaurantId);
+
+    return settings$.pipe(
+      map(cfg => {
+        this.applyFiscalSettings(cfg);
+        return cfg;
+      }),
+      catchError(() => {
+        this.applyFiscalSettings(null);
+        return of(null);
+      }),
+    );
+  }
+
+  private applyFiscalSettings(cfg: FiscalPrinterSettingsDto | null): void {
+    if (!cfg) {
+      this.fiscalCountryCode = 'RO';
+      this.fiscalPrintingEnabled = false;
+      this.defaultFiscalPrinterId = null;
+      this.supportsInvoice = false;
+      this.supportsStornoReso = false;
+      this.fiscalVatMapping = {};
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.fiscalCountryCode = cfg.fiscalCountryCode ?? 'RO';
+    const profile = fiscalProfileForCountry(this.fiscalCountryCode);
+    this.fiscalPrintingEnabled = !!cfg.fiscalPrintingEnabled;
+    this.defaultFiscalPrinterId = cfg.defaultFiscalPrinterId ?? null;
+    this.supportsInvoice = profile.supportsInvoice;
+    this.supportsStornoReso = profile.supportsStornoReso;
+    this.fiscalVatMapping = cfg.vatGroupMapping ?? {};
+    this.cdr.markForCheck();
   }
 
   private static formatLocalDateOnly(d: Date): string {
@@ -165,36 +216,6 @@ export class TableOrdersByDateComponent implements OnInit {
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
-  }
-
-  private loadFiscalSettings(): void {
-    const settings$ = this.apiScope === 'admin'
-      ? this.printJobs.getFiscalPrinterSettings(this.restaurantId)
-      : this.printJobs.getDefaultFiscalPrinterForStaff(this.restaurantId);
-
-    settings$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: cfg => {
-          this.fiscalCountryCode = cfg?.fiscalCountryCode ?? 'RO';
-          this.fiscalPrintingEnabled = !!cfg?.fiscalPrintingEnabled;
-          this.defaultFiscalPrinterId = cfg?.defaultFiscalPrinterId ?? null;
-          this.supportsInvoice = !!cfg?.supportsInvoice;
-          this.supportsStornoReso = !!cfg?.supportsStornoReso;
-          this.fiscalVatMapping = cfg?.vatGroupMapping ?? {};
-          if (this.reportLoaded) {
-            this.prefetchFiscalDocuments(this.orderRows);
-          }
-        },
-        error: () => {
-          this.fiscalCountryCode = 'RO';
-          this.fiscalPrintingEnabled = false;
-          this.defaultFiscalPrinterId = null;
-          this.supportsInvoice = false;
-          this.supportsStornoReso = false;
-          this.fiscalVatMapping = {};
-        },
-      });
   }
 
   loadReport(): void {
@@ -218,8 +239,9 @@ export class TableOrdersByDateComponent implements OnInit {
       ? of(this.tables)
       : this.tablesService.getAll(this.restaurantId);
 
-    tables$
+    this.loadFiscalSettings$()
       .pipe(
+        switchMap(() => tables$),
         switchMap(tables => {
           this.tables = tables;
           if (!tables.length) {
@@ -256,6 +278,7 @@ export class TableOrdersByDateComponent implements OnInit {
           this.reportLoaded = true;
           this.loading = false;
           this.prefetchFiscalDocuments(this.orderRows);
+          this.cdr.markForCheck();
         },
         error: err => {
           this.loading = false;
@@ -295,6 +318,11 @@ export class TableOrdersByDateComponent implements OnInit {
   }
 
   isClosedOrder(row: OrderHistoryRow): boolean {
+    const rec = row.order as unknown as Record<string, unknown>;
+    const closedAt = row.order.closedAt ?? rec['ClosedAt'];
+    if (typeof closedAt === 'string' && closedAt.trim()) {
+      return true;
+    }
     return !readIsOrderOpen(row.order);
   }
 
@@ -315,7 +343,10 @@ export class TableOrdersByDateComponent implements OnInit {
     if (!this.showFiscalActions || !this.supportsInvoice || !this.isClosedOrder(row)) {
       return false;
     }
-    return !hasIssuedInvoice(this.documentsForOrder(this.orderIdForRow(row)));
+    return canIssueInvoiceForOrder(
+      this.documentsForOrder(this.orderIdForRow(row)),
+      readIsOrderOpen(row.order),
+    );
   }
 
   canIssueStorno(row: OrderHistoryRow): boolean {
@@ -331,6 +362,12 @@ export class TableOrdersByDateComponent implements OnInit {
     }
 
     const docs = this.documentsForOrder(this.orderIdForRow(row));
+    if (this.supportsInvoice && hasActiveReceipt(docs)) {
+      return 'orderHistory.fiscalHintReceiptBlocksInvoice';
+    }
+    if (this.supportsInvoice && this.canIssueInvoice(row)) {
+      return 'orderHistory.fiscalHintReadyForInvoice';
+    }
     if (!docs.length) {
       return 'orderHistory.fiscalHintNoDocuments';
     }
@@ -353,6 +390,19 @@ export class TableOrdersByDateComponent implements OnInit {
 
   documentIsStorned(document: FiscalDocumentDto, orderId: string): boolean {
     return isFiscalDocumentStorned(document, this.documentsForOrder(orderId));
+  }
+
+  canDownloadFiscalPdf(document: FiscalDocumentDto, orderId: string): boolean {
+    if (!this.fiscalPrintingEnabled) {
+      return false;
+    }
+    if (document.documentType.trim().toLowerCase() !== 'invoice') {
+      return false;
+    }
+    if (!isIssuedFiscalDocumentStatus(document.status)) {
+      return false;
+    }
+    return !this.documentIsStorned(document, orderId);
   }
 
   documentStatusLabel(status: string): string {

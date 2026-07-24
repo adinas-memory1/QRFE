@@ -400,7 +400,24 @@
     "ecoBonCopyLink": "Copiază link",
     "ecoBonError": "Nu s-a putut genera ECO BON. Încearcă din nou.",
     "ecoBonShareCopied": "Link ECO BON copiat.",
-    "ecoBonRateLimited": "Prea multe solicitări ECO BON. Așteaptă și încearcă din nou."
+    "ecoBonRateLimited": "Prea multe solicitări ECO BON. Așteaptă și încearcă din nou.",
+    "fiscalReceiptPdf": {
+      "title": "Factură fiscală",
+      "menu": "Acțiuni factură fiscală",
+      "download": "Descarcă factura PDF",
+      "email": "Trimite factura pe email",
+      "emailTitle": "Trimite factura fiscală",
+      "emailLabel": "Adresă email",
+      "emailPlaceholder": "tu@exemplu.ro",
+      "emailSubmit": "Trimite",
+      "cancel": "Anulează",
+      "emailSent": "Factura fiscală a fost trimisă pe email.",
+      "emailError": "Nu s-a putut trimite factura fiscală. Încearcă din nou.",
+      "downloadError": "Nu s-a putut descărca factura fiscală. Încearcă din nou.",
+      "rateLimited": "Prea multe solicitări. Așteaptă și încearcă din nou.",
+      "preparing": "Factura fiscală este în curs de emitere…",
+      "readyHint": "Factura fiscală este disponibilă:"
+    }
   },
   "forgotPassword": {
     "title": "Resetare parolă",
@@ -502,6 +519,8 @@
     "fiscalPrintQueuedBody": "Bonul fiscal a fost trimis la printare.",
     "fiscalPrintNoPrinterTitle": "Bon fiscal",
     "fiscalPrintNoPrinterBody": "Nu există imprimantă fiscală configurată.",
+    "fiscalReceiptBlockedTitle": "Bon fiscal",
+    "fiscalReceiptBlockedBody": "Pentru această comandă există deja factură fiscală sau bon. Emite doar un tip de document.",
     "fiscalPrintErrorTitle": "Bon fiscal",
     "fiscalPrintErrorBody": "Nu s-a putut trimite bonul fiscal la imprimantă.",
     "openCashDrawer": "Deschide sertar",
@@ -629,6 +648,8 @@
     "fiscalInvoiceValidation": "Completează numele, CUI/CIF și adresa clientului.",
     "fiscalHintNoDocuments": "Niciun document fiscal înregistrat online pentru această comandă.",
     "fiscalHintPending": "Document fiscal în așteptare (agentul nu a confirmat încă emiterea).",
+    "fiscalHintReceiptBlocksInvoice": "Există deja un bon fiscal pentru această comandă. Factura nu poate fi emisă.",
+    "fiscalHintReadyForInvoice": "Comanda este închisă fără bon fiscal. Poți emite factura.",
     "fiscalHintNotEligible": "Documentele fiscale existente nu permit stornarea."
   },
   "manageStaff": {

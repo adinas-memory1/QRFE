@@ -65,6 +65,8 @@ import { KitchenService } from '../../../core/services/kitchen-service/kitchen.s
 import { BarService } from '../../../core/services/bar-service/bar.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PrintJobsService, FiscalPrinterSettingsDto } from '../../../core/services/print-jobs/print-jobs.service';
+import { FiscalDocumentsService } from '../../../core/services/fiscal-documents/fiscal-documents.service';
+import { canIssueFiscalReceiptForOrder } from '../../../core/fiscal/fiscal-order-print.builder';
 import { buildFiscalPrintItems } from '../../../core/fiscal/fiscal-print-payload.builder';
 import { DeviceFeedbackService } from '../../../core/services/device/device-feedback.service';
 import { PickupNotificationService } from '../../../core/services/pickup/pickup-notification.service';
@@ -217,6 +219,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
 
   private readonly syncScheduler = inject(OfflineSyncSchedulerService);
   private readonly restaurantCurrency = inject(RestaurantCurrencyService);
+  private readonly fiscalDocuments = inject(FiscalDocumentsService);
 
   readonly offlineSyncCountdown = toSignal(this.syncScheduler.syncCountdownSeconds$, { initialValue: null });
   /** Display seconds with 0.1 precision (countdown ticks are 100ms). */
@@ -1791,6 +1794,24 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
     const restaurantId = this.restaurantId;
     const orderId = this.currentOrderId;
     if (!restaurantId || !orderId) return;
+
+    if (!orderId.startsWith('local-') && this.isOnline) {
+      try {
+        const docs = await firstValueFrom(
+          this.fiscalDocuments.listByOrder(restaurantId, orderId, 'staff'),
+        );
+        if (!canIssueFiscalReceiptForOrder(docs)) {
+          this.appToast.error(
+            this.transloco.translate('manageOrders.fiscalReceiptBlockedBody'),
+            this.transloco.translate('manageOrders.fiscalReceiptBlockedTitle'),
+          );
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to verify fiscal documents before receipt print', err);
+      }
+    }
+
     await this.enqueueFiscalReceiptJob({ restaurantId, orderId, paymentMethod });
   }
 

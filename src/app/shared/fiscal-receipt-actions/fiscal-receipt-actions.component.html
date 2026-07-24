@@ -1,0 +1,71 @@
+<div class="fiscal-receipt-actions d-inline-flex align-items-center" [class.fiscal-receipt-actions--compact]="compact">
+  @if (!compact) {
+    <button
+      cButton
+      color="success"
+      variant="outline"
+      size="sm"
+      type="button"
+      class="fiscal-receipt-btn me-1"
+      [disabled]="busy"
+      (click)="downloadPdf()"
+    >
+      {{ 'client.fiscalReceiptPdf.title' | transloco }}
+    </button>
+  }
+
+  <c-dropdown variant="btn-group" class="fiscal-receipt-menu">
+    <button
+      cButton
+      [variant]="compact ? 'ghost' : 'ghost'"
+      size="sm"
+      class="fiscal-receipt-menu-toggle"
+      cDropdownToggle
+      [caret]="false"
+      type="button"
+      [disabled]="busy"
+      [attr.aria-label]="'client.fiscalReceiptPdf.menu' | transloco"
+    >
+      <svg cIcon name="cilOptions" size="sm"></svg>
+    </button>
+    <div cDropdownMenu>
+      <button cDropdownItem type="button" (click)="downloadPdf()">
+        {{ 'client.fiscalReceiptPdf.download' | transloco }}
+      </button>
+      <button cDropdownItem type="button" (click)="openEmailModal()">
+        {{ 'client.fiscalReceiptPdf.email' | transloco }}
+      </button>
+    </div>
+  </c-dropdown>
+</div>
+
+<c-modal [(visible)]="emailModalVisible" alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>{{ 'client.fiscalReceiptPdf.emailTitle' | transloco }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <label cLabel for="fiscalReceiptEmail">{{ 'client.fiscalReceiptPdf.emailLabel' | transloco }}</label>
+    <input
+      cFormControl
+      id="fiscalReceiptEmail"
+      type="email"
+      autocomplete="email"
+      [(ngModel)]="emailAddress"
+      [placeholder]="'client.fiscalReceiptPdf.emailPlaceholder' | transloco"
+    />
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="emailModalVisible = false">
+      {{ 'client.fiscalReceiptPdf.cancel' | transloco }}
+    </button>
+    <button
+      cButton
+      color="primary"
+      type="button"
+      [disabled]="emailSending || !emailAddress.includes('@')"
+      (click)="sendEmail()"
+    >
+      {{ 'client.fiscalReceiptPdf.emailSubmit' | transloco }}
+    </button>
+  </c-modal-footer>
+</c-modal>

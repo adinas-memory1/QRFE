@@ -107,6 +107,41 @@ function sameFiscalDocumentId(left: string | null | undefined, right: string | n
   return left.trim().toLowerCase() === right.trim().toLowerCase();
 }
 
+function isActiveFiscalStatus(status: string): boolean {
+  const normalized = normalizeFiscalDocumentType(status);
+  return normalized === 'pending' || normalized === 'issued' || normalized === 'success';
+}
+
+export function hasActiveReceipt(documents: Array<{ documentType: string; status: string }>): boolean {
+  return documents.some(
+    doc =>
+      normalizeFiscalDocumentType(doc.documentType) === 'receipt'
+      && isActiveFiscalStatus(doc.status),
+  );
+}
+
+export function hasActiveInvoice(documents: Array<{ documentType: string; status: string }>): boolean {
+  return documents.some(
+    doc =>
+      normalizeFiscalDocumentType(doc.documentType) === 'invoice'
+      && isActiveFiscalStatus(doc.status),
+  );
+}
+
+export function canIssueInvoiceForOrder(
+  documents: Array<{ documentType: string; status: string }>,
+  isOrderOpen: boolean,
+): boolean {
+  if (isOrderOpen) {
+    return false;
+  }
+  return !hasActiveInvoice(documents) && !hasActiveReceipt(documents);
+}
+
+export function canIssueFiscalReceiptForOrder(documents: Array<{ documentType: string; status: string }>): boolean {
+  return !hasActiveInvoice(documents) && !hasActiveReceipt(documents);
+}
+
 export function hasIssuedInvoice(documents: Array<{ documentType: string; status: string }>): boolean {
   return documents.some(
     doc =>
