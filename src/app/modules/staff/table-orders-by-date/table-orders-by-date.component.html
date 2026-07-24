@@ -178,6 +178,14 @@
                               {{ 'orderHistory.issueStorno' | transloco }}
                             </button>
                           }
+                          @if (issuedInvoiceForOrder(orderIdForRow(row)); as invoiceDoc) {
+                            <app-fiscal-receipt-actions
+                              [restaurantId]="restaurantId"
+                              [orderId]="orderIdForRow(row)"
+                              [fiscalDocumentId]="invoiceDoc.id"
+                              [apiScope]="apiScope"
+                            />
+                          }
                           @if (fiscalActionsHint(row); as hintKey) {
                             <span class="small text-body-secondary align-self-center">{{ hintKey | transloco }}</span>
                           }

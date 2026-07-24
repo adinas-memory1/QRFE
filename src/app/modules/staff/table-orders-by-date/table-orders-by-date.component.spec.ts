@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { TranslocoTestingModule, TranslocoService } from '@jsverse/transloco';
@@ -97,6 +99,8 @@ describe('TableOrdersByDateComponent', () => {
         })
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         provideNoopAnimations(),
         {
           provide: AuthService,
@@ -350,5 +354,84 @@ describe('TableOrdersByDateComponent', () => {
 
     expect(component.fiscalStornoStateForRow(component.orderRows[0])).toBe('full');
     expect(component.canIssueStorno(component.orderRows[0])).toBeFalse();
+  });
+
+  it('should show hint when fiscal printer is not configured for invoice flow', () => {
+    component.fiscalCountryCode = 'IT';
+    component.fiscalPrintingEnabled = true;
+    component.supportsInvoice = true;
+    component.defaultFiscalPrinterId = null;
+    component.fiscalDocumentsByOrder = new Map();
+
+    expect(component.canIssueInvoice(component.orderRows[0])).toBeFalse();
+    expect(component.fiscalActionsHint(component.orderRows[0])).toBe('orderHistory.fiscalHintPrinterRequired');
+  });
+
+  it('should expose issued invoice document for PDF actions', () => {
+    component.fiscalPrintingEnabled = true;
+    component.fiscalDocumentsByOrder = new Map([
+      [
+        'o1',
+        [
+          {
+            id: 'inv-1',
+            orderId: 'o1',
+            printJobId: 'job-1',
+            documentType: 'Invoice',
+            status: 'Issued',
+            fiscalNumber: '2001',
+            zReportNumber: '1',
+            fiscalDate: '2026-07-22',
+            referencedFiscalDocumentId: null,
+            provider: 'epson-fiscal',
+            createdAtUtc: '2026-07-22T10:00:00Z',
+            issuedAtUtc: '2026-07-22T10:01:00Z',
+          },
+        ],
+      ],
+    ]);
+
+    expect(component.issuedInvoiceForOrder('o1')?.id).toBe('inv-1');
+    expect(component.canDownloadFiscalPdf(component.issuedInvoiceForOrder('o1')!, 'o1')).toBeTrue();
+  });
+
+  it('should show fiscal actions for RO invoice flow when epson printer is configured', () => {
+    component.fiscalCountryCode = 'RO';
+    component.fiscalPrintingEnabled = false;
+    component.defaultFiscalPrinterId = 'printer-1';
+    component.fiscalProvider = 'epson-fiscal';
+    component.supportsInvoice = true;
+    expect(component.showFiscalActions).toBeTrue();
+  });
+
+  it('should enable invoice for closed RO order with epson printer and no receipt', () => {
+    component.fiscalCountryCode = 'RO';
+    component.fiscalPrintingEnabled = true;
+    component.defaultFiscalPrinterId = 'printer-1';
+    component.fiscalProvider = 'epson-fiscal';
+    component.supportsInvoice = true;
+    component.fiscalDocumentsByOrder = new Map();
+
+    expect(component.canIssueInvoice(component.orderRows[0])).toBeTrue();
+  });
+
+  it('should apply supportsInvoice from fiscal settings API response', async () => {
+    printJobs.getDefaultFiscalPrinterForStaff.and.returnValue(
+      of(fiscalSettings({
+        fiscalCountryCode: 'RO',
+        fiscalPrintingEnabled: true,
+        fiscalProvider: 'epson-fiscal',
+        supportsInvoice: true,
+        supportsStornoReso: true,
+        defaultFiscalPrinterId: 'printer-1',
+      })),
+    );
+
+    component.loadReport();
+    await fixture.whenStable();
+
+    expect(component.supportsInvoice).toBeTrue();
+    expect(component.supportsStornoReso).toBeTrue();
+    expect(component.showFiscalActions).toBeTrue();
   });
 });

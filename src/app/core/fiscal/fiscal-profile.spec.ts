@@ -1,4 +1,5 @@
 import {
+  fiscalCapabilitiesForProvider,
   fiscalProfileForCountry,
   isFiscalCountrySupported,
   normalizeFiscalCountryCode,
@@ -8,6 +9,17 @@ describe('fiscal-profile', () => {
   it('normalizeFiscalCountryCode defaults to RO', () => {
     expect(normalizeFiscalCountryCode(undefined)).toBe('RO');
     expect(normalizeFiscalCountryCode('it')).toBe('IT');
+  });
+
+  it('fiscalCapabilitiesForProvider enables invoice on epson regardless of country', () => {
+    expect(fiscalCapabilitiesForProvider('epson-fiscal')).toEqual({
+      supportsInvoice: true,
+      supportsStornoReso: true,
+    });
+    expect(fiscalCapabilitiesForProvider('fiscalnet')).toEqual({
+      supportsInvoice: false,
+      supportsStornoReso: false,
+    });
   });
 
   it('fiscalProfileForCountry exposes IT invoice and storno capabilities', () => {
