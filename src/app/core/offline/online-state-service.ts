@@ -2,6 +2,7 @@ import { Injectable, inject, Injector } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SseConnectivityService } from './sse-connectivity.service';
+import { logConnectivityDebug } from './connectivity-debug.logger';
 
 function isCapacitorNative(): boolean {
   if (typeof window === 'undefined') return false;
@@ -50,6 +51,7 @@ export class OnlineStateService {
     });
 
     window.addEventListener('offline', () => {
+      logConnectivityDebug('H5', 'online-state-service', 'browser-offline-event', {});
       // Do not ping while DNS/network is down — that floods DevTools with ERR_NAME_NOT_RESOLVED.
       this.setOffline('browser-offline');
     });
@@ -143,6 +145,15 @@ export class OnlineStateService {
 
   private async executePing(): Promise<boolean> {
     const pingUrl = `${this.apiUrl}/api/ping-lite`;
+    const startedAt = Date.now();
+    const sseConnectivity = this.injector.get(SseConnectivityService);
+    const streamActiveBefore = sseConnectivity.isStreamActive();
+    logConnectivityDebug('H1', 'online-state-service.executePing', 'ping-start', {
+      streamActive: streamActiveBefore,
+      appOnline: this._isOnline,
+      navigatorOnLine: navigator.onLine,
+      timeoutMs: 3000,
+    });
     try {
       const hasAbortTimeout =
         typeof AbortSignal !== 'undefined' &&
@@ -154,8 +165,14 @@ export class OnlineStateService {
         ...(hasAbortTimeout ? { signal: AbortSignal.timeout(3000) } : {}),
       });
       const ok = res.ok || res.status < 500;
-      const sseConnectivity = this.injector.get(SseConnectivityService);
       const streamActive = sseConnectivity.isStreamActive();
+      logConnectivityDebug('H1', 'online-state-service.executePing', 'ping-end', {
+        ok,
+        status: res.status,
+        durationMs: Date.now() - startedAt,
+        streamActive,
+        appOnlineBefore: this._isOnline,
+      });
       // Recovery: successful ping must mark online even if SSE flag is stale after abort.
       if (ok && !this._isOnline) {
         this.notifyConnectivityPulse();
@@ -173,8 +190,16 @@ export class OnlineStateService {
       }
       return ok;
     } catch (err) {
-      const sseConnectivity = this.injector.get(SseConnectivityService);
-      if (!sseConnectivity.isStreamActive()) {
+      const streamActive = sseConnectivity.isStreamActive();
+      const errName = err instanceof Error ? err.name : 'unknown';
+      logConnectivityDebug('H1', 'online-state-service.executePing', 'ping-error', {
+        errName,
+        durationMs: Date.now() - startedAt,
+        streamActive,
+        appOnlineBefore: this._isOnline,
+        willReportFailed: !streamActive,
+      });
+      if (!streamActive) {
         sseConnectivity.reportPingFailed('ping-lite-error');
       }
       return false;
@@ -195,14 +220,22 @@ export class OnlineStateService {
     this.setOnline(reason);
   }
 
-  setOffline(_reason?: string): void {
+  setOffline(reason?: string): void {
     if (!this._isOnline) return;
+    logConnectivityDebug('H2', 'online-state-service.setOffline', 'transition-offline', {
+      reason: reason ?? 'unknown',
+      navigatorOnLine: navigator.onLine,
+    });
     this._isOnline = false;
     this.onlineSubject.next(false);
   }
 
-  setOnline(_reason?: string): void {
+  setOnline(reason?: string): void {
     if (this._isOnline) return;
+    logConnectivityDebug('H2', 'online-state-service.setOnline', 'transition-online', {
+      reason: reason ?? 'unknown',
+      navigatorOnLine: navigator.onLine,
+    });
     this._isOnline = true;
     this.onlineSubject.next(true);
   }
