@@ -178,11 +178,11 @@
                               {{ 'orderHistory.issueStorno' | transloco }}
                             </button>
                           }
-                          @if (issuedInvoiceForOrder(orderIdForRow(row)); as invoiceDoc) {
+                          @if (canShowInvoicePdf(row)) {
                             <app-fiscal-receipt-actions
                               [restaurantId]="restaurantId"
                               [orderId]="orderIdForRow(row)"
-                              [fiscalDocumentId]="invoiceDoc.id"
+                              [fiscalDocumentId]="invoicePdfFiscalDocumentId(row)"
                               [apiScope]="apiScope"
                             />
                           }
@@ -249,15 +249,6 @@
                                     — {{ 'orderHistory.fiscalDocStorned' | transloco }}
                                   }
                                 </span>
-                                @if (canDownloadFiscalPdf(doc, orderIdForRow(row))) {
-                                  <app-fiscal-receipt-actions
-                                    [restaurantId]="restaurantId"
-                                    [orderId]="orderIdForRow(row)"
-                                    [fiscalDocumentId]="doc.id"
-                                    [apiScope]="apiScope"
-                                    [compact]="true"
-                                  />
-                                }
                               </li>
                             }
                           </ul>

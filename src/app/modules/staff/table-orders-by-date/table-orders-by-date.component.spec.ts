@@ -369,6 +369,7 @@ describe('TableOrdersByDateComponent', () => {
 
   it('should expose issued invoice document for PDF actions', () => {
     component.fiscalPrintingEnabled = true;
+    component.supportsInvoice = true;
     component.fiscalDocumentsByOrder = new Map([
       [
         'o1',
@@ -392,7 +393,45 @@ describe('TableOrdersByDateComponent', () => {
     ]);
 
     expect(component.issuedInvoiceForOrder('o1')?.id).toBe('inv-1');
-    expect(component.canDownloadFiscalPdf(component.issuedInvoiceForOrder('o1')!, 'o1')).toBeTrue();
+    expect(component.invoicePdfFiscalDocumentId(component.orderRows[0])).toBe('inv-1');
+    expect(component.canShowInvoicePdf(component.orderRows[0])).toBeTrue();
+  });
+
+  it('should allow invoice PDF for closed order without issued printer invoice when no receipt exists', () => {
+    component.fiscalPrintingEnabled = true;
+    component.supportsInvoice = true;
+    component.fiscalDocumentsByOrder = new Map();
+
+    expect(component.canShowInvoicePdf(component.orderRows[0])).toBeTrue();
+    expect(component.invoicePdfFiscalDocumentId(component.orderRows[0])).toBeNull();
+  });
+
+  it('should hide invoice PDF when an active receipt exists', () => {
+    component.fiscalPrintingEnabled = true;
+    component.supportsInvoice = true;
+    component.fiscalDocumentsByOrder = new Map([
+      [
+        'o1',
+        [
+          {
+            id: 'r1',
+            orderId: 'o1',
+            printJobId: 'job-1',
+            documentType: 'Receipt',
+            status: 'Issued',
+            fiscalNumber: '100',
+            zReportNumber: '1',
+            fiscalDate: null,
+            referencedFiscalDocumentId: null,
+            provider: 'epson-fiscal',
+            createdAtUtc: '2026-07-22T10:00:00Z',
+            issuedAtUtc: '2026-07-22T10:01:00Z',
+          },
+        ],
+      ],
+    ]);
+
+    expect(component.canShowInvoicePdf(component.orderRows[0])).toBeFalse();
   });
 
   it('should show fiscal actions for RO invoice flow when epson printer is configured', () => {
