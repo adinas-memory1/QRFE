@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import type { FiscalInvoiceCustomerDetails } from '../../fiscal/fiscal-invoice-customer.model';
 
 export type FiscalReceiptPdfApiScope = 'public' | 'staff' | 'admin';
 
@@ -16,6 +17,10 @@ export interface FiscalReceiptPdfStatus {
 export interface EmailFiscalReceiptPdfResult {
   sent: boolean;
   message?: string | null;
+}
+
+export interface FiscalReceiptPdfRequest extends FiscalInvoiceCustomerDetails {
+  fiscalDocumentId?: string | null;
 }
 
 function normalizeStatus(raw: unknown): FiscalReceiptPdfStatus {
@@ -47,6 +52,20 @@ function normalizeEmailResult(raw: unknown): EmailFiscalReceiptPdfResult {
   };
 }
 
+function buildRequestBody(
+  customer: FiscalInvoiceCustomerDetails,
+  fiscalDocumentId?: string | null,
+): Record<string, unknown> {
+  return {
+    fiscalDocumentId: fiscalDocumentId ?? null,
+    customerName: customer.customerName.trim(),
+    customerFiscalCode: customer.customerFiscalCode.trim(),
+    customerAddressLine1: customer.customerAddressLine1.trim(),
+    customerAddressLine2: customer.customerAddressLine2?.trim() || null,
+    paymentMethod: customer.paymentMethod,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class FiscalReceiptPdfService {
   private readonly apiUrl = environment.apiUrl;
@@ -74,16 +93,13 @@ export class FiscalReceiptPdfService {
     restaurantId: string,
     orderId: string,
     apiScope: FiscalReceiptPdfApiScope,
+    customer: FiscalInvoiceCustomerDetails,
     fiscalDocumentId?: string | null,
   ): Observable<Blob> {
-    let params = new HttpParams();
-    if (fiscalDocumentId) {
-      params = params.set('fiscalDocumentId', fiscalDocumentId);
-    }
-
-    return this.http.get(
+    return this.http.post(
       `${this.orderBase(restaurantId, orderId, apiScope)}/fiscal-receipt-pdf`,
-      { params, responseType: 'blob', withCredentials: true },
+      buildRequestBody(customer, fiscalDocumentId),
+      { responseType: 'blob', withCredentials: true },
     );
   }
 
@@ -92,13 +108,14 @@ export class FiscalReceiptPdfService {
     orderId: string,
     email: string,
     apiScope: FiscalReceiptPdfApiScope,
+    customer: FiscalInvoiceCustomerDetails,
     fiscalDocumentId?: string | null,
   ): Observable<EmailFiscalReceiptPdfResult> {
     return this.http.post<unknown>(
       `${this.orderBase(restaurantId, orderId, apiScope)}/fiscal-receipt-pdf/email`,
       {
         email: email.trim(),
-        fiscalDocumentId: fiscalDocumentId ?? null,
+        ...buildRequestBody(customer, fiscalDocumentId),
       },
       { withCredentials: true },
     ).pipe(map(normalizeEmailResult));

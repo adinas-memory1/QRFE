@@ -398,6 +398,7 @@
       "title": "Fattura fiscale",
       "menu": "Azioni fattura fiscale",
       "download": "Scarica fattura PDF",
+      "continueToEmail": "Continua",
       "email": "Invia fattura via email",
       "emailTitle": "Invia fattura fiscale",
       "emailLabel": "Indirizzo email",

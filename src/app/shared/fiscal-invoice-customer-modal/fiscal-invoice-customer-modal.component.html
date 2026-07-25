@@ -1,0 +1,69 @@
+<c-modal [visible]="visible" (visibleChange)="onVisibleChange($event)" alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>{{ 'orderHistory.invoiceModalTitle' | transloco }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3">
+      <label cLabel for="fiscalInvoiceCustomerName">{{ 'orderHistory.customerName' | transloco }}</label>
+      <input
+        cFormControl
+        id="fiscalInvoiceCustomerName"
+        [(ngModel)]="customerName"
+        name="fiscalInvoiceCustomerName"
+      />
+    </div>
+    <div class="mb-3">
+      <label cLabel for="fiscalInvoiceCustomerFiscalCode">{{ 'orderHistory.customerFiscalCode' | transloco }}</label>
+      <input
+        cFormControl
+        id="fiscalInvoiceCustomerFiscalCode"
+        [(ngModel)]="customerFiscalCode"
+        name="fiscalInvoiceCustomerFiscalCode"
+      />
+    </div>
+    <div class="mb-3">
+      <label cLabel for="fiscalInvoiceCustomerAddressLine1">{{ 'orderHistory.customerAddressLine1' | transloco }}</label>
+      <input
+        cFormControl
+        id="fiscalInvoiceCustomerAddressLine1"
+        [(ngModel)]="customerAddressLine1"
+        name="fiscalInvoiceCustomerAddressLine1"
+      />
+    </div>
+    <div class="mb-3">
+      <label cLabel for="fiscalInvoiceCustomerAddressLine2">{{ 'orderHistory.customerAddressLine2' | transloco }}</label>
+      <input
+        cFormControl
+        id="fiscalInvoiceCustomerAddressLine2"
+        [(ngModel)]="customerAddressLine2"
+        name="fiscalInvoiceCustomerAddressLine2"
+      />
+    </div>
+    <div class="mb-0">
+      <label cLabel for="fiscalInvoicePaymentMethod">{{ 'orderHistory.paymentMethod' | transloco }}</label>
+      <select
+        cFormControl
+        id="fiscalInvoicePaymentMethod"
+        [(ngModel)]="paymentMethod"
+        name="fiscalInvoicePaymentMethod"
+      >
+        <option value="cash">{{ 'orderHistory.paymentCash' | transloco }}</option>
+        <option value="card">{{ 'orderHistory.paymentCard' | transloco }}</option>
+      </select>
+    </div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" [disabled]="submitting" (click)="onCancel()">
+      {{ 'orderHistory.cancel' | transloco }}
+    </button>
+    <button
+      cButton
+      color="primary"
+      type="button"
+      [disabled]="submitting || !canSubmit()"
+      (click)="onSubmit()"
+    >
+      {{ confirmLabelKey | transloco }}
+    </button>
+  </c-modal-footer>
+</c-modal>
