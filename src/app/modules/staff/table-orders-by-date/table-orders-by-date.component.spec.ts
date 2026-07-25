@@ -454,7 +454,34 @@ describe('TableOrdersByDateComponent', () => {
     expect(component.canIssueInvoice(component.orderRows[0])).toBeTrue();
   });
 
-  it('should apply supportsInvoice from fiscal settings API response', async () => {
+  it('should apply supportsInvoice for RO FiscalNet from fiscal settings API response', async () => {
+    printJobs.getFiscalPrinterSettings.and.returnValue(
+      of(fiscalSettings({
+        fiscalCountryCode: 'RO',
+        fiscalPrintingEnabled: true,
+        fiscalProvider: 'fiscalnet',
+        supportsInvoice: true,
+        supportsStornoReso: false,
+        defaultFiscalPrinterId: 'fiscal-1',
+      })),
+    );
+
+    const user = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService> & {
+      getUserSnapshot: () => { restaurantId: string; role: string };
+    };
+    spyOn(user, 'getUserSnapshot').and.returnValue({ restaurantId: 'r1', role: 'manager' });
+    component.ngOnInit();
+    component.loadReport();
+    await fixture.whenStable();
+
+    expect(component.supportsInvoice).toBeTrue();
+    expect(component.supportsStornoReso).toBeFalse();
+    expect(component.showFiscalActions).toBeTrue();
+    expect(component.canIssueInvoice(component.orderRows[0])).toBeTrue();
+    expect(component.canShowInvoicePdf(component.orderRows[0])).toBeTrue();
+  });
+
+  it('should apply supportsInvoice from fiscal settings API response for Epson', async () => {
     printJobs.getDefaultFiscalPrinterForStaff.and.returnValue(
       of(fiscalSettings({
         fiscalCountryCode: 'RO',

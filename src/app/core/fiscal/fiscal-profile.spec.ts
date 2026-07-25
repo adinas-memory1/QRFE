@@ -17,7 +17,7 @@ describe('fiscal-profile', () => {
       supportsStornoReso: true,
     });
     expect(fiscalCapabilitiesForProvider('fiscalnet')).toEqual({
-      supportsInvoice: false,
+      supportsInvoice: true,
       supportsStornoReso: false,
     });
   });
@@ -31,10 +31,10 @@ describe('fiscal-profile', () => {
     });
   });
 
-  it('fiscalProfileForCountry keeps RO on receipt-only flow', () => {
+  it('fiscalProfileForCountry exposes RO invoice via FiscalNet', () => {
     expect(fiscalProfileForCountry('RO')).toEqual({
       supportsFiscalPrinting: true,
-      supportsInvoice: false,
+      supportsInvoice: true,
       supportsStornoReso: false,
       expectedPrinterType: 'fiscalnet',
     });
