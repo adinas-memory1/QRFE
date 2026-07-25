@@ -410,17 +410,15 @@ export class TableOrdersByDateComponent implements OnInit {
     ) ?? null;
   }
 
-  canDownloadFiscalPdf(document: FiscalDocumentDto, orderId: string): boolean {
-    if (!this.showFiscalActions) {
+  canShowInvoicePdf(row: OrderHistoryRow): boolean {
+    if (!this.showFiscalActions || !this.supportsInvoice || !this.isClosedOrder(row)) {
       return false;
     }
-    if (document.documentType.trim().toLowerCase() !== 'invoice') {
-      return false;
-    }
-    if (!isIssuedFiscalDocumentStatus(document.status)) {
-      return false;
-    }
-    return !this.documentIsStorned(document, orderId);
+    return !hasActiveReceipt(this.documentsForOrder(this.orderIdForRow(row)));
+  }
+
+  invoicePdfFiscalDocumentId(row: OrderHistoryRow): string | null {
+    return this.issuedInvoiceForOrder(this.orderIdForRow(row))?.id ?? null;
   }
 
   documentStatusLabel(status: string): string {
