@@ -4,6 +4,7 @@ import { AuthService, isHttpAuthFailure } from '../auth/auth.service';
 import { NativeAuthTokenService } from '../auth/native-auth-token.service';
 import { Router } from '@angular/router';
 import { SseConnectivityService } from '../offline/sse-connectivity.service';
+import { logConnectivityHttpFailure } from '../offline/connectivity-debug.logger';
 import { catchError, switchMap, throwError, timeout } from 'rxjs';
 
 const REFRESH_TIMEOUT_MS = 15_000;
@@ -40,8 +41,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 0) {
-        if (!req.context.get(SKIP_CONNECTIVITY_OFFLINE)) {
+        const skipOffline = req.context.get(SKIP_CONNECTIVITY_OFFLINE);
+        if (!skipOffline) {
+          logConnectivityHttpFailure(req.url, 'H3');
           sseConnectivity.reportHttpNetworkFailure();
+        } else {
+          logConnectivityHttpFailure(req.url, 'H5');
         }
         return throwError(() => error);
       }

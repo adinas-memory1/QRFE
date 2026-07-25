@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { Subject } from 'rxjs';
 import { OnlineStateService } from './online-state-service';
+import { logConnectivityDebug } from './connectivity-debug.logger';
 
 /** Must stay aligned with SSEController KeepAliveLoop delay (seconds) + grace. */
 export const SSE_PULSE_INTERVAL_MS = 5_000;
@@ -110,6 +111,13 @@ export class SseConnectivityService {
   }
 
   reportHttpNetworkFailure(): void {
+    const pulseAge = this.lastPulseAt > 0 ? Date.now() - this.lastPulseAt : null;
+    logConnectivityDebug('H3', 'sse-connectivity.reportHttpNetworkFailure', 'http-network-failure', {
+      streamOpen: this.streamOpen,
+      pulseAgeMs: pulseAge,
+      appOnline: this.onlineState.isOnline,
+      native: Capacitor.isNativePlatform(),
+    });
     // Android background: unrelated API calls (lock poll, sync) fail while SSE is still healthy.
     if (this.streamOpen && Capacitor.isNativePlatform()) {
       const pulseAge = this.lastPulseAt > 0 ? Date.now() - this.lastPulseAt : Number.POSITIVE_INFINITY;
@@ -153,6 +161,12 @@ export class SseConnectivityService {
 
   /** Ping-lite failed — only when SSE is not active (bootstrap / pre-stream). */
   reportPingFailed(reason: string): void {
+    logConnectivityDebug('H4', 'sse-connectivity.reportPingFailed', 'ping-failed', {
+      reason,
+      streamOpen: this.streamOpen,
+      appOnline: this.onlineState.isOnline,
+      pulseAgeMs: this.lastPulseAt > 0 ? Date.now() - this.lastPulseAt : null,
+    });
     if (this.streamOpen) {
       return;
     }
@@ -173,6 +187,13 @@ export class SseConnectivityService {
   }
 
   private scheduleOffline(reason: string): void {
+    logConnectivityDebug('H2', 'sse-connectivity.scheduleOffline', 'offline-scheduled', {
+      reason,
+      streamOpen: this.streamOpen,
+      pulseAgeMs: this.lastPulseAt > 0 ? Date.now() - this.lastPulseAt : null,
+      appOnline: this.onlineState.isOnline,
+      debouncePending: this.offlineDebounceTimer !== null,
+    });
     if (this.onlineState.isOnline === false && reason === 'stale-watch') {
       // Already offline: still clear zombie streamOpen so ping-lite can restore online.
       if (this.streamOpen) {
@@ -187,8 +208,18 @@ export class SseConnectivityService {
     this.offlineDebounceTimer = setTimeout(() => {
       this.offlineDebounceTimer = null;
       const pulseStale = this.lastPulseAt > 0 && Date.now() - this.lastPulseAt > STALE_THRESHOLD_MS;
+      const pulseAgeMs = this.lastPulseAt > 0 ? Date.now() - this.lastPulseAt : null;
       const zombieStream = pulseStale && this.streamOpen;
       const stale = !this.streamOpen || pulseStale;
+      logConnectivityDebug('H2', 'sse-connectivity.scheduleOffline', 'offline-debounce-fired', {
+        reason,
+        pulseAgeMs,
+        pulseStale,
+        streamOpen: this.streamOpen,
+        zombieStream,
+        stale,
+        appOnline: this.onlineState.isOnline,
+      });
       if (zombieStream) {
         // Abort zombie stream without marking offline (mutation-driven offline).
         // Consumer must not blindly reopen — ping/online first (see forceReconnect$ handler).
