@@ -12,6 +12,11 @@ function isCapacitorNative(): boolean {
   );
 }
 
+/** Gateway/proxy blips during SSE zombie recovery — not true offline when browser is online. */
+function isTransientGatewayStatus(status: number): boolean {
+  return status === 502 || status === 503 || status === 504;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OnlineStateService {
   private readonly injector = inject(Injector);
@@ -185,6 +190,12 @@ export class OnlineStateService {
       if (ok) {
         this.notifyConnectivityPulse();
         sseConnectivity.reportPingSuccess();
+      } else if (isTransientGatewayStatus(res.status) && navigator.onLine) {
+        logConnectivityDebug('H5', 'online-state-service.executePing', 'ping-transient-gateway', {
+          status: res.status,
+          streamActive,
+          appOnlineBefore: this._isOnline,
+        });
       } else {
         sseConnectivity.reportPingFailed('ping-lite-fail');
       }

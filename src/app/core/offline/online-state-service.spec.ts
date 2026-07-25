@@ -86,6 +86,27 @@ describe('OnlineStateService', () => {
     expect(emitted).toBe(false);
   }));
 
+  it('does not mark offline on transient gateway 504 when browser is online', fakeAsync(async () => {
+    fetchSpy.and.returnValue(Promise.resolve({ ok: false, status: 504 }));
+    sseConnectivity.isStreamActive.and.returnValue(false);
+
+    await service.confirmConnectivity(true);
+    tick();
+
+    expect(sseConnectivity.reportPingFailed).not.toHaveBeenCalled();
+    expect(service.isOnline).toBe(true);
+  }));
+
+  it('still marks offline on non-transient HTTP 500 when stream inactive', fakeAsync(async () => {
+    fetchSpy.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+    sseConnectivity.isStreamActive.and.returnValue(false);
+
+    await service.confirmConnectivity(true);
+    tick();
+
+    expect(sseConnectivity.reportPingFailed).toHaveBeenCalledWith('ping-lite-fail');
+  }));
+
   it('confirmConnectivity emits resume path even when already online', fakeAsync(async () => {
     expect(service.isOnline).toBe(true);
     const resumePromise = firstValueFrom(service.resumeConnectivityOk$);
