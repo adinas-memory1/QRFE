@@ -1,24 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, Input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import {
   ButtonDirective,
   DropdownComponent,
   DropdownItemDirective,
   DropdownMenuDirective,
   DropdownToggleDirective,
-  FormControlDirective,
-  FormLabelDirective,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalFooterComponent,
-  ModalHeaderComponent,
-  ModalTitleDirective,
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { FiscalInvoiceCustomerDetails } from '../../core/fiscal/fiscal-invoice-customer.model';
+import { isFiscalInvoiceEmailValid } from '../../core/fiscal/fiscal-invoice-customer.model';
 import {
   FiscalReceiptPdfApiScope,
   FiscalReceiptPdfService,
@@ -32,19 +25,11 @@ type PendingPdfAction = 'download' | 'email';
   selector: 'app-fiscal-receipt-actions',
   standalone: true,
   imports: [
-    FormsModule,
     ButtonDirective,
     DropdownComponent,
     DropdownToggleDirective,
     DropdownMenuDirective,
     DropdownItemDirective,
-    FormControlDirective,
-    FormLabelDirective,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalTitleDirective,
-    ModalBodyComponent,
-    ModalFooterComponent,
     IconDirective,
     TranslocoPipe,
     FiscalInvoiceCustomerModalComponent,
@@ -61,12 +46,9 @@ export class FiscalReceiptActionsComponent {
   busy = false;
   customerModalVisible = false;
   customerModalConfirmKey = 'client.fiscalReceiptPdf.download';
+  customerModalTitleKey = 'orderHistory.invoiceModalTitle';
+  requireCustomerEmail = false;
   pendingAction: PendingPdfAction | null = null;
-  pendingCustomer: FiscalInvoiceCustomerDetails | null = null;
-
-  emailModalVisible = false;
-  emailAddress = '';
-  emailSending = false;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly fiscalReceiptPdf = inject(FiscalReceiptPdfService);
@@ -75,13 +57,17 @@ export class FiscalReceiptActionsComponent {
 
   requestDownload(): void {
     this.pendingAction = 'download';
+    this.requireCustomerEmail = false;
+    this.customerModalTitleKey = 'orderHistory.invoiceModalTitle';
     this.customerModalConfirmKey = 'client.fiscalReceiptPdf.download';
     this.customerModalVisible = true;
   }
 
   requestEmail(): void {
     this.pendingAction = 'email';
-    this.customerModalConfirmKey = 'client.fiscalReceiptPdf.continueToEmail';
+    this.requireCustomerEmail = true;
+    this.customerModalTitleKey = 'orderHistory.emailInvoiceModalTitle';
+    this.customerModalConfirmKey = 'orderHistory.sendInvoiceEmail';
     this.customerModalVisible = true;
   }
 
@@ -92,11 +78,7 @@ export class FiscalReceiptActionsComponent {
     }
 
     if (this.pendingAction === 'email') {
-      this.pendingCustomer = customer;
-      this.customerModalVisible = false;
-      this.pendingAction = null;
-      this.emailAddress = '';
-      this.emailModalVisible = true;
+      this.sendEmail(customer);
     }
   }
 
@@ -130,27 +112,27 @@ export class FiscalReceiptActionsComponent {
       });
   }
 
-  sendEmail(): void {
-    const email = this.emailAddress.trim();
-    if (!email.includes('@') || this.emailSending || !this.pendingCustomer) {
+  sendEmail(customer: FiscalInvoiceCustomerDetails): void {
+    const email = customer.customerEmail?.trim() ?? '';
+    if (!isFiscalInvoiceEmailValid(email) || this.busy) {
       return;
     }
 
-    this.emailSending = true;
+    this.busy = true;
     this.fiscalReceiptPdf.emailPdf(
       this.restaurantId,
       this.orderId,
       email,
       this.apiScope,
-      this.pendingCustomer,
+      customer,
       this.fiscalDocumentId,
     ).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: result => {
-          this.emailSending = false;
+          this.busy = false;
           if (result.sent) {
-            this.emailModalVisible = false;
-            this.pendingCustomer = null;
+            this.customerModalVisible = false;
+            this.pendingAction = null;
             this.toast.success(this.transloco.translate('client.fiscalReceiptPdf.emailSent'));
             return;
           }
@@ -158,16 +140,12 @@ export class FiscalReceiptActionsComponent {
             result.message ?? this.transloco.translate('client.fiscalReceiptPdf.emailError'),
           );
         },
-        error: err => {
-          this.emailSending = false;
-          this.handleError(err, 'client.fiscalReceiptPdf.emailError');
-        },
+        error: err => this.handleError(err, 'client.fiscalReceiptPdf.emailError'),
       });
   }
 
   private handleError(err: unknown, messageKey: string): void {
     this.busy = false;
-    this.emailSending = false;
     const status = err instanceof HttpErrorResponse ? err.status : 0;
     const msg = status === 429
       ? this.transloco.translate('client.fiscalReceiptPdf.rateLimited')

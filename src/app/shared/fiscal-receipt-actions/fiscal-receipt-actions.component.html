@@ -8,7 +8,7 @@
       cDropdownToggle
       [caret]="false"
       type="button"
-      [disabled]="busy || emailSending"
+      [disabled]="busy"
       [attr.aria-label]="'client.fiscalReceiptPdf.menu' | transloco"
     >
       <svg cIcon name="cilOptions" size="sm"></svg>
@@ -28,36 +28,7 @@
   [(visible)]="customerModalVisible"
   [submitting]="busy"
   [confirmLabelKey]="customerModalConfirmKey"
+  [titleKey]="customerModalTitleKey"
+  [requireEmail]="requireCustomerEmail"
   (confirm)="onCustomerConfirmed($event)"
 />
-
-<c-modal [(visible)]="emailModalVisible" alignment="center">
-  <c-modal-header>
-    <h5 cModalTitle>{{ 'client.fiscalReceiptPdf.emailTitle' | transloco }}</h5>
-  </c-modal-header>
-  <c-modal-body>
-    <label cLabel for="fiscalReceiptEmail">{{ 'client.fiscalReceiptPdf.emailLabel' | transloco }}</label>
-    <input
-      cFormControl
-      id="fiscalReceiptEmail"
-      type="email"
-      autocomplete="email"
-      [(ngModel)]="emailAddress"
-      [placeholder]="'client.fiscalReceiptPdf.emailPlaceholder' | transloco"
-    />
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" type="button" (click)="emailModalVisible = false">
-      {{ 'client.fiscalReceiptPdf.cancel' | transloco }}
-    </button>
-    <button
-      cButton
-      color="primary"
-      type="button"
-      [disabled]="emailSending || !emailAddress.includes('@')"
-      (click)="sendEmail()"
-    >
-      {{ 'client.fiscalReceiptPdf.emailSubmit' | transloco }}
-    </button>
-  </c-modal-footer>
-</c-modal>
