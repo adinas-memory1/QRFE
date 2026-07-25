@@ -266,44 +266,12 @@
   </c-card>
 </c-container>
 
-<c-modal [(visible)]="invoiceModalVisible" alignment="center">
-  <c-modal-header>
-    <h5 cModalTitle>{{ 'orderHistory.invoiceModalTitle' | transloco }}</h5>
-  </c-modal-header>
-  <c-modal-body>
-    <div class="mb-3">
-      <label cLabel for="invoiceCustomerName">{{ 'orderHistory.customerName' | transloco }}</label>
-      <input cFormControl id="invoiceCustomerName" [(ngModel)]="invoiceCustomerName" name="invoiceCustomerName" />
-    </div>
-    <div class="mb-3">
-      <label cLabel for="invoiceCustomerFiscalCode">{{ 'orderHistory.customerFiscalCode' | transloco }}</label>
-      <input cFormControl id="invoiceCustomerFiscalCode" [(ngModel)]="invoiceCustomerFiscalCode" name="invoiceCustomerFiscalCode" />
-    </div>
-    <div class="mb-3">
-      <label cLabel for="invoiceCustomerAddressLine1">{{ 'orderHistory.customerAddressLine1' | transloco }}</label>
-      <input cFormControl id="invoiceCustomerAddressLine1" [(ngModel)]="invoiceCustomerAddressLine1" name="invoiceCustomerAddressLine1" />
-    </div>
-    <div class="mb-3">
-      <label cLabel for="invoiceCustomerAddressLine2">{{ 'orderHistory.customerAddressLine2' | transloco }}</label>
-      <input cFormControl id="invoiceCustomerAddressLine2" [(ngModel)]="invoiceCustomerAddressLine2" name="invoiceCustomerAddressLine2" />
-    </div>
-    <div class="mb-0">
-      <label cLabel for="invoicePaymentMethod">{{ 'orderHistory.paymentMethod' | transloco }}</label>
-      <select cFormControl id="invoicePaymentMethod" [(ngModel)]="invoicePaymentMethod" name="invoicePaymentMethod">
-        <option value="cash">{{ 'orderHistory.paymentCash' | transloco }}</option>
-        <option value="card">{{ 'orderHistory.paymentCard' | transloco }}</option>
-      </select>
-    </div>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" type="button" (click)="invoiceModalVisible = false">
-      {{ 'orderHistory.cancel' | transloco }}
-    </button>
-    <button cButton color="primary" type="button" [disabled]="fiscalSubmitting" (click)="submitInvoice()">
-      {{ 'orderHistory.issueInvoice' | transloco }}
-    </button>
-  </c-modal-footer>
-</c-modal>
+<app-fiscal-invoice-customer-modal
+  [(visible)]="invoiceModalVisible"
+  [submitting]="fiscalSubmitting"
+  confirmLabelKey="orderHistory.issueInvoice"
+  (confirm)="submitInvoice($event)"
+/>
 
 <c-modal [(visible)]="stornoModalVisible" alignment="center">
   <c-modal-header>

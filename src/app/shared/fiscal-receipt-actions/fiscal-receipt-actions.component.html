@@ -8,21 +8,28 @@
       cDropdownToggle
       [caret]="false"
       type="button"
-      [disabled]="busy"
+      [disabled]="busy || emailSending"
       [attr.aria-label]="'client.fiscalReceiptPdf.menu' | transloco"
     >
       <svg cIcon name="cilOptions" size="sm"></svg>
     </button>
     <div cDropdownMenu>
-      <button cDropdownItem type="button" (click)="downloadPdf()">
+      <button cDropdownItem type="button" (click)="requestDownload()">
         {{ 'client.fiscalReceiptPdf.download' | transloco }}
       </button>
-      <button cDropdownItem type="button" (click)="openEmailModal()">
+      <button cDropdownItem type="button" (click)="requestEmail()">
         {{ 'client.fiscalReceiptPdf.email' | transloco }}
       </button>
     </div>
   </c-dropdown>
 </div>
+
+<app-fiscal-invoice-customer-modal
+  [(visible)]="customerModalVisible"
+  [submitting]="busy"
+  [confirmLabelKey]="customerModalConfirmKey"
+  (confirm)="onCustomerConfirmed($event)"
+/>
 
 <c-modal [(visible)]="emailModalVisible" alignment="center">
   <c-modal-header>

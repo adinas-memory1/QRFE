@@ -41,6 +41,8 @@ import { TableDTO } from '../../../core/models/restaurantTablesModel';
 import { FiscalDocumentsService, type FiscalDocumentDto } from '../../../core/services/fiscal-documents/fiscal-documents.service';
 import { isIssuedFiscalDocumentStatus } from '../../../core/services/fiscal-receipt-pdf/fiscal-receipt-pdf.service';
 import { FiscalReceiptActionsComponent } from '../../../shared/fiscal-receipt-actions/fiscal-receipt-actions.component';
+import { FiscalInvoiceCustomerModalComponent } from '../../../shared/fiscal-invoice-customer-modal/fiscal-invoice-customer-modal.component';
+import type { FiscalInvoiceCustomerDetails } from '../../../core/fiscal/fiscal-invoice-customer.model';
 import { OrdersService } from '../../../core/services/order-service/orders.service';
 import { PrintJobsService, type FiscalPrinterSettingsDto } from '../../../core/services/print-jobs/print-jobs.service';
 import { TablesService } from '../../../core/services/tables-service/tables.service';
@@ -84,6 +86,7 @@ export interface OrderHistoryPeriodTotal {
     ModalTitleDirective,
     TranslocoPipe,
     FiscalReceiptActionsComponent,
+    FiscalInvoiceCustomerModalComponent,
   ],
   templateUrl: './table-orders-by-date.component.html',
   styleUrl: './table-orders-by-date.component.scss'
@@ -116,11 +119,6 @@ export class TableOrdersByDateComponent implements OnInit {
   stornoModalVisible = false;
   fiscalSubmitting = false;
   activeRow: OrderHistoryRow | null = null;
-  invoiceCustomerName = '';
-  invoiceCustomerFiscalCode = '';
-  invoiceCustomerAddressLine1 = '';
-  invoiceCustomerAddressLine2 = '';
-  invoicePaymentMethod: 'cash' | 'card' = 'cash';
   stornoPaymentMethod: 'cash' | 'card' = 'cash';
   selectedReferencedDocumentId = '';
 
@@ -510,31 +508,11 @@ export class TableOrdersByDateComponent implements OnInit {
 
   openInvoiceModal(row: OrderHistoryRow): void {
     this.activeRow = row;
-    this.invoiceCustomerName = '';
-    this.invoiceCustomerFiscalCode = '';
-    this.invoiceCustomerAddressLine1 = '';
-    this.invoiceCustomerAddressLine2 = '';
-    this.invoicePaymentMethod = 'cash';
     this.invoiceModalVisible = true;
   }
 
-  openStornoModal(row: OrderHistoryRow): void {
-    this.activeRow = row;
-    this.stornoPaymentMethod = 'cash';
-    const eligible = this.stornoEligibleDocuments(row);
-    this.selectedReferencedDocumentId = eligible[0]?.id ?? '';
-    this.stornoModalVisible = true;
-  }
-
-  async submitInvoice(): Promise<void> {
+  async submitInvoice(customer: FiscalInvoiceCustomerDetails): Promise<void> {
     if (!this.activeRow || !this.restaurantId || !this.defaultFiscalPrinterId) {
-      return;
-    }
-    if (!this.invoiceCustomerName.trim() || !this.invoiceCustomerFiscalCode.trim() || !this.invoiceCustomerAddressLine1.trim()) {
-      this.toast.error(
-        this.transloco.translate('orderHistory.fiscalInvoiceValidation'),
-        this.transloco.translate('orderHistory.fiscalActionErrorTitle'),
-      );
       return;
     }
 
@@ -544,12 +522,12 @@ export class TableOrdersByDateComponent implements OnInit {
         order: this.activeRow.order,
         tableName: this.activeRow.tableName,
         restaurantName: this.auth.getUserSnapshot()?.restaurantName ?? '',
-        paymentMethod: this.invoicePaymentMethod,
+        paymentMethod: customer.paymentMethod,
         customer: {
-          customerName: this.invoiceCustomerName,
-          customerFiscalCode: this.invoiceCustomerFiscalCode,
-          customerAddressLine1: this.invoiceCustomerAddressLine1,
-          customerAddressLine2: this.invoiceCustomerAddressLine2,
+          customerName: customer.customerName,
+          customerFiscalCode: customer.customerFiscalCode,
+          customerAddressLine1: customer.customerAddressLine1,
+          customerAddressLine2: customer.customerAddressLine2,
         },
         mapping: this.fiscalVatMapping,
       });
@@ -573,6 +551,14 @@ export class TableOrdersByDateComponent implements OnInit {
     } finally {
       this.fiscalSubmitting = false;
     }
+  }
+
+  openStornoModal(row: OrderHistoryRow): void {
+    this.activeRow = row;
+    this.stornoPaymentMethod = 'cash';
+    const eligible = this.stornoEligibleDocuments(row);
+    this.selectedReferencedDocumentId = eligible[0]?.id ?? '';
+    this.stornoModalVisible = true;
   }
 
   async submitStorno(): Promise<void> {

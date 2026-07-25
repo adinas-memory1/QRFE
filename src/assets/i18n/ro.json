@@ -405,6 +405,7 @@
       "title": "Factură fiscală",
       "menu": "Acțiuni factură fiscală",
       "download": "Descarcă factura PDF",
+      "continueToEmail": "Continuă",
       "email": "Trimite factura pe email",
       "emailTitle": "Trimite factura fiscală",
       "emailLabel": "Adresă email",

@@ -405,6 +405,7 @@
       "title": "Fiscal invoice",
       "menu": "Fiscal invoice actions",
       "download": "Download invoice PDF",
+      "continueToEmail": "Continue",
       "email": "Send invoice by email",
       "emailTitle": "Email fiscal invoice",
       "emailLabel": "Email address",

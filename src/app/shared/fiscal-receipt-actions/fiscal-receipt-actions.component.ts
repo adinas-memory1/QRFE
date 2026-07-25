@@ -18,11 +18,15 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import type { FiscalInvoiceCustomerDetails } from '../../core/fiscal/fiscal-invoice-customer.model';
 import {
   FiscalReceiptPdfApiScope,
   FiscalReceiptPdfService,
 } from '../../core/services/fiscal-receipt-pdf/fiscal-receipt-pdf.service';
 import { AppToastService } from '../../core/services/toast-service/toast-service.service';
+import { FiscalInvoiceCustomerModalComponent } from '../fiscal-invoice-customer-modal/fiscal-invoice-customer-modal.component';
+
+type PendingPdfAction = 'download' | 'email';
 
 @Component({
   selector: 'app-fiscal-receipt-actions',
@@ -43,6 +47,7 @@ import { AppToastService } from '../../core/services/toast-service/toast-service
     ModalFooterComponent,
     IconDirective,
     TranslocoPipe,
+    FiscalInvoiceCustomerModalComponent,
   ],
   templateUrl: './fiscal-receipt-actions.component.html',
   styleUrl: './fiscal-receipt-actions.component.scss',
@@ -54,6 +59,11 @@ export class FiscalReceiptActionsComponent {
   @Input() apiScope: FiscalReceiptPdfApiScope = 'public';
 
   busy = false;
+  customerModalVisible = false;
+  customerModalConfirmKey = 'client.fiscalReceiptPdf.download';
+  pendingAction: PendingPdfAction | null = null;
+  pendingCustomer: FiscalInvoiceCustomerDetails | null = null;
+
   emailModalVisible = false;
   emailAddress = '';
   emailSending = false;
@@ -63,20 +73,44 @@ export class FiscalReceiptActionsComponent {
   private readonly toast = inject(AppToastService);
   private readonly transloco = inject(TranslocoService);
 
-  openEmailModal(): void {
-    this.emailAddress = '';
-    this.emailModalVisible = true;
+  requestDownload(): void {
+    this.pendingAction = 'download';
+    this.customerModalConfirmKey = 'client.fiscalReceiptPdf.download';
+    this.customerModalVisible = true;
   }
 
-  downloadPdf(): void {
+  requestEmail(): void {
+    this.pendingAction = 'email';
+    this.customerModalConfirmKey = 'client.fiscalReceiptPdf.continueToEmail';
+    this.customerModalVisible = true;
+  }
+
+  onCustomerConfirmed(customer: FiscalInvoiceCustomerDetails): void {
+    if (this.pendingAction === 'download') {
+      this.downloadPdf(customer);
+      return;
+    }
+
+    if (this.pendingAction === 'email') {
+      this.pendingCustomer = customer;
+      this.customerModalVisible = false;
+      this.pendingAction = null;
+      this.emailAddress = '';
+      this.emailModalVisible = true;
+    }
+  }
+
+  downloadPdf(customer: FiscalInvoiceCustomerDetails): void {
     if (this.busy) {
       return;
     }
+
     this.busy = true;
     this.fiscalReceiptPdf.downloadPdf(
       this.restaurantId,
       this.orderId,
       this.apiScope,
+      customer,
       this.fiscalDocumentId,
     ).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -89,6 +123,8 @@ export class FiscalReceiptActionsComponent {
           anchor.click();
           URL.revokeObjectURL(url);
           this.busy = false;
+          this.customerModalVisible = false;
+          this.pendingAction = null;
         },
         error: err => this.handleError(err, 'client.fiscalReceiptPdf.downloadError'),
       });
@@ -96,7 +132,7 @@ export class FiscalReceiptActionsComponent {
 
   sendEmail(): void {
     const email = this.emailAddress.trim();
-    if (!email.includes('@') || this.emailSending) {
+    if (!email.includes('@') || this.emailSending || !this.pendingCustomer) {
       return;
     }
 
@@ -106,6 +142,7 @@ export class FiscalReceiptActionsComponent {
       this.orderId,
       email,
       this.apiScope,
+      this.pendingCustomer,
       this.fiscalDocumentId,
     ).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -113,6 +150,7 @@ export class FiscalReceiptActionsComponent {
           this.emailSending = false;
           if (result.sent) {
             this.emailModalVisible = false;
+            this.pendingCustomer = null;
             this.toast.success(this.transloco.translate('client.fiscalReceiptPdf.emailSent'));
             return;
           }
@@ -129,6 +167,7 @@ export class FiscalReceiptActionsComponent {
 
   private handleError(err: unknown, messageKey: string): void {
     this.busy = false;
+    this.emailSending = false;
     const status = err instanceof HttpErrorResponse ? err.status : 0;
     const msg = status === 429
       ? this.transloco.translate('client.fiscalReceiptPdf.rateLimited')
