@@ -619,7 +619,7 @@
     "hideItems": "Hide",
     "noItems": "No line items on this order.",
     "colFiscalActions": "Fiscal",
-    "issueInvoice": "Issue invoice",
+    "issueInvoice": "Print invoice",
     "issueStorno": "Storno (return)",
     "fiscalDocumentsTitle": "Fiscal documents",
     "fiscalDocReceipt": "Fiscal receipt",

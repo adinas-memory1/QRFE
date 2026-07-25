@@ -1,23 +1,8 @@
-<div class="fiscal-receipt-actions d-inline-flex align-items-center" [class.fiscal-receipt-actions--compact]="compact">
-  @if (!compact) {
-    <button
-      cButton
-      color="success"
-      variant="outline"
-      size="sm"
-      type="button"
-      class="fiscal-receipt-btn me-1"
-      [disabled]="busy"
-      (click)="downloadPdf()"
-    >
-      {{ 'client.fiscalReceiptPdf.title' | transloco }}
-    </button>
-  }
-
+<div class="fiscal-receipt-actions d-inline-flex align-items-center">
   <c-dropdown variant="btn-group" class="fiscal-receipt-menu">
     <button
       cButton
-      [variant]="compact ? 'ghost' : 'ghost'"
+      variant="ghost"
       size="sm"
       class="fiscal-receipt-menu-toggle"
       cDropdownToggle

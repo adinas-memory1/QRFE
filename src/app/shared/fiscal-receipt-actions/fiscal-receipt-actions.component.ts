@@ -52,7 +52,6 @@ export class FiscalReceiptActionsComponent {
   @Input({ required: true }) orderId!: string;
   @Input() fiscalDocumentId: string | null = null;
   @Input() apiScope: FiscalReceiptPdfApiScope = 'public';
-  @Input() compact = false;
 
   busy = false;
   emailModalVisible = false;
