@@ -13,8 +13,9 @@ export function fiscalCapabilitiesForProvider(
   fiscalProvider: ResolvedPrinterType | null | undefined,
 ): Pick<FiscalProfileCapabilities, 'supportsInvoice' | 'supportsStornoReso'> {
   const isEpson = fiscalProvider === 'epson-fiscal';
+  const isFiscalNet = fiscalProvider === 'fiscalnet';
   return {
-    supportsInvoice: isEpson,
+    supportsInvoice: isEpson || isFiscalNet,
     supportsStornoReso: isEpson,
   };
 }
@@ -36,7 +37,7 @@ export function fiscalProfileForCountry(countryCode: string | null | undefined):
 
   return {
     supportsFiscalPrinting: true,
-    supportsInvoice: false,
+    supportsInvoice: true,
     supportsStornoReso: false,
     expectedPrinterType: 'fiscalnet',
   };
