@@ -123,6 +123,11 @@ export class OrderSyncService {
       if (!this.snapshotRefreshInProgress) {
         this.reconcilingSubject.next(false);
       }
+      const rid = this.resolveRestaurantId();
+      if (rid && !this.controller && this.onlineStateService.isOnline) {
+        this.reconnectAttempts = 0;
+        this.openConnection(rid);
+      }
     });
 
     if (!Capacitor.isNativePlatform()) {
