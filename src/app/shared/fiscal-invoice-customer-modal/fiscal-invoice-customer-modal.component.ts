@@ -37,6 +37,8 @@ export class FiscalInvoiceCustomerModalComponent {
   @Input() visible = false;
   @Input() submitting = false;
   @Input() confirmLabelKey = 'orderHistory.issueInvoice';
+  @Input() titleKey = 'orderHistory.invoiceModalTitle';
+  @Input() requireEmail = false;
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() confirm = new EventEmitter<FiscalInvoiceCustomerDetails>();
@@ -45,6 +47,7 @@ export class FiscalInvoiceCustomerModalComponent {
   customerFiscalCode = '';
   customerAddressLine1 = '';
   customerAddressLine2 = '';
+  customerEmail = '';
   paymentMethod: 'cash' | 'card' = 'cash';
 
   onVisibleChange(value: boolean): void {
@@ -66,9 +69,10 @@ export class FiscalInvoiceCustomerModalComponent {
       customerAddressLine1: this.customerAddressLine1.trim(),
       customerAddressLine2: this.customerAddressLine2.trim() || undefined,
       paymentMethod: this.paymentMethod,
+      customerEmail: this.requireEmail ? this.customerEmail.trim() : undefined,
     };
 
-    if (!isFiscalInvoiceCustomerValid(customer)) {
+    if (!isFiscalInvoiceCustomerValid(customer, { requireEmail: this.requireEmail })) {
       return;
     }
 
@@ -76,12 +80,16 @@ export class FiscalInvoiceCustomerModalComponent {
   }
 
   canSubmit(): boolean {
-    return isFiscalInvoiceCustomerValid({
-      customerName: this.customerName,
-      customerFiscalCode: this.customerFiscalCode,
-      customerAddressLine1: this.customerAddressLine1,
-      paymentMethod: this.paymentMethod,
-    });
+    return isFiscalInvoiceCustomerValid(
+      {
+        customerName: this.customerName,
+        customerFiscalCode: this.customerFiscalCode,
+        customerAddressLine1: this.customerAddressLine1,
+        paymentMethod: this.paymentMethod,
+        customerEmail: this.customerEmail,
+      },
+      { requireEmail: this.requireEmail },
+    );
   }
 
   private resetFields(): void {
@@ -89,6 +97,7 @@ export class FiscalInvoiceCustomerModalComponent {
     this.customerFiscalCode = '';
     this.customerAddressLine1 = '';
     this.customerAddressLine2 = '';
+    this.customerEmail = '';
     this.paymentMethod = 'cash';
   }
 }

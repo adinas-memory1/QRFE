@@ -461,7 +461,7 @@ describe('TableOrdersByDateComponent', () => {
         fiscalPrintingEnabled: true,
         fiscalProvider: 'fiscalnet',
         supportsInvoice: true,
-        supportsStornoReso: false,
+        supportsStornoReso: true,
         defaultFiscalPrinterId: 'fiscal-1',
       })),
     );
@@ -475,7 +475,7 @@ describe('TableOrdersByDateComponent', () => {
     await fixture.whenStable();
 
     expect(component.supportsInvoice).toBeTrue();
-    expect(component.supportsStornoReso).toBeFalse();
+    expect(component.supportsStornoReso).toBeTrue();
     expect(component.showFiscalActions).toBeTrue();
     expect(component.canIssueInvoice(component.orderRows[0])).toBeTrue();
     expect(component.canShowInvoicePdf(component.orderRows[0])).toBeTrue();

@@ -18,7 +18,7 @@ describe('fiscal-profile', () => {
     });
     expect(fiscalCapabilitiesForProvider('fiscalnet')).toEqual({
       supportsInvoice: true,
-      supportsStornoReso: false,
+      supportsStornoReso: true,
     });
   });
 
@@ -35,7 +35,7 @@ describe('fiscal-profile', () => {
     expect(fiscalProfileForCountry('RO')).toEqual({
       supportsFiscalPrinting: true,
       supportsInvoice: true,
-      supportsStornoReso: false,
+      supportsStornoReso: true,
       expectedPrinterType: 'fiscalnet',
     });
   });

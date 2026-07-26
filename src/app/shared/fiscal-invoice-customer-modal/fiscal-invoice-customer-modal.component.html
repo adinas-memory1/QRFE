@@ -1,6 +1,6 @@
 <c-modal [visible]="visible" (visibleChange)="onVisibleChange($event)" alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>{{ 'orderHistory.invoiceModalTitle' | transloco }}</h5>
+    <h5 cModalTitle>{{ titleKey | transloco }}</h5>
   </c-modal-header>
   <c-modal-body>
     <div class="mb-3">
@@ -39,6 +39,20 @@
         name="fiscalInvoiceCustomerAddressLine2"
       />
     </div>
+    @if (requireEmail) {
+      <div class="mb-3">
+        <label cLabel for="fiscalInvoiceCustomerEmail">{{ 'orderHistory.customerEmail' | transloco }}</label>
+        <input
+          cFormControl
+          id="fiscalInvoiceCustomerEmail"
+          type="email"
+          autocomplete="email"
+          [(ngModel)]="customerEmail"
+          name="fiscalInvoiceCustomerEmail"
+          [placeholder]="'orderHistory.customerEmailPlaceholder' | transloco"
+        />
+      </div>
+    }
     <div class="mb-0">
       <label cLabel for="fiscalInvoicePaymentMethod">{{ 'orderHistory.paymentMethod' | transloco }}</label>
       <select
