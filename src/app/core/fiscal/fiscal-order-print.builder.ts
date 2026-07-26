@@ -21,6 +21,7 @@ export function buildFiscalPrintItemsFromOrder(
       name: item.orderItemName,
       quantity: item.quantity,
       unitPrice: item.orderItemPriceAmount ?? 0,
+      menuItemId: item.menuItemId,
     }));
 
   return buildFiscalPrintItems(items, mapping);
@@ -55,6 +56,8 @@ export function buildFiscalInvoicePayload(args: {
       name: item.name,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
+      menuItemId: item.menuItemId,
+      vatPercent: item.menuItemVatPercent,
       vatGroup: item.vatGroup,
     })),
   };
@@ -86,6 +89,8 @@ export function buildFiscalStornoResoPayload(args: {
       name: item.name,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
+      menuItemId: item.menuItemId,
+      vatPercent: item.menuItemVatPercent,
       vatGroup: item.vatGroup,
     })),
   };
