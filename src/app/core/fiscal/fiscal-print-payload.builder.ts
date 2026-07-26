@@ -4,6 +4,7 @@ export interface FiscalPrintItemInput {
   name: string;
   quantity: number;
   unitPrice: number;
+  menuItemId?: string;
   menuItemVatPercent?: number | null;
 }
 
