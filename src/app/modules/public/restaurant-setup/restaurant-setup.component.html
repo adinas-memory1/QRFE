@@ -40,12 +40,12 @@
                   <label cLabel for="city">City</label>
                   <input formControlName="city" cFormControl id="city" />
                 </c-col>
-                <c-col [xs]="12" [md]="4">
+                <c-col [xs]="12" [md]="isUsSelected ? 4 : 6">
                   <label cLabel for="country">Country</label>
                   <select formControlName="country" cSelect id="country">
                     <option value="">Choose...</option>
                     <option value="Romania">Romania</option>
-                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="United States">United States</option>
                     <option value="Italy">Italy</option>
                     <option value="France">France</option>
                     <option value="Spain">Spain</option>
@@ -53,7 +53,23 @@
                     <option value="Sweden">Sweden</option>
                   </select>
                 </c-col>
-                <c-col [xs]="12" [md]="2">
+                @if (isUsSelected) {
+                  <c-col [xs]="12" [md]="4">
+                    <label cLabel for="state">State</label>
+                    <select
+                      formControlName="state"
+                      cSelect
+                      id="state"
+                      [class.is-invalid]="restaurantSetupForm.get('state')?.invalid && restaurantSetupForm.get('state')?.touched"
+                    >
+                      <option value="">Choose state...</option>
+                      @for (s of usStateOptions; track s.code) {
+                        <option [value]="s.code">{{ s.name }}</option>
+                      }
+                    </select>
+                  </c-col>
+                }
+                <c-col [xs]="12" [md]="isUsSelected ? 4 : 6">
                   <label cLabel for="zip">ZIP</label>
                   <input formControlName="zip" cFormControl id="zip" />
                 </c-col>

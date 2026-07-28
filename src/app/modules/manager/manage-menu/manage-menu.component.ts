@@ -21,6 +21,7 @@ import { MenuItemServiceService } from '../../../core/services/menu-item-service
 import { filter, Subject, take, takeUntil } from 'rxjs';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { MenuItem, MenuManagementResponse } from '../../../core/models/menu/menuItem';
+import { US_SALES_TAX_CATEGORY_OPTIONS, UsSalesTaxCategory } from '../../../core/models/tax-calculation.model';
 import {
   canonicalMenuItemCategory,
   mergeManagementCategories,
@@ -59,7 +60,9 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 })
 export class ManageMenuComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private restaurantId = '';
+  readonly usSalesTaxCategories = US_SALES_TAX_CATEGORY_OPTIONS;
+  restaurantId = '';
+  restaurantCurrency = 'RON';
 
 
   menuItems: MenuItem[] = [];
@@ -94,6 +97,7 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
       menuItemDescription: ['', Validators.required],
       menuItemPriceAmount: [0, [Validators.required, Validators.min(0.01)]],
       menuItemVatPercent: [19, [Validators.required, Validators.min(0), Validators.max(100)]],
+      salesTaxCategory: [UsSalesTaxCategory.PreparedFood, Validators.required],
       menuItemCategory: ['', Validators.required],
       menuItemIcon: [null, Validators.required],
     });
@@ -103,6 +107,10 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
       isAvailable: [true],
       lines: this.fb.array([this.createSetMenuLineGroup()]),
     });
+  }
+
+  get isUsMarket(): boolean {
+    return this.restaurantCurrency === 'USD';
   }
 
   createSetMenuLineGroup(text = '', vatPercent = 19): FormGroup {
@@ -283,6 +291,9 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
             ...item,
             category: canonicalMenuItemCategory(item.category),
           }));
+          if (this.menuItems[0]?.menuItemPriceCurrency) {
+            this.restaurantCurrency = this.menuItems[0].menuItemPriceCurrency!;
+          }
           this.rebuildGroupedMenuItems();
         },
         error: err => console.error('[ManageMenuComponent] Error loading menu items', err)
@@ -368,6 +379,7 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
       menuItemDescription: item.menuItemDescription,
       menuItemPriceAmount: item.menuItemPriceAmount,
       menuItemVatPercent: item.menuItemVatPercent ?? 19,
+      salesTaxCategory: item.salesTaxCategory ?? UsSalesTaxCategory.PreparedFood,
       menuItemCategory: canonicalMenuItemCategory(item.category),
       menuItemIcon: null,
     });
@@ -429,6 +441,9 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
     formData.append('menuItemDescription', this.menuItemsForm.value.menuItemDescription);
     formData.append('menuItemPriceAmount', this.menuItemsForm.value.menuItemPriceAmount);
     formData.append('menuItemVatPercent', this.menuItemsForm.value.menuItemVatPercent);
+    if (this.isUsMarket && this.menuItemsForm.value.salesTaxCategory) {
+      formData.append('salesTaxCategory', this.menuItemsForm.value.salesTaxCategory);
+    }
     formData.append('menuItemCategory', canonicalMenuItemCategory(this.menuItemsForm.value.menuItemCategory));
     formData.append('sourceLocale', this.transloco.getActiveLang() || 'ro');
     if (iconFile instanceof File) {
