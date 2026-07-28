@@ -56,6 +56,15 @@ export class OrderComponent implements OnInit, OnDestroy {
     return this.validItems.reduce((sum, i) => sum + i.quantity, 0);
   }
 
+  get displayTotal(): number {
+    if (this.order?.totalAmount != null) return this.order.totalAmount;
+    return this.order?.subTotal?.amount ?? 0;
+  }
+
+  get isUsMarket(): boolean {
+    return this.order?.currency === 'USD';
+  }
+
   ngOnInit(): void {
     this.restaurantId = this.route.parent?.snapshot.paramMap.get('restaurantId') ?? '';
     this.tableId = this.route.parent?.snapshot.paramMap.get('tableId') ?? '';

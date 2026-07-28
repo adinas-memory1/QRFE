@@ -6,6 +6,7 @@ export interface RestaurantSetupFormModel {
   address: string;
   city: string;
   country: string;
+  state: string;
   zip: string;
   registrationNumber: string;
   sameAddressForBilling: boolean;

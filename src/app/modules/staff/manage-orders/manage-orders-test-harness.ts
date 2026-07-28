@@ -18,6 +18,7 @@ import { BarService } from '../../../core/services/bar-service/bar.service';
 import { PrintJobsService } from '../../../core/services/print-jobs/print-jobs.service';
 import { DeviceFeedbackService } from '../../../core/services/device/device-feedback.service';
 import { ReservationService } from '../../../core/services/reservation-service/reservation.service';
+import { FiscalDocumentsService } from '../../../core/services/fiscal-documents/fiscal-documents.service';
 import { COMMON_TEST_PROVIDERS } from '../../../testing/common-test-providers';
 import { TableDTO } from '../../../core/models/restaurantTablesModel';
 import { CartItem, TableComputedDTO } from '../../../core/models/orderingModel';
@@ -190,6 +191,7 @@ export interface ManageOrdersMocks {
     moveOrder: jasmine.Spy;
     getOrderPaymentLock: jasmine.Spy;
     closeOrder: jasmine.Spy;
+    calculateOrderTax: jasmine.Spy;
     listOpenOrderForTableWithFallback: jasmine.Spy;
   };
   sseService: {
@@ -235,6 +237,9 @@ export interface ManageOrdersMocks {
   };
   reservationService: {
     list: jasmine.Spy;
+  };
+  fiscalDocuments: {
+    listByOrder: jasmine.Spy;
   };
 }
 
@@ -345,6 +350,14 @@ export function createManageOrdersMocks(options: SetupManageOrdersOptions = {}):
       moveOrder: jasmine.createSpy('moveOrder').and.returnValue(of({ orderId: 'real-order-id' })),
       getOrderPaymentLock: jasmine.createSpy('getOrderPaymentLock').and.returnValue(of({ locked: false })),
       closeOrder: jasmine.createSpy('closeOrder').and.returnValue(of({})),
+      calculateOrderTax: jasmine.createSpy('calculateOrderTax').and.returnValue(of({
+        subTotal: 0,
+        taxAmount: 0,
+        total: 0,
+        currency: 'USD',
+        stripeCalculationId: 'test',
+        taxLines: [],
+      })),
       listOpenOrderForTableWithFallback: jasmine.createSpy('listOpenOrderForTableWithFallback').and.resolveTo(null),
     },
     sseService: {
@@ -417,6 +430,9 @@ export function createManageOrdersMocks(options: SetupManageOrdersOptions = {}):
     reservationService: {
       list: jasmine.createSpy('list').and.returnValue(of(options.reservations ?? [])),
     },
+    fiscalDocuments: {
+      listByOrder: jasmine.createSpy('listByOrder').and.returnValue(of([])),
+    },
   };
 }
 
@@ -445,6 +461,7 @@ export async function setupManageOrdersComponent(
       { provide: PrintJobsService, useValue: mocks.printJobs },
       { provide: DeviceFeedbackService, useValue: mocks.deviceFeedback },
       { provide: ReservationService, useValue: mocks.reservationService },
+      { provide: FiscalDocumentsService, useValue: mocks.fiscalDocuments },
       {
         provide: OfflinePolicyService,
         useValue: {

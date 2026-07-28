@@ -13,6 +13,7 @@ import {
   TableComputedDTO,
   UpdateOrderItemQuantityResponse,
 } from '../../models/orderingModel';
+import { TaxCalculationResult } from '../../models/tax-calculation.model';
 import { MenuItem } from '../../models/menu/menuItem';
 import { TableDTO } from '../../models/restaurantTablesModel';
 import { WaiterCallState } from '../../models/callWaiter/callWaiter';
@@ -133,11 +134,24 @@ export class OrdersService {
     tableId: string,
     orderId: string,
     options?: OrderRequestOptions,
+    paymentMethod = 'cash',
   ): Observable<OrderDTO> {
     return this.http.post<OrderDTO>(
-      `${this.apiUrl}/api/restaurants/${restaurantId}/staff/${tableId}/orders/${orderId}/close-order`,
+      `${this.apiUrl}/api/restaurants/${restaurantId}/staff/${tableId}/orders/${orderId}/close-order?paymentMethod=${encodeURIComponent(paymentMethod)}`,
       {},
       this.httpOpts(options),
+    );
+  }
+
+  calculateOrderTax(
+    restaurantId: string,
+    tableId: string,
+    orderId: string,
+  ): Observable<TaxCalculationResult> {
+    return this.http.post<TaxCalculationResult>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/staff/${tableId}/orders/${orderId}/calculate-tax`,
+      {},
+      { withCredentials: true },
     );
   }
 

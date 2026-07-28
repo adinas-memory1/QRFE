@@ -85,6 +85,22 @@
           <strong>{{ 'salesReports.closedOrderCount' | transloco }}</strong>
           {{ summary.orderCount }}
         </p>
+        @if (summary.totalTaxAmount != null && summary.totalTaxAmount > 0) {
+          <c-row class="g-3 mb-3">
+            <c-col xs="12" md="4">
+              <div class="border rounded p-3 h-100">
+                <div class="text-body-secondary small">{{ 'salesReports.totalSubTotal' | transloco }}</div>
+                <div class="fs-5 fw-semibold">{{ summary.totalSubTotal ?? 0 | number: '1.2-2' }}</div>
+              </div>
+            </c-col>
+            <c-col xs="12" md="4">
+              <div class="border rounded p-3 h-100">
+                <div class="text-body-secondary small">{{ 'salesReports.salesTaxCollected' | transloco }}</div>
+                <div class="fs-5 fw-semibold">{{ summary.totalTaxAmount | number: '1.2-2' }}</div>
+              </div>
+            </c-col>
+          </c-row>
+        }
         @if (summary.byCurrency.length) {
           <div class="table-responsive">
             <table cTable hover responsive class="mb-0">
@@ -92,6 +108,8 @@
                 <tr>
                   <th scope="col">{{ 'salesReports.colCurrency' | transloco }}</th>
                   <th scope="col">{{ 'salesReports.colOrders' | transloco }}</th>
+                  <th scope="col">{{ 'salesReports.colSubTotal' | transloco }}</th>
+                  <th scope="col">{{ 'salesReports.colTax' | transloco }}</th>
                   <th scope="col">{{ 'salesReports.colTotal' | transloco }}</th>
                 </tr>
               </thead>
@@ -100,6 +118,8 @@
                   <tr>
                     <td>{{ currencyLabel(row.currency) }}</td>
                     <td>{{ row.orderCount }}</td>
+                    <td>{{ (row.totalSubTotal ?? row.totalAmount) | number: '1.2-2' }}</td>
+                    <td>{{ (row.totalTaxAmount ?? 0) | number: '1.2-2' }}</td>
                     <td>{{ row.totalAmount | number: '1.2-2' }}</td>
                   </tr>
                 }

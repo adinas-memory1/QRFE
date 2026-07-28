@@ -51,6 +51,8 @@ export class PublicUrsShellComponent implements OnInit, OnDestroy {
   @Input() activeSection = 'top';
   @Input() showFooter = true;
   @Input() showFeedback = true;
+  /** Partner / reseller portal CTA in the public header. */
+  @Input() showPartnerPortal = false;
   @Input() mainTopPadding = '9rem';
 
   @Output() sectionNavigate = new EventEmitter<string>();
@@ -86,7 +88,7 @@ export class PublicUrsShellComponent implements OnInit, OnDestroy {
 
   get activeLang(): AppLang {
     const l = this.transloco.getActiveLang();
-    return (l === 'ro' || l === 'en' || l === 'it' || l === 'fr' || l === 'es' || l === 'de' || l === 'sv') ? l : 'ro';
+    return (l === 'ro' || l === 'en' || l === 'it' || l === 'fr' || l === 'es' || l === 'de' || l === 'sv') ? l : 'en';
   }
 
   get activeLangFlagClass(): string {
