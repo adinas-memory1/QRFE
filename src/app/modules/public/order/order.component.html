@@ -70,6 +70,24 @@
           <span>{{ order.subTotal!.amount | currency : order.subTotal!.currency : 'symbol' : '1.2-2' }}</span>
         </div>
       }
+      @if (isUsMarket && order.taxAmount != null && order.taxAmount > 0) {
+        @for (line of order.taxLines ?? []; track line.label) {
+          <div class="d-flex justify-content-between small text-muted mt-1">
+            <span>{{ line.label }}</span>
+            <span>{{ line.amount | currency : order.currency : 'symbol' : '1.2-2' }}</span>
+          </div>
+        }
+        @if (!order.taxLines?.length) {
+          <div class="d-flex justify-content-between small text-muted mt-1">
+            <span>{{ 'client.salesTax' | transloco }}</span>
+            <span>{{ order.taxAmount | currency : order.currency : 'symbol' : '1.2-2' }}</span>
+          </div>
+        }
+        <div class="d-flex justify-content-between fw-semibold mt-1">
+          <span>{{ 'client.total' | transloco }}</span>
+          <span>{{ displayTotal | currency : order.currency : 'symbol' : '1.2-2' }}</span>
+        </div>
+      }
 
       @if (cardPaymentsAvailable === true) {
         <div class="mt-3">

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   ContainerComponent,
   ButtonDirective,
@@ -21,6 +21,7 @@ import { RouterLink } from '@angular/router';
 import { CardBodyComponent, CardComponent, RowComponent } from '@coreui/angular';
 import { Currency } from '../../../core/models/restaurantTablesModel';
 import { MiscellaneousService } from '../../../core/services/misc/miscellaneous.service';
+import { US_STATE_OPTIONS, isUnitedStatesCountry } from '../../../core/constants/us-states';
 
 /** Fallback if GET /api/restaurants/currencies fails (same set as backend Currency enum). */
 const FALLBACK_OPERATING_CURRENCIES = Object.values(Currency) as string[];
@@ -56,6 +57,7 @@ export class RestaurantSetupComponent implements OnInit {
     address: FormControl<string>;
     city: FormControl<string>;
     country: FormControl<string>;
+    state: FormControl<string>;
     zip: FormControl<string>;
     registrationNumber: FormControl<string>;
     checkAddress: FormControl<boolean>;
@@ -63,6 +65,11 @@ export class RestaurantSetupComponent implements OnInit {
   }>;
 
   operatingCurrencyOptions: string[] = [...FALLBACK_OPERATING_CURRENCIES];
+  readonly usStateOptions = US_STATE_OPTIONS;
+
+  get isUsSelected(): boolean {
+    return isUnitedStatesCountry(this.restaurantSetupForm.get('country')?.value);
+  }
 
   private user: UserContextModel | null = null;
   private role: string | null = null;
@@ -79,6 +86,7 @@ export class RestaurantSetupComponent implements OnInit {
       address: this.fb.control('', { nonNullable: true }),
       city: this.fb.control('', { nonNullable: true }),
       country: this.fb.control('', { nonNullable: true }),
+      state: this.fb.control('', { nonNullable: true }),
       zip: this.fb.control('', { nonNullable: true }),
       registrationNumber: this.fb.control('', { nonNullable: true }),
       checkAddress: this.fb.control(false, { nonNullable: true }),
@@ -91,6 +99,11 @@ export class RestaurantSetupComponent implements OnInit {
   onSubmit() {
     const pending = this.subscriptionService.getPendingPlan();
     if (!pending) return;
+
+    if (this.restaurantSetupForm.invalid) {
+      this.restaurantSetupForm.markAllAsTouched();
+      return;
+    }
 
     if (!this.user) {
       this.router.navigate(['/login']);
@@ -106,6 +119,7 @@ export class RestaurantSetupComponent implements OnInit {
         address: formValue.address,
         city: formValue.city,
         country: formValue.country,
+        state: formValue.state,
         zip: formValue.zip,
         registrationNumber: formValue?.registrationNumber ?? '',
         sameAddressForBilling: formValue?.checkAddress,
@@ -160,6 +174,24 @@ export class RestaurantSetupComponent implements OnInit {
         this.restaurantSetupForm.get('billingAddress')?.enable(); // allow manual entry
       }
     });
+
+    this.restaurantSetupForm.get('country')?.valueChanges.subscribe(country => {
+      this.applyStateValidators(country);
+    });
+    this.applyStateValidators(this.restaurantSetupForm.get('country')?.value ?? '');
+  }
+
+  private applyStateValidators(country: string): void {
+    const stateControl = this.restaurantSetupForm.get('state');
+    if (!stateControl) return;
+
+    if (isUnitedStatesCountry(country)) {
+      stateControl.setValidators([Validators.required]);
+    } else {
+      stateControl.clearValidators();
+      stateControl.setValue('', { emitEvent: false });
+    }
+    stateControl.updateValueAndValidity({ emitEvent: false });
   }
 
 }

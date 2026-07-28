@@ -1,6 +1,7 @@
 import { categoryFromOrderLine, lookupMenuItem, menuItemWithNormalizedCategory } from "./menu/cart-item-category";
 import { MenuItem } from "./menu/menuItem";
 import { Currency, SeatDTO } from "./restaurantTablesModel";
+import { TaxLineDto } from "./tax-calculation.model";
 
 export interface OrderItemDTO {
   orderItemId?: string;
@@ -29,6 +30,10 @@ export interface OrderDTO {
   currency: Currency;
   isOrderOpen: boolean;
   subTotal?: MoneyDTO;
+  taxAmount?: number;
+  totalAmount?: number;
+  taxLines?: TaxLineDto[];
+  paymentMethod?: string;
   finalTotalPrice?: FinalTotalPrice;
   /** Staff display name from last order mutation (included in /api/sync). */
   lastInitiatedBy?: string;

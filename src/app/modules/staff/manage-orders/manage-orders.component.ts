@@ -14,6 +14,7 @@ import {
   OffcanvasTitleDirective, OffcanvasToggleDirective, RowComponent, TableDirective, Tabs2Module,
   TemplateIdDirective, WidgetStatAComponent, WidgetStatFComponent
 } from '@coreui/angular';
+import { TaxCalculationResult } from '../../../core/models/tax-calculation.model';
 import { TablesService } from '../../../core/services/tables-service/tables.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { formatStaffDisplayName } from '../../../core/auth/user-display-name';
@@ -161,6 +162,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   orderIsConfirmed = false;
   currentOrderId: string | null = null;
   showCloseConfirm = false;
+  taxPreview: TaxCalculationResult | null = null;
   private closeInFlight = false;
   resetConfirmVisible = false;
 
@@ -642,6 +644,18 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   get cartSubTotal(): number {
     const cart = this.tableCarts[this.currentTableId] ?? [];
     return cart.reduce((sum, s) => sum + s.item.menuItemPriceAmount * s.quantity, 0);
+  }
+
+  get isUsMarket(): boolean {
+    return this.operatingCurrency === 'USD';
+  }
+
+  get cartTotalWithTax(): number {
+    return this.taxPreview?.total ?? this.cartSubTotal;
+  }
+
+  get cartTaxAmount(): number {
+    return this.taxPreview?.taxAmount ?? 0;
   }
 
   get cartCurrency(): string | undefined {
@@ -1448,8 +1462,25 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   /** Initial attempt + up to 2 retries on network-class failures. */
   private static readonly CLOSE_ORDER_MAX_ATTEMPTS = 3;
 
-  closeOrder() { this.showCloseConfirm = true; }
-  cancelCloseOrder() { this.showCloseConfirm = false; }
+  closeOrder() {
+    this.showCloseConfirm = true;
+    void this.refreshTaxPreview();
+  }
+  cancelCloseOrder() { this.showCloseConfirm = false; this.taxPreview = null; }
+
+  private async refreshTaxPreview(): Promise<void> {
+    if (!this.isUsMarket || !this.currentOrderId || this.currentOrderId.startsWith('local-')) {
+      this.taxPreview = null;
+      return;
+    }
+    try {
+      this.taxPreview = await firstValueFrom(
+        this.ordersService.calculateOrderTax(this.restaurantId, this.currentTableId, this.currentOrderId),
+      );
+    } catch {
+      this.taxPreview = null;
+    }
+  }
 
   async confirmCloseOrder() {
     if (document.hidden) return;

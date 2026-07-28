@@ -9,6 +9,7 @@ export interface MenuItem {
   menuItemPriceCurrency?: string;
   menuItemIconUrl?: string;
   menuItemVatPercent?: number;
+  salesTaxCategory?: string;
   isAvailable?: boolean;
 }
 

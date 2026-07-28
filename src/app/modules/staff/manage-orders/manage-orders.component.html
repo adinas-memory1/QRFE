@@ -311,6 +311,11 @@
 
       <div *ngIf="showCloseConfirm" class="close-order-confirm p-3 border rounded mb-2">
         <p class="mb-2 fw-semibold">{{ 'manageOrders.closeOrderConfirm' | transloco }}</p>
+        @if (isUsMarket && taxPreview) {
+          <p class="mb-1 small text-body-secondary">Subtotal: {{ taxPreview.subTotal | currency: operatingCurrency }}</p>
+          <p class="mb-1 small text-body-secondary">Sales tax: {{ taxPreview.taxAmount | currency: operatingCurrency }}</p>
+          <p class="mb-2 fw-semibold">Total: {{ cartTotalWithTax | currency: operatingCurrency }}</p>
+        }
         <div class="d-flex justify-content-end"> <button cButton color="secondary" class="me-2"
             (click)="cancelCloseOrder()"> {{ 'manageOrders.cancel' | transloco }} </button> <button cButton color="warning"
             (click)="confirmCloseOrder()"> {{ 'manageOrders.closeOrder' | transloco }} </button> </div>
@@ -360,7 +365,7 @@
             (click)="closeOrder()"
             [disabled]="selectedItems.length === 0 || !canBypassOfflineUiGates"
           >
-            {{ 'manageOrders.closeOrder' | transloco }} – {{ cartSubTotal | currency: operatingCurrency }}
+            {{ 'manageOrders.closeOrder' | transloco }} – {{ cartTotalWithTax | currency: operatingCurrency }}
           </button>
         </div>
       </div>
