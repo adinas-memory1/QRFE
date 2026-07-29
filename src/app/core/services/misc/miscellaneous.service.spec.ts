@@ -19,4 +19,12 @@ describe('MiscellaneousService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('getTableCss returns warning for active waiter regardless of tableId casing', () => {
+    const table = { tableId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', isTableOpen: true } as any;
+    const waiterState = {
+      'AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE': 'active',
+    } as any;
+    expect(service.getTableCss(table, waiterState)).toBe('bg-warning text-dark');
+  });
 });

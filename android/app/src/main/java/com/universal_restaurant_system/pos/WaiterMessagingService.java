@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
+import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -17,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Data-only FCM: native tray in background; explicit sound + vibration via PickupAlertFeedback.
+ * Data-only FCM: native tray when screen off / app backgrounded; haptic when interactive foreground.
  */
 public class WaiterMessagingService extends MessagingService {
 
@@ -43,21 +44,20 @@ public class WaiterMessagingService extends MessagingService {
             data.get("restaurantName")
         );
 
-        boolean foreground = isAppInForeground();
-        if (foreground) {
-            PickupAlertFeedback.alert(getApplicationContext(), "fcm-guest-foreground");
-        } else {
+        // Screen-off with app still "foreground" must still post a swipeable tray notification.
+        if (shouldShowTrayNotification()) {
             showGuestWaiterNotification(data);
+        } else {
+            PickupAlertFeedback.alert(getApplicationContext(), "fcm-guest-foreground");
         }
     }
 
     private void handlePickupCall(Map<String, String> data) {
-        boolean foreground = isAppInForeground();
-        if (foreground) {
-            PickupAlertFeedback.alert(getApplicationContext(), "fcm-foreground");
-        } else {
+        if (shouldShowTrayNotification()) {
             WaiterCallNotificationChannels.ensurePickupChannel(getApplicationContext());
             showPickupNotification(data);
+        } else {
+            PickupAlertFeedback.alert(getApplicationContext(), "fcm-foreground");
         }
     }
 
@@ -74,6 +74,22 @@ public class WaiterMessagingService extends MessagingService {
         }
         String eventType = data.get("eventType");
         return "KitchenWaiterCall".equals(eventType) || "BarWaiterCall".equals(eventType);
+    }
+
+    /**
+     * Post tray when the display is off or the process is not the interactive top app.
+     * ActivityManager alone is true while the screen is locked with the POS still resumed.
+     */
+    private boolean shouldShowTrayNotification() {
+        if (!isDisplayInteractive()) {
+            return true;
+        }
+        return !isAppInForeground();
+    }
+
+    private boolean isDisplayInteractive() {
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        return pm == null || pm.isInteractive();
     }
 
     private boolean isAppInForeground() {

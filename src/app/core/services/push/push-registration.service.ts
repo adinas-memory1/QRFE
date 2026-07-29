@@ -277,17 +277,12 @@ export class PushRegistrationService {
       return;
     }
 
-    // Native foreground: toast + haptic on targeted waiter device (or all staff when no target id).
+    // Native foreground: show in-app toast (manage-orders is not the only staff route).
     if (appActive === true) {
-      const localId = await this.#clientInstance.whenReady();
-      const targetId = options.clientInstanceId?.trim() ?? null;
-      const isTargetDevice = !targetId || clientInstanceIdsMatch(targetId, localId);
-      if (isTargetDevice && !this.isDebounced(debounceKey)) {
-        const kind = options.eventType === 'BarWaiterCall' ? 'bar' : 'kitchen';
-        void this.#deviceFeedback.pulsePickup(kind, options.tableId, 'foreground-sse');
-        const title = this.#copy.titleFor(options.eventType);
-        const body = this.#copy.bodyFor(options.eventType, options.tableName ?? undefined);
-        this.#toast.info(body, title);
+      const title = this.#copy.titleFor(options.eventType);
+      const body = this.#copy.bodyFor(options.eventType, options.tableName ?? undefined);
+      this.#toast.info(body, title);
+      if (!this.isDebounced(debounceKey)) {
         this.markHandled(debounceKey);
       }
       return;
