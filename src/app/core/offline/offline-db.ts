@@ -7,6 +7,7 @@ import {
   OrderDTO,
   OrderItemDTO,
   resolveOrderCurrency,
+  readOrderLastInitiatedBy,
   TableCart,
   tableHasActiveOrder,
 } from '../../core/models/orderingModel';
@@ -396,13 +397,23 @@ export class OfflineDbService {
             }
 
             const existing = byId.get(t.tableId);
-            if (existing) {
-                byId.set(t.tableId, {
-                    ...existing,
-                    isTableOpen: false,
-                    order: localOrder,
-                });
+            if (!existing) {
+                continue;
             }
+
+            const serverOrder = existing.order;
+            byId.set(t.tableId, {
+                ...existing,
+                isTableOpen: false,
+                order: {
+                    ...localOrder,
+                    lastInitiatedBy:
+                        readOrderLastInitiatedBy(localOrder)
+                        || readOrderLastInitiatedBy(serverOrder)
+                        || undefined,
+                    clientInstanceId: localOrder.clientInstanceId ?? serverOrder?.clientInstanceId,
+                },
+            });
         }
 
         return Array.from(byId.values());
@@ -440,7 +451,15 @@ export class OfflineDbService {
         const record = await this.loadCartRecord(tableId);
         if (!record || !record.orderId) return null;
 
-        return {
+        let storedOrder: OrderDTO | undefined;
+        try {
+            const row = await this.db.tablesStore.get(tableId);
+            storedOrder = (row as TableEntity | undefined)?.order;
+        } catch {
+            // ignore Dexie read errors
+        }
+
+        const order: OrderDTO = {
             orderId: record.orderId,
             tableId,
             createdOn: new Date().toISOString(), // fallback
@@ -458,6 +477,17 @@ export class OfflineDbService {
                 quantity: i.quantity
             }))
         };
+
+        const lastInitiatedBy = readOrderLastInitiatedBy(storedOrder);
+        if (lastInitiatedBy) {
+            order.lastInitiatedBy = lastInitiatedBy;
+        }
+        const storedClientId = storedOrder?.clientInstanceId?.trim();
+        if (storedClientId) {
+            order.clientInstanceId = storedClientId;
+        }
+
+        return order;
     }
 
     // metode adiționale pentru tablesStatus

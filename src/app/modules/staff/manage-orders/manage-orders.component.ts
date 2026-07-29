@@ -44,6 +44,7 @@ import {
   normalizeCurrencyCode,
   orderDtoFromSsePayload,
   readMoneyAmount,
+  readOrderLastActionAt,
   readOrderLastInitiatedBy,
   resolveOrderCurrency,
   tableHasActiveOrder,
@@ -377,12 +378,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   }
 
   private readOrderLastActionAt(order: OrderDTO | null | undefined): string {
-    if (!order) {
-      return '';
-    }
-    const rec = order as unknown as Record<string, unknown>;
-    const v = rec['lastActionAt'] ?? rec['LastActionAt'] ?? rec['updatedAt'] ?? rec['UpdatedAt'];
-    return typeof v === 'string' ? v.trim() : '';
+    return readOrderLastActionAt(order);
   }
 
   private rememberInitiatedBy(tableId: string, initiatedBy: string): void {
@@ -442,12 +438,6 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   private sseField<T = unknown>(obj: any, pascal: string, camel: string): T | undefined {
     if (!obj) return undefined;
     return (obj[pascal] ?? obj[camel]) as T | undefined;
-  }
-
-  private pickupToastMessage(kind: 'kitchen' | 'bar', tableId: string, tableName?: string | null): string {
-    const label = (tableName ?? '').trim() || (this.tables.find(t => t.tableId === tableId)?.tableName ?? tableId);
-    const titleKey = kind === 'kitchen' ? 'push.kitchenTitle' : 'push.barTitle';
-    return `${this.transloco.translate(titleKey)}: ${this.transloco.translate('push.pickupReadyTable', { table: tableName })}`;
   }
 
   // ─── GETTERS ──────────────────────────────────────────────────────────────────
@@ -822,6 +812,14 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
     });
 
     if (this.onlineStateService.isOnline) this.queueProcessor.triggerProcessing();
+
+    if (
+      this.orderIsConfirmed
+      && this.canvasVisible
+      && this.currentTableId === tableId
+    ) {
+      this.claimPickupTargetForTable(tableId, { force: true });
+    }
   }
 
   displayMenuItemNameInCanvas(item: MenuItem): string {
@@ -895,7 +893,10 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
         lastAddedItemFromOrder ?? existing?.lastAddedItem ?? '—';
 
       this.tableComputed[t.tableId] = {
-        lastActionAt: this.tableComputed[t.tableId]?.lastActionAt ?? '',
+        lastActionAt:
+          this.tableComputed[t.tableId]?.lastActionAt?.trim()
+          || readOrderLastActionAt(activeOrder)
+          || '',
         lastAddedItem,
         total: subtotalAmount ?? 0,
         currency: currency !== '—' ? currency : '',
@@ -950,6 +951,8 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   /** Reload in-memory state from Dexie after /api/sync (e.g. app resume from background). */
   private async reloadFromSyncSnapshot(activeGuestWaiterCalls: string[] = []): Promise<void> {
     if (!this.initialTablesLoaded || !this.restaurantId) return;
+
+    await this.ordersService.ensureInitiatedByCacheReady();
 
     this.reconcileGuestWaiterCalls(activeGuestWaiterCalls);
 
@@ -1044,7 +1047,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   private readonly claimPickupCooldownUntil = new Map<string, number>();
   private static readonly claimPickupCooldownMs = 15_000;
 
-  private claimPickupTargetForTable(tableId: string): void {
+  private claimPickupTargetForTable(tableId: string, options?: { force?: boolean }): void {
     const restaurantId = this.restaurantId;
     const table = this.tables.find(t => t.tableId === tableId);
     const orderId =
@@ -1054,7 +1057,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
     const isLocalOrder = !!orderId?.startsWith('local-');
     const cooldownKey = `${tableId}|${orderId ?? ''}`;
     const cooldownUntil = this.claimPickupCooldownUntil.get(cooldownKey) ?? 0;
-    const inCooldown = Date.now() < cooldownUntil;
+    const inCooldown = !options?.force && Date.now() < cooldownUntil;
     const willSkip =
       !this.onlineStateService.isOnline
       || !tableId
@@ -2111,16 +2114,48 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
     return this.miscService.getTableCss(table, waiterState);
   }
 
+  /** Align SSE table id with local snapshot (GUID casing). */
+  private resolveTableIdFromSse(raw: string | null | undefined): string | null {
+    const id = (raw ?? '').trim();
+    if (!id) {
+      return null;
+    }
+    const match = this.tables.find(t => (t.tableId ?? '').toLowerCase() === id.toLowerCase());
+    return match?.tableId ?? id;
+  }
+
+  private applyGuestWaiterHighlight(tableId: string, active: boolean): void {
+    if (active) {
+      this.waiterState[tableId] = WaiterCallState.Active;
+    } else {
+      delete this.waiterState[tableId];
+    }
+    const table = this.tables.find(t => t.tableId === tableId);
+    if (table && this.tableComputed[tableId]) {
+      this.tableComputed[tableId].cssClass = this.miscService.getTableCss(table, this.waiterState);
+    }
+  }
+
   /** Align in-memory guest waiter highlights with /api/sync stream backfill (missed SSE while screen locked). */
   private reconcileGuestWaiterCalls(activeTableIds: string[]): void {
-    const activeSet = new Set(activeTableIds);
+    const activeSet = new Set(
+      activeTableIds
+        .map(id => this.resolveTableIdFromSse(id))
+        .filter((id): id is string => !!id),
+    );
     for (const tableId of Object.keys(this.waiterState)) {
       if (!activeSet.has(tableId)) {
         delete this.waiterState[tableId];
       }
     }
-    for (const tableId of activeTableIds) {
+    for (const tableId of activeSet) {
       this.waiterState[tableId] = WaiterCallState.Active;
+    }
+    for (const tableId of activeSet) {
+      const table = this.tables.find(t => t.tableId === tableId);
+      if (table && this.tableComputed[tableId]) {
+        this.tableComputed[tableId].cssClass = this.miscService.getTableCss(table, this.waiterState);
+      }
     }
   }
 
@@ -2151,7 +2186,6 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
         const tableId = parsed.tableId;
         if (tableId) {
           this.kitchenPickupRequested[tableId] = true;
-          this.appToast.info(this.pickupToastMessage('kitchen', tableId, parsed.tableName));
           if (this.kitchenPickupTimers[tableId]) clearTimeout(this.kitchenPickupTimers[tableId]);
           this.kitchenPickupTimers[tableId] = setTimeout(() => {
             delete this.kitchenPickupRequested[tableId];
@@ -2177,7 +2211,6 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
         const tableId = parsed.tableId;
         if (tableId) {
           this.barPickupRequested[tableId] = true;
-          this.appToast.info(this.pickupToastMessage('bar', tableId, parsed.tableName));
           if (this.barPickupTimers[tableId]) clearTimeout(this.barPickupTimers[tableId]);
           this.barPickupTimers[tableId] = setTimeout(() => {
             delete this.barPickupRequested[tableId];
@@ -2199,21 +2232,19 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
       }
 
       case 'WaiterCall': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const rawId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const tableId = this.resolveTableIdFromSse(rawId);
         if (tableId) {
-          this.waiterState[tableId] = WaiterCallState.Active;
+          this.applyGuestWaiterHighlight(tableId, true);
         }
         break;
       }
 
       case 'WaiterCallSnoozed': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const rawId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const tableId = this.resolveTableIdFromSse(rawId);
         if (tableId) {
-          delete this.waiterState[tableId];
-          const table = this.tables.find(t => t.tableId === tableId);
-          if (table && this.tableComputed[tableId]) {
-            this.tableComputed[tableId].cssClass = this.miscService.getTableCss(table, this.waiterState);
-          }
+          this.applyGuestWaiterHighlight(tableId, false);
         }
         break;
       }
