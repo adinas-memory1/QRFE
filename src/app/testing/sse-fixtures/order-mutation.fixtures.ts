@@ -81,6 +81,20 @@ export function fixtureOrderUpdatedQtyDecreaseFood(tableId = SYNC_TABLE_A, order
   };
 }
 
+/** Same menu item, quantity 2 → 3 (rapid increment). */
+export function fixtureOrderUpdatedQtyTripleFood(tableId = SYNC_TABLE_A, orderId = ORDER_A): OrderUpdatedSSEPayload {
+  return {
+    RestaurantId: SYNC_TEST_RESTAURANT_ID,
+    TableId: tableId,
+    OrderId: orderId,
+    SubTotal: { Amount: 75, Currency: 'RON' },
+    ItemCount: 3,
+    LastAddedItem: 'Pizza',
+    LastActionAt: '2026-07-05T12:02:00.000Z',
+    Items: [sseLine(LINE_PIZZA_1, MENU_PIZZA, 'Pizza', 3, 'Main')],
+  };
+}
+
 /** Line removed (button x → DELETE_ITEM). */
 export function fixtureOrderUpdatedDeleteFood(tableId = SYNC_TABLE_A, orderId = ORDER_A): OrderUpdatedSSEPayload {
   return {
@@ -119,6 +133,20 @@ export function fixtureOrderUpdatedQtyIncreaseDrink(tableId = SYNC_TABLE_A, orde
     LastAddedItem: 'Beer',
     LastActionAt: tsQty,
     Items: [sseLine(LINE_BEER_1, MENU_BEER, 'Beer', 2, 'beer')],
+  };
+}
+
+/** Same drink, quantity 2 → 3 (rapid increment). */
+export function fixtureOrderUpdatedQtyTripleDrink(tableId = SYNC_TABLE_A, orderId = ORDER_A): OrderUpdatedSSEPayload {
+  return {
+    RestaurantId: SYNC_TEST_RESTAURANT_ID,
+    TableId: tableId,
+    OrderId: orderId,
+    SubTotal: { Amount: 45, Currency: 'RON' },
+    ItemCount: 3,
+    LastAddedItem: 'Beer',
+    LastActionAt: '2026-07-05T12:02:00.000Z',
+    Items: [sseLine(LINE_BEER_1, MENU_BEER, 'Beer', 3, 'beer')],
   };
 }
 
