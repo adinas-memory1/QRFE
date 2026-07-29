@@ -80,6 +80,28 @@ export class OfflineDbService {
      */
     private cartsChangedSubject = new Subject<{ tableId: string }>();
     readonly cartsChanged$ = this.cartsChangedSubject.asObservable();
+    /** Same-browser cross-tab cart mutations (IndexedDB is shared; Subject is not). */
+    private readonly tabId = crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
+    private readonly cartsBc: BroadcastChannel | null =
+        typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('qrfe-carts-changed') : null;
+
+    constructor() {
+        this.cartsBc?.addEventListener('message', (ev: MessageEvent) => {
+            const msg = ev.data as { sourceTabId?: string; tableId?: string } | null;
+            if (!msg?.tableId) return;
+            if (msg.sourceTabId === this.tabId) return;
+            this.cartsChangedSubject.next({ tableId: msg.tableId });
+        });
+    }
+
+    private notifyCartsChanged(tableId: string): void {
+        this.cartsChangedSubject.next({ tableId });
+        try {
+            this.cartsBc?.postMessage({ sourceTabId: this.tabId, tableId });
+        } catch {
+            /* ignore */
+        }
+    }
 
     // expunem tranzacțiile
     transaction = this.db.transaction.bind(this.db);
@@ -104,7 +126,7 @@ export class OfflineDbService {
             restaurantId: restaurantId ?? existing?.restaurantId,
         });
 
-        this.cartsChangedSubject.next({ tableId });
+        this.notifyCartsChanged(tableId);
     }
 
     async loadCart(tableId: string): Promise<TableCart[string]> {
@@ -138,7 +160,7 @@ export class OfflineDbService {
 
     async deleteCart(tableId: string): Promise<void> {
         await this.db.carts.delete(tableId);
-        this.cartsChangedSubject.next({ tableId });
+        this.notifyCartsChanged(tableId);
     }
 
     async clearAllCarts(): Promise<void> {
