@@ -1,6 +1,5 @@
 /** Debug-only connectivity trail (session 25e5dc). Safe for production: no tokens/PII. */
 const DEBUG_SESSION_ID = '25e5dc';
-const DEBUG_INGEST = 'http://127.0.0.1:7761/ingest/1418246a-67e2-4be2-9f84-77b49dcc9c16';
 const STORAGE_KEY = `urs-connectivity-debug-${DEBUG_SESSION_ID}`;
 const MAX_EVENTS = 120;
 
@@ -71,17 +70,6 @@ export function logConnectivityDebug(
 
   const next = [...readBuffer(), event];
   writeBuffer(next);
-
-  // #region agent log
-  fetch(DEBUG_INGEST, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Debug-Session-Id': DEBUG_SESSION_ID,
-    },
-    body: JSON.stringify(event),
-  }).catch(() => {});
-  // #endregion
 
   if (typeof console !== 'undefined' && console.debug) {
     console.debug('[urs-connectivity]', message, data);
