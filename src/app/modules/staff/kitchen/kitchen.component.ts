@@ -8,11 +8,8 @@ import { TableDTO } from '../../../core/models/restaurantTablesModel';
 import { OrderSyncService } from '../../../core/services/order-service/order-sync.service';
 import { SseEvent } from '../../../core/models/sseModel';
 import {
-  AddOrderItemResponse,
   CartItem,
-  DeleteOrderItemSSEPayload,
   OrderUpdatedSSEPayload,
-  UpdateOrderItemQuantityResponse
 } from '../../../core/models/orderingModel';
 import { MenuItemServiceService } from '../../../core/services/menu-item-service/menu-item-service.service';
 import { MenuItem } from '../../../core/models/menu/menuItem';
@@ -23,7 +20,7 @@ import {
   isKitchenCartLine,
   menuItemsByIdMap,
 } from '../../../core/models/menu/cart-item-category';
-import { isFoodCategory, normalizeMenuItemCategory } from '../../../core/models/menu/menu-item-category';
+import { normalizeMenuItemCategory } from '../../../core/models/menu/menu-item-category';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -120,6 +117,10 @@ export class KitchenComponent implements OnInit, OnDestroy {
   private readonly maxRecentSseSequences = 300;
   private lastOrderUpdatedKeyByTableId: Record<string, string> = {};
   private lastCartSnapshotByTableId: Record<string, CartItem[]> = {};
+  private lastAppliedSequenceByTableId: Record<string, number> = {};
+  private lastAppliedActionAtMsByTableId: Record<string, number> = {};
+  private orderUpdatedChainByTableId = new Map<string, Promise<void>>();
+  private applyingOrderUpdateTables = new Set<string>();
   private toastOnce(key: string, ms: number, fn: () => void): void {
     const now = Date.now();
     if (now - (this.lastToastAtByKey[key] ?? 0) < ms) return;
@@ -190,6 +191,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(async ({ tableId }) => {
         if (this.hydrating) return;
+        if (this.applyingOrderUpdateTables.has(tableId)) return;
         await this.rebuildFromDexie(tableId);
       });
 
@@ -278,7 +280,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
     switch (EventType) {
       case 'OrderUpdated': {
         const payload = Data as OrderUpdatedSSEPayload;
-        void this.applyOrderUpdated(payload, Sequence);
+        this.enqueueOrderUpdated(payload, Sequence);
         break;
       }
       case 'OrderItemAdded': {
@@ -286,7 +288,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
         break;
       }
       case 'OrderItemQuantityUpdated': {
-        void this.applyOrderItemQtyUpdated(Data as UpdateOrderItemQuantityResponse);
+        // Authoritative cart + marks come from OrderUpdated (same as manage-orders).
         break;
       }
       case 'OrderItemDeleted': {
@@ -294,11 +296,9 @@ export class KitchenComponent implements OnInit, OnDestroy {
         break;
       }
       case 'OrderClosedWithPayment': {
-        const tableId = Data?.TableId;
-        if (tableId) {
-          delete this.ordersByTableId[tableId];
-          delete this.lastCartSnapshotByTableId[tableId];
-        }
+        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? '';
+        const orderId = this.sseField<string>(Data, 'OrderId', 'orderId') ?? '';
+        if (tableId) this.enqueueOrderClosed(tableId, orderId);
         break;
       }
       default:
@@ -346,19 +346,120 @@ export class KitchenComponent implements OnInit, OnDestroy {
     return items.filter(c => isKitchenCartLine(c));
   }
 
+  private enqueueOrderUpdated(payload: OrderUpdatedSSEPayload, envelopeSequence?: number): void {
+    const tableId = this.tableIdFromPayload(payload);
+    if (!tableId) return;
+
+    const prev = this.orderUpdatedChainByTableId.get(tableId) ?? Promise.resolve();
+    const next = prev
+      .then(() => this.applyOrderUpdated(payload, envelopeSequence))
+      .catch(err => console.error('[Kitchen] applyOrderUpdated failed', err));
+    this.orderUpdatedChainByTableId.set(tableId, next);
+    void next.finally(() => {
+      if (this.orderUpdatedChainByTableId.get(tableId) === next) {
+        this.orderUpdatedChainByTableId.delete(tableId);
+      }
+    });
+  }
+
+  private enqueueOrderClosed(tableId: string, orderId?: string): void {
+    const prev = this.orderUpdatedChainByTableId.get(tableId) ?? Promise.resolve();
+    const next = prev
+      .then(() => this.clearTableOrder(tableId, orderId))
+      .catch(err => console.error('[Kitchen] clearTableOrder failed', err));
+    this.orderUpdatedChainByTableId.set(tableId, next);
+    void next.finally(() => {
+      if (this.orderUpdatedChainByTableId.get(tableId) === next) {
+        this.orderUpdatedChainByTableId.delete(tableId);
+      }
+    });
+  }
+
+  private sseField<T>(data: unknown, pascalKey: string, camelKey: string): T | undefined {
+    const record = data as Record<string, T | undefined>;
+    return record[pascalKey] ?? record[camelKey];
+  }
+
+  private tableIdFromPayload(payload: OrderUpdatedSSEPayload): string {
+    return this.sseField<string>(payload, 'TableId', 'tableId') ?? '';
+  }
+
+  private orderIdFromPayload(payload: OrderUpdatedSSEPayload): string {
+    return this.sseField<string>(payload, 'OrderId', 'orderId') ?? '';
+  }
+
+  private itemCountFromPayload(payload: OrderUpdatedSSEPayload, nextCart: CartItem[]): number {
+    const explicit = this.sseField<number>(payload, 'ItemCount', 'itemCount');
+    if (typeof explicit === 'number' && Number.isFinite(explicit)) return explicit;
+    return nextCart.reduce((sum, line) => sum + line.quantity, 0);
+  }
+
+  private async clearTableOrder(tableId: string, orderId?: string): Promise<void> {
+    delete this.ordersByTableId[tableId];
+    delete this.lastCartSnapshotByTableId[tableId];
+    delete this.lastOrderUpdatedKeyByTableId[tableId];
+    delete this.lastAppliedSequenceByTableId[tableId];
+    delete this.lastAppliedActionAtMsByTableId[tableId];
+    delete this.marksByTableId[tableId];
+    delete this.lastOpTextByTableId[tableId];
+    delete this.deletedShadowsByTableId[tableId];
+    this.expandedTableIds.delete(tableId);
+
+    if (orderId) {
+      delete this.orderIdToTableId[orderId];
+    } else {
+      for (const [oid, tid] of Object.entries(this.orderIdToTableId)) {
+        if (tid === tableId) delete this.orderIdToTableId[oid];
+      }
+    }
+
+    this.applyingOrderUpdateTables.add(tableId);
+    try {
+      await this.offlineDB.deleteCart(tableId);
+    } finally {
+      this.applyingOrderUpdateTables.delete(tableId);
+    }
+  }
+
+  private isStaleOrderUpdated(
+    tableId: string,
+    lastActionAt: string,
+    envelopeSequence?: number,
+  ): boolean {
+    if (typeof envelopeSequence === 'number' && envelopeSequence > 0) {
+      const lastSeq = this.lastAppliedSequenceByTableId[tableId] ?? 0;
+      return envelopeSequence <= lastSeq;
+    }
+
+    const actionAtMs = Date.parse(lastActionAt);
+    if (!Number.isFinite(actionAtMs)) return false;
+    const lastMs = this.lastAppliedActionAtMsByTableId[tableId] ?? 0;
+    return actionAtMs < lastMs;
+  }
+
+  private markOrderUpdatedApplied(
+    tableId: string,
+    lastActionAt: string,
+    envelopeSequence?: number,
+  ): void {
+    if (typeof envelopeSequence === 'number' && envelopeSequence > 0) {
+      this.lastAppliedSequenceByTableId[tableId] = envelopeSequence;
+    }
+
+    const actionAtMs = Date.parse(lastActionAt);
+    if (Number.isFinite(actionAtMs)) {
+      this.lastAppliedActionAtMsByTableId[tableId] = Math.max(
+        this.lastAppliedActionAtMsByTableId[tableId] ?? 0,
+        actionAtMs,
+      );
+    }
+  }
+
   private async applyOrderUpdated(payload: OrderUpdatedSSEPayload, envelopeSequence?: number) {
-    const tableId =
-      (payload as unknown as { TableId?: string; tableId?: string }).TableId
-      ?? (payload as unknown as { tableId?: string }).tableId
-      ?? '';
-    const orderId =
-      (payload as unknown as { OrderId?: string; orderId?: string }).OrderId
-      ?? (payload as unknown as { orderId?: string }).orderId
-      ?? '';
+    const tableId = this.tableIdFromPayload(payload);
+    const orderId = this.orderIdFromPayload(payload);
     const lastActionAt =
-      (payload as unknown as { LastActionAt?: string; lastActionAt?: string }).LastActionAt
-      ?? (payload as unknown as { lastActionAt?: string }).lastActionAt
-      ?? new Date().toISOString();
+      this.sseField<string>(payload, 'LastActionAt', 'lastActionAt') ?? new Date().toISOString();
 
     if (!tableId || !orderId) return;
 
@@ -369,15 +470,16 @@ export class KitchenComponent implements OnInit, OnDestroy {
     if (this.lastOrderUpdatedKeyByTableId[tableId] === dedupeKey) {
       return;
     }
+    if (this.isStaleOrderUpdated(tableId, lastActionAt, envelopeSequence)) {
+      return;
+    }
     this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
 
     this.orderIdToTableId[orderId] = tableId;
 
     const existing = this.lastCartSnapshotByTableId[tableId] ?? [];
     const prevFood = this.filterFood(existing);
-    const rawItems = ((payload as unknown as { Items?: any[]; items?: any[] }).Items
-      ?? (payload as unknown as { items?: any[] }).items
-      ?? []) as any[];
+    const rawItems = (this.sseField<any[]>(payload, 'Items', 'items') ?? []) as any[];
     const nextCart: CartItem[] = rawItems.map(i => {
       const menuItemId: string = String(i?.MenuItemId ?? i?.menuItemId ?? '');
       const linkedId = this.todaySetMenu?.linkedMenuItemId ?? '';
@@ -391,9 +493,19 @@ export class KitchenComponent implements OnInit, OnDestroy {
       return cartLineFromOrderRaw(i as Record<string, unknown>, this.menuItemsById);
     });
 
+    const itemCount = this.itemCountFromPayload(payload, nextCart);
+    if (itemCount <= 0 || nextCart.length === 0) {
+      this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
+      await this.clearTableOrder(tableId, orderId);
+      return;
+    }
+
     const nextFood = this.filterFood(nextCart);
     const isServerOrderId = !!orderId && !orderId.startsWith('local-');
-    const isNewOrder = isServerOrderId && !this.seenServerOrderIds.has(orderId) && nextFood.length > 0;
+    const isNewOrder =
+      isServerOrderId && !this.seenServerOrderIds.has(orderId) && nextFood.length > 0;
+    if (isServerOrderId) this.seenServerOrderIds.add(orderId);
+
     if (isNewOrder && !this.hydrating && !document.hidden && !this.soundMuted) {
       this.sounds.play('newOrder');
     }
@@ -407,164 +519,19 @@ export class KitchenComponent implements OnInit, OnDestroy {
         )
       );
     }
-    if (isServerOrderId) this.seenServerOrderIds.add(orderId);
     this.diffAndMark(tableId, prevFood, nextFood, isNewOrder);
 
     // Update in-memory snapshot for next diffs/toasts (avoid Dexie race across tabs).
     this.lastCartSnapshotByTableId[tableId] = nextCart;
+    this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
 
-    await this.offlineDB.saveCart(tableId, nextCart, orderId, true);
-    await this.rebuildFromDexie(tableId, lastActionAt);
-  }
-
-  private async applyOrderItemAdded(payload: AddOrderItemResponse) {
-    const orderId = (payload as unknown as { orderId?: string; OrderId?: string }).orderId
-      ?? (payload as unknown as { OrderId?: string }).OrderId
-      ?? '';
-    const orderItemId = (payload as unknown as { orderItemId?: string; OrderItemId?: string }).orderItemId
-      ?? (payload as unknown as { OrderItemId?: string }).OrderItemId
-      ?? '';
-    const menuItemId = (payload as unknown as { menuItemId?: string; MenuItemId?: string }).menuItemId
-      ?? (payload as unknown as { MenuItemId?: string }).MenuItemId
-      ?? '';
-    const quantity = (payload as unknown as { quantity?: number; Quantity?: number }).quantity
-      ?? (payload as unknown as { Quantity?: number }).Quantity
-      ?? 0;
-
-    if (!orderId || !orderItemId || !menuItemId) return;
-
-    let tableId = this.orderIdToTableId[orderId];
-    if (!tableId) {
-      try {
-        const rec = await this.offlineDB.carts.where('orderId').equals(orderId).first();
-        tableId = rec?.tableId ?? '';
-        if (tableId) this.orderIdToTableId[orderId] = tableId;
-      } catch {
-        // ignore
-      }
+    this.applyingOrderUpdateTables.add(tableId);
+    try {
+      await this.offlineDB.saveCart(tableId, nextCart, orderId, true);
+      await this.rebuildFromDexie(tableId, lastActionAt);
+    } finally {
+      this.applyingOrderUpdateTables.delete(tableId);
     }
-    if (!tableId) return;
-
-    const cart = await this.offlineDB.loadCart(tableId);
-    const mi = this.menuItemsById[menuItemId];
-
-    cart.push({
-      item: mi ?? {
-        menuItemId,
-        menuItemName: '—',
-        menuItemDescription: '',
-        menuItemPriceAmount: 0,
-        menuItemPriceCurrency: 'EUR',
-        menuItemIconUrl: undefined,
-        category: 'Unknown',
-      },
-      quantity,
-      orderItemId,
-    });
-
-    if (isFoodCategory((mi?.category ?? 'Unknown'))) {
-      this.setMark(tableId, orderItemId, 'added');
-    }
-    await this.offlineDB.saveCart(tableId, cart, orderId, true);
-  }
-
-  private async applyOrderItemQtyUpdated(payload: UpdateOrderItemQuantityResponse) {
-    const orderId = (payload as unknown as { orderId?: string; OrderId?: string }).orderId
-      ?? (payload as unknown as { OrderId?: string }).OrderId
-      ?? '';
-    const orderItemId = (payload as unknown as { orderItemId?: string; OrderItemId?: string }).orderItemId
-      ?? (payload as unknown as { OrderItemId?: string }).OrderItemId
-      ?? '';
-    const quantity = (payload as unknown as { quantity?: number; Quantity?: number }).quantity
-      ?? (payload as unknown as { Quantity?: number }).Quantity
-      ?? 0;
-
-    if (!orderId || !orderItemId) {
-      this.debugSound('qtyUpdated: missing ids', { payload });
-      return;
-    }
-
-    let tableId = this.orderIdToTableId[orderId];
-    if (!tableId) {
-      try {
-        const rec = await this.offlineDB.carts.where('orderId').equals(orderId).first();
-        tableId = rec?.tableId ?? '';
-        if (tableId) this.orderIdToTableId[orderId] = tableId;
-      } catch {
-        // ignore
-      }
-    }
-    if (!tableId) {
-      this.debugSound('qtyUpdated: missing tableId (map+db)', { orderId, orderItemId, quantity });
-      return;
-    }
-    const cart = await this.offlineDB.loadCart(tableId);
-    const it = cart.find(c => c.orderItemId === orderItemId);
-    if (!it) {
-      this.debugSound('qtyUpdated: item not found in cart', {
-        tableId,
-        orderId,
-        orderItemId,
-        cartIds: cart.map(c => c.orderItemId),
-      });
-      return;
-    }
-    const prevQty = it.quantity;
-    it.quantity = quantity;
-    this.debugSound('qtyUpdated: mark+sound', { tableId, orderItemId, quantity });
-    this.setMark(tableId, orderItemId, 'updated');
-    const arrow = quantity > prevQty ? '↑' : '↓';
-    this.setOpText(tableId, orderItemId, `${arrow} ${prevQty} → ${quantity}`);
-    await this.offlineDB.saveCart(tableId, cart, orderId, true);
-  }
-
-  private async applyOrderItemDeleted(payload: DeleteOrderItemSSEPayload) {
-    const orderId = (payload as unknown as { orderId?: string; OrderId?: string }).orderId
-      ?? (payload as unknown as { OrderId?: string }).OrderId
-      ?? '';
-    const orderItemId = (payload as unknown as { orderItemId?: string; OrderItemId?: string }).orderItemId
-      ?? (payload as unknown as { OrderItemId?: string }).OrderItemId
-      ?? '';
-    if (!orderId || !orderItemId) return;
-
-    let tableId = this.orderIdToTableId[orderId];
-    if (!tableId) {
-      try {
-        const rec = await this.offlineDB.carts.where('orderId').equals(orderId).first();
-        tableId = rec?.tableId ?? '';
-        if (tableId) this.orderIdToTableId[orderId] = tableId;
-      } catch {
-        // ignore
-      }
-    }
-    if (!tableId) return;
-    const cart = await this.offlineDB.loadCart(tableId);
-    const idx = cart.findIndex(c => c.orderItemId === orderItemId);
-    if (idx === -1) {
-      // Item may already be removed by a preceding OrderUpdated snapshot.
-      // Still play the delete beep to reflect the action.
-      if (!this.hydrating && !document.hidden && !this.soundMuted) {
-        this.sounds.play('itemDeleted');
-      }
-      return;
-    }
-    const wasFood = isFoodCategory(cart[idx].item.category);
-    if (wasFood) {
-      this.setMark(tableId, orderItemId, 'deleted');
-      this.setOpText(tableId, orderItemId, '× removed');
-      this.setDeletedShadow(tableId, orderItemId, {
-        id: orderItemId,
-        orderItemId,
-        menuItemId: cart[idx].item.menuItemId,
-        name: this.displayNameForCartItem(cart[idx]),
-        category: this.displayCategoryForCartItem(cart[idx]),
-        quantity: cart[idx].quantity,
-        mark: { kind: 'deleted', until: Date.now() + this.markMs },
-        opText: '× removed',
-      });
-    }
-    cart.splice(idx, 1);
-    await this.offlineDB.saveCart(tableId, cart, orderId, true);
   }
 
   private async rebuildFromDexie(tableId?: string, lastActionAt?: string) {

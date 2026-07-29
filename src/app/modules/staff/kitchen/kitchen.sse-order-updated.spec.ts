@@ -14,9 +14,20 @@ import {
   fixtureOrderUpdatedDeleteFood,
   fixtureOrderUpdatedQtyDecreaseFood,
   fixtureOrderUpdatedQtyIncreaseFood,
+  fixtureOrderUpdatedQtyTripleFood,
   LINE_PIZZA_1,
   ORDER_A,
 } from '../../../testing/sse-fixtures/order-mutation.fixtures';
+
+async function flushKitchenOrderUpdates(
+  component: KitchenComponent,
+  tableId = SYNC_TABLE_A,
+): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const chain = (component as unknown as { orderUpdatedChainByTableId: Map<string, Promise<void>> })
+    .orderUpdatedChainByTableId.get(tableId);
+  if (chain) await chain;
+}
 
 describe('KitchenComponent OrderUpdated SSE (sync regression)', () => {
   let component: KitchenComponent;
@@ -28,6 +39,7 @@ describe('KitchenComponent OrderUpdated SSE (sync regression)', () => {
 
   it('shows new food item when order gains first kitchen line', async () => {
     await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedAddNewFood(), 401);
+    await flushKitchenOrderUpdates(component);
 
     expect(mocks.offlineDb.saveCart).toHaveBeenCalled();
     const order = component.ordersByTableId[SYNC_TABLE_A];
@@ -43,8 +55,66 @@ describe('KitchenComponent OrderUpdated SSE (sync regression)', () => {
     };
 
     await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedQtyIncreaseFood(), 402);
+    await flushKitchenOrderUpdates(component);
 
     expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].quantity).toBe(2);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].opText).toBe('↑ 1 → 2');
+  });
+
+  it('shows up arrow on each consecutive increment (1→2→3)', async () => {
+    const pizza = createFoodMenuItem();
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 1, LINE_PIZZA_1)], ORDER_A, true);
+    (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {
+      [SYNC_TABLE_A]: [createCartLine(pizza, 1, LINE_PIZZA_1)],
+    };
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
+
+    await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedQtyIncreaseFood(), 402);
+    await flushKitchenOrderUpdates(component);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].opText).toBe('↑ 1 → 2');
+
+    await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedQtyTripleFood(), 403);
+    await flushKitchenOrderUpdates(component);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].quantity).toBe(3);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].opText).toBe('↑ 2 → 3');
+  });
+
+  it('ignores stale OrderUpdated snapshots that arrive out of order', async () => {
+    const pizza = createFoodMenuItem();
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 3, LINE_PIZZA_1)], ORDER_A, true);
+    (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {
+      [SYNC_TABLE_A]: [createCartLine(pizza, 3, LINE_PIZZA_1)],
+    };
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
+    (component as unknown as { lastAppliedSequenceByTableId: Record<string, number> }).lastAppliedSequenceByTableId = {
+      [SYNC_TABLE_A]: 403,
+    };
+    await (component as unknown as { rebuildFromDexie: (id: string) => Promise<void> }).rebuildFromDexie(SYNC_TABLE_A);
+
+    await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedQtyIncreaseFood(), 402);
+    await flushKitchenOrderUpdates(component);
+
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].quantity).toBe(3);
+  });
+
+  it('ignores OrderItemQuantityUpdated and keeps OrderUpdated diff as source of truth', async () => {
+    const pizza = createFoodMenuItem();
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 2, LINE_PIZZA_1)], ORDER_A, true);
+    (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {
+      [SYNC_TABLE_A]: [createCartLine(pizza, 2, LINE_PIZZA_1)],
+    };
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
+    await (component as unknown as { rebuildFromDexie: (id: string) => Promise<void> }).rebuildFromDexie(SYNC_TABLE_A);
+
+    await invokeStationSse(component, 'OrderItemQuantityUpdated', {
+      OrderId: ORDER_A,
+      OrderItemId: LINE_PIZZA_1,
+      Quantity: 1,
+    }, 499);
+    await flushKitchenOrderUpdates(component);
+
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].quantity).toBe(2);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].opText).toBeUndefined();
   });
 
   it('updates qty when minus button reduces quantity (2→1)', async () => {
@@ -53,20 +123,43 @@ describe('KitchenComponent OrderUpdated SSE (sync regression)', () => {
     (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {
       [SYNC_TABLE_A]: [createCartLine(pizza, 2, LINE_PIZZA_1)],
     };
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
 
     await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedQtyDecreaseFood(), 403);
+    await flushKitchenOrderUpdates(component);
 
     expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].quantity).toBe(1);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].opText).toBe('↓ 2 → 1');
+  });
+
+  it('clears kitchen order when OrderClosedWithPayment arrives', async () => {
+    const pizza = createFoodMenuItem();
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 2, LINE_PIZZA_1)], ORDER_A, true);
+    await (component as unknown as { rebuildFromDexie: (id: string) => Promise<void> }).rebuildFromDexie(SYNC_TABLE_A);
+    expect(component.ordersByTableId[SYNC_TABLE_A]).toBeDefined();
+
+    await invokeStationSse(component, 'OrderClosedWithPayment', {
+      TableId: SYNC_TABLE_A,
+      OrderId: ORDER_A,
+    }, 405);
+    await flushKitchenOrderUpdates(component);
+
+    expect(component.ordersByTableId[SYNC_TABLE_A]).toBeUndefined();
+    expect(mocks.offlineDb.deleteCart).toHaveBeenCalledWith(SYNC_TABLE_A);
   });
 
   it('clears kitchen order when last food line removed (delete via x)', async () => {
-    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [], ORDER_A, true);
+    const pizza = createFoodMenuItem();
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 1, LINE_PIZZA_1)], ORDER_A, true);
     (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {
-      [SYNC_TABLE_A]: [],
+      [SYNC_TABLE_A]: [createCartLine(pizza, 1, LINE_PIZZA_1)],
     };
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
 
     await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedDeleteFood(), 404);
+    await flushKitchenOrderUpdates(component);
 
     expect(component.ordersByTableId[SYNC_TABLE_A]).toBeUndefined();
+    expect(mocks.offlineDb.deleteCart).toHaveBeenCalledWith(SYNC_TABLE_A);
   });
 });

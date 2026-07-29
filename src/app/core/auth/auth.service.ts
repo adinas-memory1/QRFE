@@ -13,6 +13,15 @@ import { OrdersService } from '../services/order-service/orders.service';
 import { normalizeRestaurantId, mergeRestaurantId } from './restaurant-id.util';
 import { NATIVE_AUTH_HEADER, NativeAuthTokenService } from './native-auth-token.service';
 import { acquireRefreshLeader, initRefreshCoordinator, releaseRefreshLeader, tryAcquireRefreshLeaderSync } from './auth-refresh-coordinator';
+import {
+  clearAuthRestaurantCtx,
+  clearAuthUserCtx,
+  clearLegacyAuthLocalStorage,
+  readAuthRestaurantCtx,
+  readAuthUserCtx,
+  writeAuthRestaurantCtx,
+  writeAuthUserCtx,
+} from './auth-session.storage';
 
 export function isHttpAuthFailure(err: unknown): boolean {
   const status = (err as HttpErrorResponse)?.status;
@@ -103,7 +112,9 @@ export class AuthService {
     private router: Router,
     private injector: Injector,
     private nativeAuthTokens: NativeAuthTokenService,
-  ) { }
+  ) {
+    clearLegacyAuthLocalStorage();
+  }
 
   // --- Public API ---
 
@@ -124,20 +135,12 @@ export class AuthService {
     if (this.userSubject.value) {
       return;
     }
-    const raw = localStorage.getItem('UserCtx');
-    if (!raw) {
+    const user = readAuthUserCtx();
+    if (!user?.id || !user?.role) {
       return;
     }
-    try {
-      const user = JSON.parse(raw) as UserContextModel;
-      if (!user?.id || !user?.role) {
-        return;
-      }
-      this.userSubject.next(user);
-      this.setRestaurantCtx();
-    } catch {
-      // ignore parse errors
-    }
+    this.userSubject.next(user);
+    this.setRestaurantCtx();
   }
 
   isAuthenticated(): boolean {
@@ -221,7 +224,7 @@ export class AuthService {
     const incoming = normalizeUserContext(raw) ?? (raw as UserContextModel);
     const merged = mergeUserContext(incoming, previous);
     this.userSubject.next(merged);
-    localStorage.setItem('UserCtx', JSON.stringify(merged));
+    writeAuthUserCtx(merged);
     this.setRestaurantCtx();
 
     if (wasLoggedOut) {
@@ -235,28 +238,21 @@ export class AuthService {
       type: this.userSubject.value?.restaurantType ?? ''
     };
 
-    localStorage.setItem('RestaurantCtx', JSON.stringify(ctx));
+    writeAuthRestaurantCtx(ctx);
   }
 
   clearRestaurantCtx(): void {
-    localStorage.removeItem('RestaurantCtx');
+    clearAuthRestaurantCtx();
   }
 
   getRestaurantCtx() {
-    const raw = localStorage.getItem('RestaurantCtx');
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return null;
-    }
+    return readAuthRestaurantCtx();
   }
 
 
   clearUser(): void {
     this.userSubject.next(null);
-    localStorage.removeItem('UserCtx');
+    clearAuthUserCtx();
     void this.nativeAuthTokens.clear();
   }
 
@@ -270,9 +266,10 @@ export class AuthService {
     return firstValueFrom(this.refreshUserContext({ redirectOnFailure: false }));
   }
 
-  /** PWA startup: restore UserCtx then validate/renew via refresh-token cookie. */
+  /** PWA startup: restore UserCtx then validate/renew via refresh-token (tab-scoped). */
   async tryRestoreWebSession(): Promise<UserContextModel | null> {
     initRefreshCoordinator();
+    await this.nativeAuthTokens.initialize();
     await firstValueFrom(this.restoreSession());
     if (!this.isAuthenticated()) {
       return null;
@@ -282,20 +279,12 @@ export class AuthService {
   }
 
   restoreSession(): Observable<UserContextModel | null> {
-    const raw = localStorage.getItem('UserCtx');
-    if (raw) {
-      try {
-        const user = JSON.parse(raw) as UserContextModel;
-        this.userSubject.next(user);
-        localStorage.setItem('UserCtx', JSON.stringify(user));
-        this.setRestaurantCtx();
-        return of(user);
-      } catch {
-        console.warn('[AuthService] Failed to parse UserCtx');
-        this.userSubject.next(null);
-        this.clearRestaurantCtx();
-        return of(null);
-      }
+    const user = readAuthUserCtx();
+    if (user) {
+      this.userSubject.next(user);
+      writeAuthUserCtx(user);
+      this.setRestaurantCtx();
+      return of(user);
     }
 
     this.userSubject.next(null);
@@ -357,7 +346,7 @@ export class AuthService {
 
     if (!this.nativeAuthTokens.isEnabled()) {
       this.hydrateSessionFromStorageIfNeeded();
-      const hasLocalSession = !!localStorage.getItem('UserCtx') || !!this.userSubject.value;
+      const hasLocalSession = !!readAuthUserCtx() || !!this.userSubject.value;
       if (!hasLocalSession) {
         return of(null);
       }
@@ -384,17 +373,14 @@ export class AuthService {
           return of(snapshot);
         }
 
-        const refreshBody = this.nativeAuthTokens.isEnabled()
-          ? { refreshToken: this.nativeAuthTokens.getRefreshToken() }
-          : {};
+        const refreshToken = this.nativeAuthTokens.getRefreshToken();
+        const refreshBody = refreshToken ? { refreshToken } : {};
         const refreshHeaders: Record<string, string> = {};
         if (this.nativeAuthTokens.isEnabled()) {
           refreshHeaders[NATIVE_AUTH_HEADER] = '1';
         }
 
-        const sentRefreshToken = this.nativeAuthTokens.isEnabled()
-          ? !!refreshBody.refreshToken
-          : true;
+        const sentRefreshToken = !!refreshToken || !this.nativeAuthTokens.usesSessionStorage();
 
         return this.http
           .post<unknown>(`${this.apiUrl}/api/user/refresh-token`, refreshBody, {
@@ -452,10 +438,19 @@ export class AuthService {
 
   logout(): Observable<void> {
     this.unregisterPushToken();
+    const refreshToken = this.nativeAuthTokens.getRefreshToken();
     this.resetLocalStaffSessionData();
     this.clearUser();
     this.clearRestaurantCtx();
-    return this.http.post<void>(`${this.apiUrl}/api/user/logout`, {}, { withCredentials: true }).pipe(
+    const headers: Record<string, string> = {};
+    if (this.nativeAuthTokens.isEnabled()) {
+      headers[NATIVE_AUTH_HEADER] = '1';
+    }
+    const body = refreshToken ? { refreshToken } : {};
+    return this.http.post<void>(`${this.apiUrl}/api/user/logout`, body, {
+      withCredentials: true,
+      headers,
+    }).pipe(
       map(() => undefined as void),
       catchError(err => {
         console.warn('Logout API call failed; local session already cleared', err);
