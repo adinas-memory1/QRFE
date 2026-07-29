@@ -191,7 +191,6 @@ export class KitchenComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.hydrating) return;
-        if (this.applyingOrderUpdateTables.size > 0) return;
         void this.rebuildFromDexie().then(() => {
           // #region agent log
           kitchenDebugLog('H5', 'kitchen.snapshotRefreshed', 'rebuild-done', {
@@ -205,11 +204,11 @@ export class KitchenComponent implements OnInit, OnDestroy {
     // UI should reflect Dexie: rebuild when carts mutate.
     this.offlineDB.cartsChanged$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(async ({ tableId }) => {
+      .subscribe(async ({ tableId, deleted }) => {
         if (this.hydrating) return;
-        if (this.applyingOrderUpdateTables.has(tableId)) return;
+        if (!deleted && this.applyingOrderUpdateTables.has(tableId)) return;
         // #region agent log
-        kitchenDebugLog('H2', 'kitchen.cartsChanged', 'rebuild-trigger', { tableId });
+        kitchenDebugLog('H2', 'kitchen.cartsChanged', 'rebuild-trigger', { tableId, deleted: !!deleted });
         // #endregion
         await this.rebuildFromDexie(tableId);
       });
@@ -688,7 +687,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
     this.applyingOrderUpdateTables.add(tableId);
     try {
       await this.offlineDB.saveCart(tableId, nextCart, orderId, true);
-      await this.rebuildFromDexie(tableId, lastActionAt);
+      this.applyStationUiFromCart(tableId, orderId, nextCart, lastActionAt);
       const mappedLen = this.ordersByTableId[tableId]?.items.length ?? 0;
       kitchenDebugLog('H5', 'kitchen.applyOrderUpdated', 'after-rebuild', {
         tableId,
@@ -700,6 +699,31 @@ export class KitchenComponent implements OnInit, OnDestroy {
     } finally {
       this.applyingOrderUpdateTables.delete(tableId);
     }
+  }
+
+  /** Apply kitchen UI from authoritative SSE cart — avoid re-read Dexie races with manage-orders tab. */
+  private applyStationUiFromCart(
+    tableId: string,
+    orderId: string,
+    cart: CartItem[],
+    lastActionAt: string,
+  ): void {
+    if (!this.restaurantId) return;
+
+    const mapped = this.mapCartToKitchenItems(tableId, cart);
+    if (!mapped.length) {
+      delete this.ordersByTableId[tableId];
+      return;
+    }
+
+    this.ordersByTableId[tableId] = {
+      restaurantId: this.restaurantId,
+      tableId,
+      tableName: this.tablesById[tableId]?.tableName ?? '—',
+      orderId,
+      lastActionAt,
+      items: mapped,
+    };
   }
 
   private async rebuildFromDexie(tableId?: string, lastActionAt?: string) {
