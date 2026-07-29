@@ -1,8 +1,10 @@
-/** Agent debug — session e9be21 @ 192.168.43.142 only */
+/** Agent debug — session e9be21; POST to API + local Cursor ingest */
+import { environment } from '../../../environments/environment';
+
 const DEBUG_SESSION = 'e9be21';
 const DEBUG_STORAGE_KEY = `debug-${DEBUG_SESSION}`;
-const DEBUG_POST_URL = 'http://192.168.43.142/api/debug/agent-log';
-
+const DEBUG_POST_URL = `${environment.apiUrl.replace(/\/$/, '')}/api/debug/agent-log`;
+const DEBUG_INGEST_URL = 'http://127.0.0.1:7761/ingest/1418246a-67e2-4be2-9f84-77b49dcc9c16';
 type DebugEntry = {
   sessionId: string;
   hypothesisId: string;
@@ -47,14 +49,13 @@ export function agentDebugLog(
   // #region agent log
   persistSessionFallback(entry);
 
-  fetch(DEBUG_POST_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Debug-Session-Id': DEBUG_SESSION,
-    },
-    body: JSON.stringify(entry),
-  }).catch(() => {});
+  const body = JSON.stringify(entry);
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Debug-Session-Id': DEBUG_SESSION,
+  };
+  fetch(DEBUG_POST_URL, { method: 'POST', headers, body }).catch(() => {});
+  fetch(DEBUG_INGEST_URL, { method: 'POST', headers, body }).catch(() => {});
   // #endregion
 }
 

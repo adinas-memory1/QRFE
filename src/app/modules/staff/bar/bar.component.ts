@@ -242,14 +242,24 @@ export class BarComponent implements OnInit, OnDestroy {
   }
 
   private handleSseEvent({ EventType, Data, Sequence }: SseEvent<unknown>) {
+    if (EventType === 'OrderClosedWithPayment') {
+      const tableId = this.normalizeSseId(this.sseField<string>(Data, 'TableId', 'tableId'));
+      const orderId = this.normalizeSseId(this.sseField<string>(Data, 'OrderId', 'orderId'));
+      this.markSseSequence(Sequence);
+      if (tableId) {
+        this.enqueueOrderClosed(tableId, orderId || undefined, Sequence);
+      } else if (orderId) {
+        const mappedTableId = this.orderIdToTableId[orderId];
+        if (mappedTableId) {
+          this.enqueueOrderClosed(mappedTableId, orderId, Sequence);
+        }
+      }
+      return;
+    }
+
     if (typeof Sequence === 'number' && Sequence > 0) {
       if (this.recentSseSequenceSet.has(Sequence)) return;
-      this.recentSseSequenceSet.add(Sequence);
-      this.recentSseSequences.push(Sequence);
-      if (this.recentSseSequences.length > this.maxRecentSseSequences) {
-        const old = this.recentSseSequences.shift();
-        if (typeof old === 'number') this.recentSseSequenceSet.delete(old);
-      }
+      this.markSseSequence(Sequence);
     }
     switch (EventType) {
       case 'OrderUpdated': {
@@ -269,15 +279,26 @@ export class BarComponent implements OnInit, OnDestroy {
         // Intentionally ignored: we compute delete from OrderUpdated diffs.
         break;
       }
-      case 'OrderClosedWithPayment': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? '';
-        const orderId = this.sseField<string>(Data, 'OrderId', 'orderId') ?? '';
-        if (tableId) this.enqueueOrderClosed(tableId, orderId, Sequence);
-        break;
-      }
       default:
         break;
     }
+  }
+
+  private markSseSequence(Sequence: number | undefined): void {
+    if (typeof Sequence !== 'number' || Sequence <= 0) return;
+    if (this.recentSseSequenceSet.has(Sequence)) return;
+    this.recentSseSequenceSet.add(Sequence);
+    this.recentSseSequences.push(Sequence);
+    if (this.recentSseSequences.length > this.maxRecentSseSequences) {
+      const old = this.recentSseSequences.shift();
+      if (typeof old === 'number') this.recentSseSequenceSet.delete(old);
+    }
+  }
+
+  private normalizeSseId(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (value == null) return '';
+    return String(value).trim();
   }
 
   /**

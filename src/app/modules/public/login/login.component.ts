@@ -26,7 +26,7 @@ import { SubscriptionService } from '../../../core/services/subscription-service
 import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 import { MiscellaneousService } from '../../../core/services/misc/miscellaneous.service';
 import { UserContextModel } from '../../../core/models/userContextModel';
-import { SeoService } from '../../../core/services/seo/seo.service';
+import { agentDebugLog } from '../../../core/debug/agent-debug.logger';
 
 @Component({
   selector: 'app-login',
@@ -78,6 +78,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const formValue = this.loginForm.value;
 
+    this.authService.clearUser();
+
     this.authService.loginUser(formValue).subscribe({
       next: (response: unknown) => {
         void this.completeLogin(response, formValue.email);
@@ -110,6 +112,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (!confirmed) {
       this.toast.error(this.transloco.translate('common.loginFailed'));
       return;
+    }
+    if (confirmed.id !== user.id) {
+      // #region agent log
+      agentDebugLog('A5', 'login.completeLogin', 'ping-user-mismatch-trust-login', {
+        loginUserId: user.id,
+        pingUserId: confirmed.id,
+        loginEmail: user.email ?? null,
+        pingEmail: confirmed.email ?? null,
+      });
+      // #endregion
+      this.authService.setUser(user);
     }
 
     const returnUrl = this.route.snapshot.queryParams['returnUrl'];

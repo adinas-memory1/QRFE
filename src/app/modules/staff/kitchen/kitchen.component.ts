@@ -208,6 +208,9 @@ export class KitchenComponent implements OnInit, OnDestroy {
       .subscribe(async ({ tableId }) => {
         if (this.hydrating) return;
         if (this.applyingOrderUpdateTables.has(tableId)) return;
+        // #region agent log
+        kitchenDebugLog('H2', 'kitchen.cartsChanged', 'rebuild-trigger', { tableId });
+        // #endregion
         await this.rebuildFromDexie(tableId);
       });
 
@@ -290,6 +293,29 @@ export class KitchenComponent implements OnInit, OnDestroy {
       sequence: Sequence,
     });
     // #endregion
+
+    if (EventType === 'OrderClosedWithPayment') {
+      const tableId = this.normalizeSseId(this.sseField<string>(Data, 'TableId', 'tableId'));
+      const orderId = this.normalizeSseId(this.sseField<string>(Data, 'OrderId', 'orderId'));
+      kitchenDebugLog('H1', 'kitchen.handleSseEvent', 'order-closed-received', {
+        tableId,
+        orderId,
+        sequence: Sequence,
+      });
+      this.markSseSequence(Sequence);
+      if (tableId) {
+        this.enqueueOrderClosed(tableId, orderId || undefined, Sequence);
+      } else if (orderId) {
+        const mappedTableId = this.orderIdToTableId[orderId];
+        if (mappedTableId) {
+          this.enqueueOrderClosed(mappedTableId, orderId, Sequence);
+        } else {
+          kitchenDebugLog('H4', 'kitchen.handleSseEvent', 'order-closed-no-tableId', { orderId });
+        }
+      }
+      return;
+    }
+
     if (typeof Sequence === 'number' && Sequence > 0) {
       if (this.recentSseSequenceSet.has(Sequence)) {
         kitchenDebugLog('H4', 'kitchen.handleSseEvent', 'sequence-dedup-skip', {
@@ -298,12 +324,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
         });
         return;
       }
-      this.recentSseSequenceSet.add(Sequence);
-      this.recentSseSequences.push(Sequence);
-      if (this.recentSseSequences.length > this.maxRecentSseSequences) {
-        const old = this.recentSseSequences.shift();
-        if (typeof old === 'number') this.recentSseSequenceSet.delete(old);
-      }
+      this.markSseSequence(Sequence);
     }
     switch (EventType) {
       case 'OrderUpdated': {
@@ -336,20 +357,26 @@ export class KitchenComponent implements OnInit, OnDestroy {
         // Intentionally ignored: we compute delete from OrderUpdated diffs.
         break;
       }
-      case 'OrderClosedWithPayment': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? '';
-        const orderId = this.sseField<string>(Data, 'OrderId', 'orderId') ?? '';
-        kitchenDebugLog('H1', 'kitchen.handleSseEvent', 'order-closed-received', {
-          tableId,
-          orderId,
-          sequence: Sequence,
-        });
-        if (tableId) this.enqueueOrderClosed(tableId, orderId, Sequence);
-        break;
-      }
       default:
         break;
     }
+  }
+
+  private markSseSequence(Sequence: number | undefined): void {
+    if (typeof Sequence !== 'number' || Sequence <= 0) return;
+    if (this.recentSseSequenceSet.has(Sequence)) return;
+    this.recentSseSequenceSet.add(Sequence);
+    this.recentSseSequences.push(Sequence);
+    if (this.recentSseSequences.length > this.maxRecentSseSequences) {
+      const old = this.recentSseSequences.shift();
+      if (typeof old === 'number') this.recentSseSequenceSet.delete(old);
+    }
+  }
+
+  private normalizeSseId(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (value == null) return '';
+    return String(value).trim();
   }
 
   /**

@@ -443,6 +443,21 @@ export class OrderSyncService {
           }
 
           if (Sequence && Sequence < this.watermarkSequence) {
+            if (EventType === 'OrderClosedWithPayment') {
+              // #region agent log
+              agentDebugLog('H1', 'order-sync.onmessage', 'watermark-close-force-dispatch', {
+                sequence: Sequence,
+                watermarkSequence: this.watermarkSequence,
+              });
+              // #endregion
+              this.eventsSubject.next(sse);
+              try {
+                this.bc?.postMessage({ sourceTabId: this.tabId, sse });
+              } catch {
+                /* ignore */
+              }
+              return;
+            }
             if (this.isOrderSyncEventType(EventType)) {
               // #region agent log
               agentDebugLog('H3', 'order-sync.onmessage', 'watermark-drop', {
