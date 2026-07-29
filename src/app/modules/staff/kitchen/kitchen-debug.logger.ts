@@ -1,5 +1,5 @@
-/** Kitchen SSE debug — session e9be21. LAN ingest so tablets/phones reach dev machine. */
-const DEBUG_INGEST = 'http://192.168.43.142:7761/ingest/1418246a-67e2-4be2-9f84-77b49dcc9c16';
+/** Kitchen SSE debug — session e9be21. Ingest on LAN :80 (same host as app). */
+const DEBUG_INGEST = 'http://192.168.43.142/ingest/1418246a-67e2-4be2-9f84-77b49dcc9c16';
 const DEBUG_SESSION = 'e9be21';
 
 export function kitchenDebugLog(
