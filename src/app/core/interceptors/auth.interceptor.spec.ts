@@ -177,4 +177,22 @@ describe('authInterceptor offline behavior', () => {
     expect(auth.clearUser).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  it('401 on optional stripe status after refresh retry does not logout', () => {
+    auth.refreshUserContext.and.returnValue(
+      of({ id: '1', role: 'manager', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' }),
+    );
+
+    http.get('/api/stripe/subscription/status').subscribe({ error: () => {} });
+
+    const req1 = httpMock.expectOne('/api/stripe/subscription/status');
+    req1.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+    const req2 = httpMock.expectOne('/api/stripe/subscription/status');
+    req2.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+    expect(auth.refreshUserContext).toHaveBeenCalledTimes(1);
+    expect(auth.clearUser).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });

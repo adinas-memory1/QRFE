@@ -16,6 +16,11 @@ export const AUTH_RETRIED = new HttpContextToken<boolean>(() => false);
 /** Background lock/status polls must not flip global offline on transient status=0. */
 export const SKIP_CONNECTIVITY_OFFLINE = new HttpContextToken<boolean>(() => false);
 
+/** Endpoints whose 401 means missing feature access, not an expired session. */
+function isOptional401Endpoint(url: string): boolean {
+  return url.includes('/api/stripe/subscription/status');
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -60,6 +65,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           hasRefresh: !!nativeAuthTokens.getRefreshToken(),
         });
         if (req.context.get(AUTH_RETRIED)) {
+          if (isOptional401Endpoint(req.url)) {
+            agentDebugLog('A3', 'auth.interceptor', 'optional-endpoint-401-no-logout', {
+              url: req.url.slice(-80),
+            });
+            return throwError(() => error);
+          }
           agentDebugLog('A3', 'auth.interceptor', 'logout-after-retry-401', { url: req.url.slice(-80) });
           auth.clearUser();
           router.navigate(['/login']);
@@ -86,6 +97,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(err => {
             if (isHttpAuthFailure(err)) {
+              if (attemptedRetry && isOptional401Endpoint(req.url)) {
+                agentDebugLog('A3', 'auth.interceptor', 'optional-endpoint-401-no-logout', {
+                  url: req.url.slice(-80),
+                  status: (err as HttpErrorResponse)?.status ?? null,
+                });
+                return throwError(() => err);
+              }
               agentDebugLog('A3', 'auth.interceptor', 'logout-refresh-failed', {
                 url: req.url.slice(-80),
                 status: (err as HttpErrorResponse)?.status ?? null,
