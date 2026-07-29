@@ -1,11 +1,24 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { AuthService, isHttpAuthFailure, normalizeUserContext } from './auth.service';
-import { resetRefreshCoordinatorForTests } from './auth-refresh-coordinator';
+import { initRefreshCoordinator, resetRefreshCoordinatorForTests } from './auth-refresh-coordinator';
+import { clearAuthSessionStorageForTests, writeAuthUserCtx } from './auth-session.storage';
 import { UserContextModel } from '../models/userContextModel';
 import { environment } from '../../../environments/environment';
+
+const REFRESH_TOKEN_KEY = 'NativeAuthRefreshToken';
+
+function seedTabRefreshToken(token = 'tab-refresh-token'): void {
+  sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
+}
+
+/** Flush async refresh leader acquisition before HttpTestingController assertions. */
+function flushRefreshPipeline(): void {
+  tick(0);
+  flushMicrotasks();
+}
 
 describe('isHttpAuthFailure', () => {
   it('returns true for 401 and 403', () => {
@@ -74,7 +87,10 @@ describe('AuthService offline session handling', () => {
   beforeEach(() => {
     router = jasmine.createSpyObj('Router', ['navigate']);
     localStorage.clear();
+    sessionStorage.clear();
     resetRefreshCoordinatorForTests();
+    initRefreshCoordinator();
+    seedTabRefreshToken();
 
     TestBed.configureTestingModule({
       providers: [
@@ -92,51 +108,59 @@ describe('AuthService offline session handling', () => {
   afterEach(() => {
     httpMock.verify();
     localStorage.clear();
+    sessionStorage.clear();
     resetRefreshCoordinatorForTests();
   });
 
-  it('refreshUserContext on network error (status 0) does not logout', () => {
+  it('refreshUserContext on network error (status 0) does not logout', fakeAsync(() => {
     service.setUser({ id: '1', role: 'manager', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
 
     service.refreshUserContext().subscribe(result => {
       expect(result).toBeNull();
     });
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ refreshToken: 'tab-refresh-token' });
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+    tick();
 
     expect(router.navigate).not.toHaveBeenCalled();
     expect(service.isAuthenticated()).toBe(true);
-  });
+  }));
 
-  it('refreshUserContext on 401 clears session and navigates to login', () => {
+  it('refreshUserContext on 401 clears session and navigates to login', fakeAsync(() => {
     service.setUser({ id: '1', role: 'manager', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
 
     service.refreshUserContext().subscribe(result => {
       expect(result).toBeNull();
     });
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+    tick();
 
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
     expect(service.isAuthenticated()).toBe(false);
-  });
+  }));
 
-  it('refreshUserContext with redirectOnFailure false does not navigate on 401', () => {
+  it('refreshUserContext with redirectOnFailure false does not navigate on 401', fakeAsync(() => {
     service.setUser({ id: '1', role: 'manager', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
 
     service.refreshUserContext({ redirectOnFailure: false }).subscribe(result => {
       expect(result).toBeNull();
     });
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+    tick();
 
     expect(router.navigate).not.toHaveBeenCalled();
     expect(service.isAuthenticated()).toBe(false);
-  });
+  }));
 
   it('refreshUserContext deduplicates concurrent calls', fakeAsync(() => {
     service.setUser({ id: '1', role: 'manager', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
@@ -145,6 +169,7 @@ describe('AuthService offline session handling', () => {
     let second: UserContextModel | null | undefined;
     service.refreshUserContext().subscribe(v => (first = v));
     service.refreshUserContext().subscribe(v => (second = v));
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     req.flush({ IsSuccess: true, Id: '1', Role: 'manager', RestaurantId: 'r1' });
@@ -164,6 +189,7 @@ describe('AuthService offline session handling', () => {
     let second: UserContextModel | null | undefined;
     first$.subscribe(v => (first = v));
     second$.subscribe(v => (second = v));
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     req.flush({ IsSuccess: true, Id: '1', Role: 'manager', RestaurantId: 'r1' });
@@ -181,13 +207,13 @@ describe('AuthService offline session handling', () => {
       restaurantName: null,
       restaurantType: null,
     };
-    localStorage.setItem('UserCtx', JSON.stringify(user));
+    writeAuthUserCtx(user);
 
     expect(service.getUserRestaurantId()).toBe('r1');
     expect(service.isAuthenticated()).toBe(true);
   });
 
-  it('refreshUserContext keeps snapshot when body has isSuccess only', () => {
+  it('refreshUserContext keeps snapshot when body has isSuccess only', fakeAsync(() => {
     service.setUser({ id: '1', role: 'staff', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
 
     service.refreshUserContext().subscribe(result => {
@@ -195,25 +221,26 @@ describe('AuthService offline session handling', () => {
       expect(result?.role).toBe('staff');
       expect(result?.restaurantName).toBe('R');
     });
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     req.flush({ isSuccess: true, message: 'refreshed successfully' });
-  });
+    tick();
+  }));
 
-  it('refreshUserContext hydrates UserCtx when body has isSuccess only and subject is empty', () => {
-    localStorage.setItem(
-      'UserCtx',
-      JSON.stringify({ id: '1', role: 'staff', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' }),
-    );
+  it('refreshUserContext hydrates UserCtx when body has isSuccess only and subject is empty', fakeAsync(() => {
+    writeAuthUserCtx({ id: '1', role: 'staff', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
 
     service.refreshUserContext().subscribe(result => {
       expect(result?.id).toBe('1');
       expect(result?.restaurantName).toBe('R');
     });
+    flushRefreshPipeline();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     req.flush({ isSuccess: true, message: 'refreshed successfully' });
-  });
+    tick();
+  }));
 
   it('setUser clears stale restaurantId for reseller', () => {
     service.setUser({

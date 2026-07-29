@@ -16,8 +16,13 @@ export class NativeAuthTokenService {
 
   constructor(private readonly storage: PlatformStorageService) {}
 
+  /** Tab-scoped Bearer tokens: native app + each browser tab/window (sessionStorage). */
   isEnabled(): boolean {
-    return Capacitor.isNativePlatform();
+    return Capacitor.isNativePlatform() || typeof sessionStorage !== 'undefined';
+  }
+
+  usesSessionStorage(): boolean {
+    return !Capacitor.isNativePlatform();
   }
 
   async initialize(): Promise<void> {
@@ -80,11 +85,20 @@ export class NativeAuthTokenService {
     if (!this.isEnabled()) {
       return;
     }
+    if (this.usesSessionStorage()) {
+      this.clearSessionStorageTokens();
+      return;
+    }
     await this.storage.setString(ACCESS_TOKEN_KEY, '');
     await this.storage.setString(REFRESH_TOKEN_KEY, '');
   }
 
   private async loadFromStorage(): Promise<void> {
+    if (this.usesSessionStorage()) {
+      this.accessToken = sessionStorage.getItem(ACCESS_TOKEN_KEY)?.trim() || null;
+      this.refreshToken = this.normalizeRefreshToken(sessionStorage.getItem(REFRESH_TOKEN_KEY));
+      return;
+    }
     const [access, refresh] = await Promise.all([
       this.storage.getString(ACCESS_TOKEN_KEY),
       this.storage.getString(REFRESH_TOKEN_KEY),
@@ -110,6 +124,10 @@ export class NativeAuthTokenService {
   }
 
   private async persist(): Promise<void> {
+    if (this.usesSessionStorage()) {
+      this.persistSessionStorageTokens();
+      return;
+    }
     if (this.accessToken) {
       await this.storage.setString(ACCESS_TOKEN_KEY, this.accessToken);
     } else {
@@ -119,6 +137,32 @@ export class NativeAuthTokenService {
       await this.storage.setString(REFRESH_TOKEN_KEY, this.refreshToken);
     } else {
       await this.storage.setString(REFRESH_TOKEN_KEY, '');
+    }
+  }
+
+  private persistSessionStorageTokens(): void {
+    try {
+      if (this.accessToken) {
+        sessionStorage.setItem(ACCESS_TOKEN_KEY, this.accessToken);
+      } else {
+        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      }
+      if (this.refreshToken) {
+        sessionStorage.setItem(REFRESH_TOKEN_KEY, this.refreshToken);
+      } else {
+        sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  private clearSessionStorageTokens(): void {
+    try {
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    } catch {
+      // ignore
     }
   }
 }
