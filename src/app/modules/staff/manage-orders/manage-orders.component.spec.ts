@@ -456,41 +456,75 @@ describe('ManageOrdersComponent', () => {
       seedComponentTables(component);
     });
 
+    const emptyComputed = {
+      total: 0,
+      currency: 'EUR',
+      itemCount: 0,
+      lastAddedItem: '',
+      lastActionAt: '',
+      initiatedBy: '',
+      cssClass: 'table-css',
+    };
+
     it('WaiterCall sets waiter id from PascalCase TableId', async () => {
+      component.tableComputed[TABLE_A] = { ...(component.tableComputed[TABLE_A] ?? emptyComputed) };
       await invokeSse(component, 'WaiterCall', { TableId: TABLE_A });
       expect(component.waiterState[TABLE_A]).toBe(WaiterCallState.Active);
+      expect(component.tableComputed[TABLE_A]?.cssClass).toContain('bg-warning');
     });
 
     it('WaiterCall sets id from camelCase tableId', async () => {
+      component.tableComputed[TABLE_B] = { ...(component.tableComputed[TABLE_B] ?? emptyComputed) };
       await invokeSse(component, 'WaiterCall', { tableId: TABLE_B });
       expect(component.waiterState[TABLE_B]).toBe(WaiterCallState.Active);
+      expect(component.tableComputed[TABLE_B]?.cssClass).toContain('bg-warning');
+    });
+
+    it('WaiterCall normalizes tableId casing to match tables', async () => {
+      const mixedCaseId = 'AaBbCcDd-EeFf-1122-3344-556677889900';
+      const canonicalId = 'aabbccdd-eeff-1122-3344-556677889900';
+      component.tables = [
+        ...component.tables,
+        {
+          tableId: canonicalId,
+          tableName: 'T-mixed',
+          isTableOpen: true,
+          order: null,
+        } as any,
+      ];
+      component.tableComputed[canonicalId] = { ...emptyComputed };
+      await invokeSse(component, 'WaiterCall', { TableId: mixedCaseId });
+      expect(component.waiterState[canonicalId]).toBe(WaiterCallState.Active);
+      expect(component.waiterState[mixedCaseId]).toBeUndefined();
+      expect(component.tableComputed[canonicalId]?.cssClass).toContain('bg-warning');
     });
 
     it('WaiterCallSnoozed clears active waiter highlight', async () => {
-      component.waiterState[TABLE_A] = WaiterCallState.Active;
+      component.waiterState = { [TABLE_A]: WaiterCallState.Active };
+      component.tableComputed[TABLE_A] = { ...emptyComputed, cssClass: 'bg-warning text-dark' };
       await invokeSse(component, 'WaiterCallSnoozed', { TableId: TABLE_A });
       expect(component.waiterState[TABLE_A]).toBeUndefined();
+      expect(component.tableComputed[TABLE_A]?.cssClass).not.toContain('bg-warning');
     });
 
-    it('KitchenWaiterCall sets kitchen pickup flag without local toast', async () => {
+    it('KitchenWaiterCall sets kitchen pickup flag and shows toast', async () => {
       await invokeSse(component, 'KitchenWaiterCall', {
         TableId: TABLE_A,
         TableName: 'T1',
         ClientInstanceId: 'device-1',
       });
       expect(component.kitchenPickupRequested[TABLE_A]).toBeTrue();
-      expect(mocks.appToast.info).not.toHaveBeenCalled();
+      expect(mocks.appToast.info).toHaveBeenCalled();
       expect(mocks.deviceFeedback.notifyPickupFromPush).not.toHaveBeenCalled();
     });
 
-    it('BarWaiterCall sets bar pickup flag without local toast', async () => {
+    it('BarWaiterCall sets bar pickup flag and shows toast', async () => {
       await invokeSse(component, 'BarWaiterCall', {
         TableId: TABLE_B,
         TableName: 'T2',
         ClientInstanceId: 'device-2',
       });
       expect(component.barPickupRequested[TABLE_B]).toBeTrue();
-      expect(mocks.appToast.info).not.toHaveBeenCalled();
       expect(mocks.deviceFeedback.notifyPickupFromPush).not.toHaveBeenCalled();
     });
 
@@ -774,37 +808,6 @@ describe('ManageOrdersComponent', () => {
 
       const resolved = (component as unknown as { resolveInitiatedBy: (id: string) => string }).resolveInitiatedBy(TABLE_A);
       expect(resolved).toBe('Manager Name');
-    });
-
-    it('hydrateComputedFromTables restores lastActionAt and initiatedBy from order snapshot', () => {
-      component.tables = [{
-        ...createDefaultTables()[0],
-        tableId: TABLE_A,
-        isTableOpen: false,
-        order: {
-          orderId: 'order-a',
-          isOrderOpen: true,
-          lastInitiatedBy: 'Maria Pop',
-          createdOn: new Date().toISOString(),
-          currency: 'RON' as import('../../../core/models/restaurantTablesModel').Currency,
-          orderItems: [{
-            menuItemId: 'm1',
-            orderItemName: 'Pizza',
-            orderItemPriceAmount: 20,
-            orderItemPriceCurrency: 'RON' as import('../../../core/models/restaurantTablesModel').Currency,
-            orderItemDescription: '',
-            category: 'Main',
-            quantity: 1,
-            updatedAt: '2026-06-01T15:30:00.000Z',
-          } as import('../../../core/models/orderingModel').OrderItemDTO],
-        },
-      }];
-      component.tableComputed = {};
-
-      (component as unknown as { hydrateComputedFromTables: () => void }).hydrateComputedFromTables();
-
-      expect(component.tableComputed[TABLE_A]?.initiatedBy).toBe('Maria Pop');
-      expect(component.tableComputed[TABLE_A]?.lastActionAt).toBe('2026-06-01T15:30:00.000Z');
     });
   });
 

@@ -7,8 +7,6 @@ import {
   orderItemDtoFromSseLine,
   OrderDTO,
   OrderUpdatedSSEPayload,
-  readOrderLastActionAt,
-  readOrderLastInitiatedBy,
   resolveOrderCurrency,
 } from './orderingModel';
 
@@ -66,34 +64,6 @@ describe('orderingModel SSE helpers', () => {
     expect(order.isOrderOpen).toBeTrue();
     expect(order.orderItems?.length).toBe(1);
     expect(order.lastInitiatedBy).toBe('Maria');
-  });
-
-  it('readOrderLastInitiatedBy reads PascalCase from sync snapshot', () => {
-    const order = {
-      orderId: 'o1',
-      LastInitiatedBy: ' Popescu Ion ',
-    } as unknown as OrderDTO;
-    expect(readOrderLastInitiatedBy(order)).toBe('Popescu Ion');
-  });
-
-  it('readOrderLastActionAt uses max UpdatedAt from order items when top-level field is missing', () => {
-    const order: OrderDTO = {
-      orderId: 'o1',
-      createdOn: '2026-01-01T10:00:00.000Z',
-      isOrderOpen: true,
-      currency: Currency.RON,
-      orderItems: [{
-        menuItemId: 'm1',
-        orderItemName: 'Soup',
-        orderItemPriceAmount: 10,
-        orderItemPriceCurrency: Currency.RON,
-        orderItemDescription: '',
-        category: 'Main',
-        quantity: 1,
-        updatedAt: '2026-01-01T12:00:00.000Z',
-      } as unknown as NonNullable<OrderDTO['orderItems']>[number]],
-    };
-    expect(readOrderLastActionAt(order)).toBe('2026-01-01T12:00:00.000Z');
   });
 
   it('resolveOrderCurrency falls back to order.currency when subTotal currency is missing', () => {

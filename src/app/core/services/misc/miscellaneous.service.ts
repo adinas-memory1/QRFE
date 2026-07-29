@@ -48,7 +48,16 @@ export class MiscellaneousService {
 
   getTableCss(table: TableDTO, waiterState: Record<string, WaiterCallState>): string {
     if (!table) return 'bg-secondary text-white';
-    if (waiterState[table.tableId] === WaiterCallState.Active) return 'bg-warning text-dark';
+    const direct = waiterState[table.tableId];
+    if (direct === WaiterCallState.Active) return 'bg-warning text-dark';
+    if (direct == null && table.tableId) {
+      const lower = table.tableId.toLowerCase();
+      for (const [key, state] of Object.entries(waiterState)) {
+        if (key.toLowerCase() === lower && state === WaiterCallState.Active) {
+          return 'bg-warning text-dark';
+        }
+      }
+    }
     if (table.isTableOpen) return 'bg-success text-white';
     return 'bg-danger text-white';
   }

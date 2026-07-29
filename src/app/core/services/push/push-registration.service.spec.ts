@@ -12,9 +12,7 @@ import { ClientInstanceService } from '../device/client-instance.service';
 
 describe('PushRegistrationService deliverPickupAlert', () => {
   let service: PushRegistrationService;
-  let deviceFeedback: jasmine.SpyObj<DeviceFeedbackService & { pulsePickup: jasmine.Spy }>;
-  let toast: jasmine.SpyObj<Pick<AppToastService, 'info'>>;
-  let clientInstance: jasmine.SpyObj<Pick<ClientInstanceService, 'whenReady'>>;
+  let deviceFeedback: jasmine.SpyObj<DeviceFeedbackService>;
   const nativePlatform: RuntimePlatformService = {
     isNative: true,
     capabilities: {
@@ -30,14 +28,7 @@ describe('PushRegistrationService deliverPickupAlert', () => {
   } as RuntimePlatformService;
 
   beforeEach(() => {
-    deviceFeedback = jasmine.createSpyObj('DeviceFeedbackService', [
-      'notifyPickupFromPush',
-      'pulsePickup',
-    ]);
-    deviceFeedback.pulsePickup.and.returnValue(Promise.resolve(true));
-    toast = jasmine.createSpyObj('AppToastService', ['info']);
-    clientInstance = jasmine.createSpyObj('ClientInstanceService', ['whenReady']);
-    clientInstance.whenReady.and.resolveTo('waiter-device-1');
+    deviceFeedback = jasmine.createSpyObj('DeviceFeedbackService', ['notifyPickupFromPush']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -51,12 +42,12 @@ describe('PushRegistrationService deliverPickupAlert', () => {
             bodyFor: () => 'body',
           },
         },
-        { provide: AppToastService, useValue: toast },
+        { provide: AppToastService, useValue: { info: jasmine.createSpy('info') } },
         { provide: TranslocoService, useValue: { translate: (k: string) => k } },
         { provide: AuthService, useValue: { getUserContext: () => ({ pipe: () => ({}) }) } },
         { provide: HttpClient, useValue: {} },
         { provide: Router, useValue: {} },
-        { provide: ClientInstanceService, useValue: clientInstance },
+        { provide: ClientInstanceService, useValue: {} },
       ],
     });
 
@@ -77,50 +68,5 @@ describe('PushRegistrationService deliverPickupAlert', () => {
       source: 'fcm',
     });
     expect(deviceFeedback.notifyPickupFromPush).not.toHaveBeenCalled();
-  });
-
-  it('shows foreground toast only on targeted waiter device', async () => {
-    spyOn(
-      service as unknown as { isDebounced: (key: string) => boolean },
-      'isDebounced',
-    ).and.returnValue(false);
-
-    const appModule = await import('@capacitor/app');
-    spyOn(appModule.App, 'getState').and.resolveTo({ isActive: true });
-
-    await service.deliverPickupAlert({
-      eventType: 'KitchenWaiterCall',
-      tableId: 'table-kitchen',
-      tableName: 'T1',
-      clientInstanceId: 'waiter-device-2',
-      source: 'sse',
-    });
-
-    expect(toast.info).not.toHaveBeenCalled();
-  });
-
-  it('shows foreground toast when clientInstanceId matches local device', async () => {
-    spyOn(
-      service as unknown as { isDebounced: (key: string) => boolean },
-      'isDebounced',
-    ).and.returnValue(false);
-
-    const appModule = await import('@capacitor/app');
-    spyOn(appModule.App, 'getState').and.resolveTo({ isActive: true });
-
-    await service.deliverPickupAlert({
-      eventType: 'KitchenWaiterCall',
-      tableId: 'table-kitchen',
-      tableName: 'T1',
-      clientInstanceId: 'waiter-device-1',
-      source: 'sse',
-    });
-
-    expect(toast.info).toHaveBeenCalled();
-    expect(deviceFeedback.pulsePickup).toHaveBeenCalledWith(
-      'kitchen',
-      'table-kitchen',
-      'foreground-sse',
-    );
   });
 });

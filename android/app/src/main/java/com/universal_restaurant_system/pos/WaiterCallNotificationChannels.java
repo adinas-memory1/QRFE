@@ -24,17 +24,16 @@ public final class WaiterCallNotificationChannels {
             return;
         }
 
-        NotificationChannel existing = manager.getNotificationChannel(MainActivity.WAITER_CALL_CHANNEL_ID);
-        if (existing != null) {
-            manager.deleteNotificationChannel(MainActivity.WAITER_CALL_CHANNEL_ID);
+        // Do not delete+recreate on every call — that races with notify() and drops tray posts.
+        if (manager.getNotificationChannel(MainActivity.WAITER_CALL_CHANNEL_ID) != null) {
+            return;
         }
 
-        NotificationChannel channel = buildHighPriorityChannel(
+        manager.createNotificationChannel(buildHighPriorityChannel(
             MainActivity.WAITER_CALL_CHANNEL_ID,
             "Waiter calls",
             "Kitchen, bar pickup alerts"
-        );
-        manager.createNotificationChannel(channel);
+        ));
     }
 
     static void ensureGuestWaiterChannel(Context context, String restaurantId, String displayName) {
@@ -48,17 +47,17 @@ public final class WaiterCallNotificationChannels {
         }
 
         String channelId = GuestWaiterChannelIds.forRestaurantId(restaurantId);
-        NotificationChannel existing = manager.getNotificationChannel(channelId);
-        if (existing != null) {
-            manager.deleteNotificationChannel(channelId);
+        if (manager.getNotificationChannel(channelId) != null) {
+            return;
         }
 
         String label = displayName == null || displayName.trim().isEmpty()
             ? "Guest waiter calls"
             : displayName.trim() + " — guest calls";
 
-        NotificationChannel channel = buildHighPriorityChannel(channelId, label, "Guest calling the waiter");
-        manager.createNotificationChannel(channel);
+        manager.createNotificationChannel(
+            buildHighPriorityChannel(channelId, label, "Guest calling the waiter")
+        );
     }
 
     private static NotificationChannel buildHighPriorityChannel(

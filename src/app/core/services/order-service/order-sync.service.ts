@@ -459,7 +459,16 @@ export class OrderSyncService {
               this.dispatchSseEvent(sse);
               return;
             }
+            // Guest waiter alerts are ephemeral UI/haptics — never drop them for order-sync watermark.
+            // OrderUpdated / OrderItem* stay filtered so kitchen close logic is preserved.
             if (this.isEphemeralStaffAlertEventType(EventType)) {
+              // #region agent log
+              agentDebugLog('H3', 'order-sync.onmessage', 'watermark-alert-passthrough', {
+                eventType: EventType,
+                sequence: Sequence,
+                watermarkSequence: this.watermarkSequence,
+              });
+              // #endregion
               this.dispatchSseEvent(sse);
               return;
             }
@@ -716,14 +725,9 @@ export class OrderSyncService {
       || eventType === 'NewOrderPrivateEvent';
   }
 
-  /** Real-time staff alerts — must not be dropped below sync watermark (unlike stale order deltas). */
+  /** Guest QR waiter call / snooze — must reach UI + haptics even when Sequence < sync watermark. */
   private isEphemeralStaffAlertEventType(eventType: string): boolean {
-    return eventType === 'WaiterCall'
-      || eventType === 'WaiterCallSnoozed'
-      || eventType === 'KitchenWaiterCall'
-      || eventType === 'KitchenWaiterCallSnoozed'
-      || eventType === 'BarWaiterCall'
-      || eventType === 'BarWaiterCallSnoozed';
+    return eventType === 'WaiterCall' || eventType === 'WaiterCallSnoozed';
   }
 
   private bufferEvent(ev: SseEvent<any>) {
