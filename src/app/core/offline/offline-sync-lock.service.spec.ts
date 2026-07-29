@@ -20,8 +20,9 @@ describe('OfflineSyncLockService', () => {
         {
           provide: AuthService,
           useValue: {
-            getUserSnapshot: () => ({ restaurantId: 'rest-1' }),
+            getUserSnapshot: () => ({ restaurantId: 'rest-1', role: 'manager' }),
             getUserRestaurantId: () => 'rest-1',
+            getUserRole: () => 'manager',
           },
         },
         {
