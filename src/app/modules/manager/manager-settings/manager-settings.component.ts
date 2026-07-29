@@ -469,8 +469,37 @@ export class ManagerSettingsComponent implements OnInit, OnDestroy {
   connectStripe(): void {
     const rid = this.restaurantId;
     if (!rid) return;
-    // Redirect to backend which redirects to Stripe OAuth.
-    window.location.href = `${this.apiUrl}/api/stripe-connect/authorize?restaurantId=${encodeURIComponent(rid)}`;
+
+    // Fetch OAuth URL via HttpClient (Bearer from interceptor). A full-page navigation
+    // to /authorize cannot send Authorization and fails with 401 under tab-scoped auth.
+    this.stripeConnectLoading = true;
+    this.http
+      .get<{ authorizeUrl: string }>(
+        `${this.apiUrl}/api/stripe-connect/authorize?restaurantId=${encodeURIComponent(rid)}`,
+        { withCredentials: true }
+      )
+      .subscribe({
+        next: res => {
+          const url = res?.authorizeUrl?.trim();
+          if (!url) {
+            this.stripeConnectLoading = false;
+            this.toast.error(
+              'Missing Stripe authorize URL',
+              this.transloco.translate('restaurantSettings.paymentsStripeConnectErrorTitle')
+            );
+            return;
+          }
+          window.location.href = url;
+        },
+        error: err => {
+          console.error('Failed to start Stripe Connect', err);
+          this.stripeConnectLoading = false;
+          this.toast.error(
+            this.miscellaneousService.getFirstErrorMessage(err),
+            this.transloco.translate('restaurantSettings.paymentsStripeConnectErrorTitle')
+          );
+        },
+      });
   }
 
   saveCurrency(): void {
