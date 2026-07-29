@@ -5,6 +5,7 @@ import { NativeAuthTokenService } from '../auth/native-auth-token.service';
 import { Router } from '@angular/router';
 import { SseConnectivityService } from '../offline/sse-connectivity.service';
 import { logConnectivityHttpFailure } from '../offline/connectivity-debug.logger';
+import { agentDebugLog } from '../debug/agent-debug.logger';
 import { catchError, switchMap, throwError, timeout } from 'rxjs';
 
 const REFRESH_TIMEOUT_MS = 15_000;
@@ -52,7 +53,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 401 && !isPublic) {
+        agentDebugLog('A3', 'auth.interceptor', 'http-401', {
+          url: req.url.slice(-80),
+          retried: req.context.get(AUTH_RETRIED),
+          hasBearer: !!nativeAuthTokens.getAccessToken(),
+          hasRefresh: !!nativeAuthTokens.getRefreshToken(),
+        });
         if (req.context.get(AUTH_RETRIED)) {
+          agentDebugLog('A3', 'auth.interceptor', 'logout-after-retry-401', { url: req.url.slice(-80) });
           auth.clearUser();
           router.navigate(['/login']);
           return throwError(() => error);
@@ -65,6 +73,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           switchMap((user) => {
             auth.hydrateSessionFromStorageIfNeeded();
             const sessionOk = user != null || auth.isAuthenticated();
+            agentDebugLog('A3', 'auth.interceptor', 'refresh-after-401', {
+              url: req.url.slice(-80),
+              refreshUserId: user?.id ?? null,
+              sessionOk,
+            });
             if (!sessionOk) {
               return throwError(() => error);
             }
@@ -73,6 +86,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(err => {
             if (isHttpAuthFailure(err)) {
+              agentDebugLog('A3', 'auth.interceptor', 'logout-refresh-failed', {
+                url: req.url.slice(-80),
+                status: (err as HttpErrorResponse)?.status ?? null,
+              });
               auth.clearUser();
               router.navigate(['/login']);
             }
