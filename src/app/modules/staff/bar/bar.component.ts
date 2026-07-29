@@ -160,15 +160,14 @@ export class BarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.hydrating) return;
-        if (this.applyingOrderUpdateTables.size > 0) return;
         void this.rebuildFromDexie();
       });
 
     this.offlineDB.cartsChanged$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(async ({ tableId }) => {
+      .subscribe(async ({ tableId, deleted }) => {
         if (this.hydrating) return;
-        if (this.applyingOrderUpdateTables.has(tableId)) return;
+        if (!deleted && this.applyingOrderUpdateTables.has(tableId)) return;
         await this.rebuildFromDexie(tableId);
       });
 
@@ -534,10 +533,34 @@ export class BarComponent implements OnInit, OnDestroy {
     this.applyingOrderUpdateTables.add(tableId);
     try {
       await this.offlineDB.saveCart(tableId, nextCart, orderId, true);
-      await this.rebuildFromDexie(tableId, lastActionAt);
+      this.applyStationUiFromCart(tableId, orderId, nextCart, lastActionAt);
     } finally {
       this.applyingOrderUpdateTables.delete(tableId);
     }
+  }
+
+  private applyStationUiFromCart(
+    tableId: string,
+    orderId: string,
+    cart: CartItem[],
+    lastActionAt: string,
+  ): void {
+    if (!this.restaurantId) return;
+
+    const mapped = this.mapCartToBarItems(tableId, cart);
+    if (!mapped.length) {
+      delete this.ordersByTableId[tableId];
+      return;
+    }
+
+    this.ordersByTableId[tableId] = {
+      restaurantId: this.restaurantId,
+      tableId,
+      tableName: this.tablesById[tableId]?.tableName ?? '—',
+      orderId,
+      lastActionAt,
+      items: mapped,
+    };
   }
 
   private async rebuildFromDexie(tableId?: string, lastActionAt?: string) {

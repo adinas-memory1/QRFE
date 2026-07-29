@@ -78,7 +78,7 @@ export class OfflineDbService {
      * UI guideline: components should reflect IndexedDB (Dexie).
      * Emit on mutations so UIs can re-load from Dexie.
      */
-    private cartsChangedSubject = new Subject<{ tableId: string }>();
+    private cartsChangedSubject = new Subject<{ tableId: string; deleted?: boolean }>();
     readonly cartsChanged$ = this.cartsChangedSubject.asObservable();
     /** Same-browser cross-tab cart mutations (IndexedDB is shared; Subject is not). */
     private readonly tabId = crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -87,17 +87,21 @@ export class OfflineDbService {
 
     constructor() {
         this.cartsBc?.addEventListener('message', (ev: MessageEvent) => {
-            const msg = ev.data as { sourceTabId?: string; tableId?: string } | null;
+            const msg = ev.data as { sourceTabId?: string; tableId?: string; deleted?: boolean } | null;
             if (!msg?.tableId) return;
             if (msg.sourceTabId === this.tabId) return;
-            this.cartsChangedSubject.next({ tableId: msg.tableId });
+            this.cartsChangedSubject.next({ tableId: msg.tableId, deleted: msg.deleted ?? false });
         });
     }
 
-    private notifyCartsChanged(tableId: string): void {
-        this.cartsChangedSubject.next({ tableId });
+    private notifyCartsChanged(tableId: string, options?: { crossTab?: boolean; deleted?: boolean }): void {
+        const deleted = options?.deleted ?? false;
+        this.cartsChangedSubject.next({ tableId, deleted });
+        if (!options?.crossTab) {
+            return;
+        }
         try {
-            this.cartsBc?.postMessage({ sourceTabId: this.tabId, tableId });
+            this.cartsBc?.postMessage({ sourceTabId: this.tabId, tableId, deleted });
         } catch {
             /* ignore */
         }
@@ -126,7 +130,7 @@ export class OfflineDbService {
             restaurantId: restaurantId ?? existing?.restaurantId,
         });
 
-        this.notifyCartsChanged(tableId);
+        this.notifyCartsChanged(tableId, { crossTab: false, deleted: false });
     }
 
     async loadCart(tableId: string): Promise<TableCart[string]> {
@@ -160,7 +164,7 @@ export class OfflineDbService {
 
     async deleteCart(tableId: string): Promise<void> {
         await this.db.carts.delete(tableId);
-        this.notifyCartsChanged(tableId);
+        this.notifyCartsChanged(tableId, { crossTab: true, deleted: true });
     }
 
     async clearAllCarts(): Promise<void> {

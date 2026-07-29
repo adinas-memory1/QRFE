@@ -52,6 +52,8 @@ export class OrderSyncService {
   private lastDispatchedSequence = 0;
   private watermarkDropRefreshTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly watermarkDropRefreshDebounceMs = 250;
+  private orderClosedSyncTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly orderClosedSyncDebounceMs = 300;
 
   // event stream
   private eventsSubject = new Subject<SseEvent<any>>();
@@ -108,7 +110,7 @@ export class OrderSyncService {
           return;
         }
         this.noteDispatchedSequence(sse.Sequence);
-        this.eventsSubject.next(sse);
+        this.dispatchSseEvent(sse, { broadcastCrossTab: false });
       });
     });
 
@@ -450,12 +452,7 @@ export class OrderSyncService {
                 watermarkSequence: this.watermarkSequence,
               });
               // #endregion
-              this.eventsSubject.next(sse);
-              try {
-                this.bc?.postMessage({ sourceTabId: this.tabId, sse });
-              } catch {
-                /* ignore */
-              }
+              this.dispatchSseEvent(sse);
               return;
             }
             if (this.isOrderSyncEventType(EventType)) {
@@ -489,15 +486,10 @@ export class OrderSyncService {
               buffered: false,
             });
             // #endregion
-            this.eventsSubject.next(sse);
+            this.dispatchSseEvent(sse);
           }
 
-          // also broadcast to other tabs (best-effort)
-          try {
-            this.bc?.postMessage({ sourceTabId: this.tabId, sse });
-          } catch {
-            // ignore
-          }
+          // Buffered events are replayed via flushBuffer (with cross-tab fanout there).
         });
       },
       onerror: (err) => {
@@ -667,6 +659,33 @@ export class OrderSyncService {
     }
   }
 
+  private scheduleSyncAfterOrderClosed(): void {
+    if (this.orderClosedSyncTimer !== null) {
+      return;
+    }
+    // #region agent log
+    agentDebugLog('H6', 'order-sync.scheduleSyncAfterOrderClosed', 'sync-scheduled', {});
+    // #endregion
+    this.orderClosedSyncTimer = setTimeout(() => {
+      this.orderClosedSyncTimer = null;
+      void this.refreshRestaurantSnapshot({ force: true });
+    }, this.orderClosedSyncDebounceMs);
+  }
+
+  private dispatchSseEvent(sse: SseEvent<any>, options?: { broadcastCrossTab?: boolean }): void {
+    this.eventsSubject.next(sse);
+    if (options?.broadcastCrossTab !== false) {
+      try {
+        this.bc?.postMessage({ sourceTabId: this.tabId, sse });
+      } catch {
+        /* ignore */
+      }
+    }
+    if (sse.EventType === 'OrderClosedWithPayment') {
+      this.scheduleSyncAfterOrderClosed();
+    }
+  }
+
   private scheduleRefreshAfterWatermarkDrop(reason: string): void {
     if (this.watermarkDropRefreshTimer !== null) {
       return;
@@ -699,7 +718,7 @@ export class OrderSyncService {
     while (this.eventBuffer.length) {
       const ev = this.eventBuffer.shift()!;
       this.noteDispatchedSequence(ev.Sequence);
-      this.eventsSubject.next(ev);
+      this.dispatchSseEvent(ev);
     }
   }
 
