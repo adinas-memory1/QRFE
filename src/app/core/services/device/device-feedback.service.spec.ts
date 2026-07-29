@@ -57,13 +57,14 @@ describe('DeviceFeedbackService', () => {
     expect(vibrateSpy).not.toHaveBeenCalled();
   });
 
-  it('does not vibrate when client instance id is missing', () => {
+  it('vibrates all staff when client instance id is missing (broadcast fallback)', fakeAsync(() => {
     service.notifyPickupReady('kitchen', {
       tableId: 'table-1',
       clientInstanceId: null,
     });
-    expect(vibrateSpy).not.toHaveBeenCalled();
-  });
+    flushMicrotasks();
+    expect(vibrateSpy).toHaveBeenCalledWith(500);
+  }));
 
   it('debounces repeat pickup for same table', fakeAsync(() => {
     service.notifyPickupReady('kitchen', { tableId: 'table-1', clientInstanceId: localId });

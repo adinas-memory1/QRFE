@@ -75,14 +75,16 @@ export class DeviceFeedbackService {
   ): Promise<void> {
     const targetId = (options.clientInstanceId ?? '').trim();
     const tableId = options.tableId?.trim();
-    const localId = await this.clientInstance.whenReady();
-    const matches = !!localId && clientInstanceIdsMatch(targetId, localId);
-
-    if (!targetId || !tableId) {
+    if (!tableId) {
       return;
     }
-    if (!matches) {
-      return;
+
+    if (targetId) {
+      const localId = await this.clientInstance.whenReady();
+      const matches = !!localId && clientInstanceIdsMatch(targetId, localId);
+      if (!matches) {
+        return;
+      }
     }
 
     await this.pulsePickup(kind, tableId, 'ready');

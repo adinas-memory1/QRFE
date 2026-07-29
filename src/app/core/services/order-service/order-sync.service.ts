@@ -459,6 +459,10 @@ export class OrderSyncService {
               this.dispatchSseEvent(sse);
               return;
             }
+            if (this.isEphemeralStaffAlertEventType(EventType)) {
+              this.dispatchSseEvent(sse);
+              return;
+            }
             if (this.isOrderSyncEventType(EventType)) {
               // #region agent log
               agentDebugLog('H3', 'order-sync.onmessage', 'watermark-drop', {
@@ -710,6 +714,16 @@ export class OrderSyncService {
       || eventType === 'OrderItemDeleted'
       || eventType === 'NewOrderPublicEvent'
       || eventType === 'NewOrderPrivateEvent';
+  }
+
+  /** Real-time staff alerts — must not be dropped below sync watermark (unlike stale order deltas). */
+  private isEphemeralStaffAlertEventType(eventType: string): boolean {
+    return eventType === 'WaiterCall'
+      || eventType === 'WaiterCallSnoozed'
+      || eventType === 'KitchenWaiterCall'
+      || eventType === 'KitchenWaiterCallSnoozed'
+      || eventType === 'BarWaiterCall'
+      || eventType === 'BarWaiterCallSnoozed';
   }
 
   private bufferEvent(ev: SseEvent<any>) {
