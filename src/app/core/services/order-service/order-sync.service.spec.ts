@@ -382,13 +382,4 @@ describe('OrderSyncService', () => {
       expect(await firstValueFrom(service.isReconciling$)).toBeFalse();
     });
   });
-
-  describe('ephemeral staff alerts vs watermark', () => {
-    it('treats guest WaiterCall as ephemeral (not dropped below watermark)', () => {
-      const probe = service as unknown as { isEphemeralStaffAlertEventType: (t: string) => boolean };
-      expect(probe.isEphemeralStaffAlertEventType('WaiterCall')).toBeTrue();
-      expect(probe.isEphemeralStaffAlertEventType('WaiterCallSnoozed')).toBeTrue();
-      expect(probe.isEphemeralStaffAlertEventType('OrderUpdated')).toBeFalse();
-    });
-  });
 });

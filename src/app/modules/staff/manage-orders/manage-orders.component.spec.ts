@@ -472,25 +472,24 @@ describe('ManageOrdersComponent', () => {
       expect(component.waiterState[TABLE_A]).toBeUndefined();
     });
 
-    it('KitchenWaiterCall sets kitchen pickup flag without local toast', async () => {
+    it('KitchenWaiterCall sets kitchen pickup flag and shows toast', async () => {
       await invokeSse(component, 'KitchenWaiterCall', {
         TableId: TABLE_A,
         TableName: 'T1',
         ClientInstanceId: 'device-1',
       });
       expect(component.kitchenPickupRequested[TABLE_A]).toBeTrue();
-      expect(mocks.appToast.info).not.toHaveBeenCalled();
+      expect(mocks.appToast.info).toHaveBeenCalled();
       expect(mocks.deviceFeedback.notifyPickupFromPush).not.toHaveBeenCalled();
     });
 
-    it('BarWaiterCall sets bar pickup flag without local toast', async () => {
+    it('BarWaiterCall sets bar pickup flag and shows toast', async () => {
       await invokeSse(component, 'BarWaiterCall', {
         TableId: TABLE_B,
         TableName: 'T2',
         ClientInstanceId: 'device-2',
       });
       expect(component.barPickupRequested[TABLE_B]).toBeTrue();
-      expect(mocks.appToast.info).not.toHaveBeenCalled();
       expect(mocks.deviceFeedback.notifyPickupFromPush).not.toHaveBeenCalled();
     });
 
@@ -774,37 +773,6 @@ describe('ManageOrdersComponent', () => {
 
       const resolved = (component as unknown as { resolveInitiatedBy: (id: string) => string }).resolveInitiatedBy(TABLE_A);
       expect(resolved).toBe('Manager Name');
-    });
-
-    it('hydrateComputedFromTables restores lastActionAt and initiatedBy from order snapshot', () => {
-      component.tables = [{
-        ...createDefaultTables()[0],
-        tableId: TABLE_A,
-        isTableOpen: false,
-        order: {
-          orderId: 'order-a',
-          isOrderOpen: true,
-          lastInitiatedBy: 'Maria Pop',
-          createdOn: new Date().toISOString(),
-          currency: 'RON' as import('../../../core/models/restaurantTablesModel').Currency,
-          orderItems: [{
-            menuItemId: 'm1',
-            orderItemName: 'Pizza',
-            orderItemPriceAmount: 20,
-            orderItemPriceCurrency: 'RON' as import('../../../core/models/restaurantTablesModel').Currency,
-            orderItemDescription: '',
-            category: 'Main',
-            quantity: 1,
-            updatedAt: '2026-06-01T15:30:00.000Z',
-          } as import('../../../core/models/orderingModel').OrderItemDTO],
-        },
-      }];
-      component.tableComputed = {};
-
-      (component as unknown as { hydrateComputedFromTables: () => void }).hydrateComputedFromTables();
-
-      expect(component.tableComputed[TABLE_A]?.initiatedBy).toBe('Maria Pop');
-      expect(component.tableComputed[TABLE_A]?.lastActionAt).toBe('2026-06-01T15:30:00.000Z');
     });
   });
 

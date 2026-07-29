@@ -73,29 +73,6 @@ export function readOrderLastInitiatedBy(order: OrderDTO | null | undefined): st
   return typeof v === 'string' ? v.trim() : '';
 }
 
-/** Last mutation timestamp from order snapshot or line items (API may omit a top-level field). */
-export function readOrderLastActionAt(order: OrderDTO | null | undefined): string {
-  if (!order) return '';
-  const rec = order as unknown as Record<string, unknown>;
-  const direct = rec['lastActionAt'] ?? rec['LastActionAt'] ?? rec['updatedAt'] ?? rec['UpdatedAt'];
-  if (typeof direct === 'string' && direct.trim()) {
-    return direct.trim();
-  }
-
-  let maxTs = '';
-  for (const item of order.orderItems ?? []) {
-    if (!item) continue;
-    const itemRec = item as unknown as Record<string, unknown>;
-    for (const key of ['updatedAt', 'UpdatedAt', 'createdAt', 'CreatedAt'] as const) {
-      const candidate = itemRec[key];
-      if (typeof candidate === 'string' && candidate.trim() && candidate > maxTs) {
-        maxTs = candidate.trim();
-      }
-    }
-  }
-  return maxTs;
-}
-
 /** True when table snapshot includes an open order (tolerant of PascalCase / missing flag). */
 export function tableHasActiveOrder(order: OrderDTO | null | undefined): boolean {
   if (!order) return false;
