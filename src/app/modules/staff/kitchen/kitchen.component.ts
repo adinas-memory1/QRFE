@@ -190,6 +190,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.hydrating) return;
+        if (this.applyingOrderUpdateTables.size > 0) return;
         void this.rebuildFromDexie().then(() => {
           // #region agent log
           kitchenDebugLog('H5', 'kitchen.snapshotRefreshed', 'rebuild-done', {
@@ -566,7 +567,6 @@ export class KitchenComponent implements OnInit, OnDestroy {
         nextCartLen: nextCart.length,
         envelopeSequence,
       });
-      void this.sse.refreshRestaurantSnapshot?.({ force: true });
       return;
     }
     if (shouldClearStationOrder(itemCount, nextCart.length)) {

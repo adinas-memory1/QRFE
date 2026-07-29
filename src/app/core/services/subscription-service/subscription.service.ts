@@ -172,7 +172,20 @@ export class SubscriptionService {
       .get<Record<string, unknown>>(`${this.apiUrl}/api/stripe/subscription/status`, {
         withCredentials: true,
       })
-      .pipe(map(raw => this.normalizeManagerSubscriptionStatus(raw)));
+      .pipe(
+        map(raw => this.normalizeManagerSubscriptionStatus(raw)),
+        catchError(err => {
+          const status = (err as { status?: number })?.status;
+          if (status === 401 || status === 403) {
+            return of({
+              subscriptionStatus: null,
+              cancelAtPeriodEnd: false,
+              cancelAtUtc: null,
+            } satisfies ManagerSubscriptionStatusModel);
+          }
+          return throwError(() => err);
+        }),
+      );
   }
 
   /** Cancel Stripe subscription for the logged-in manager (server loads IDs from DB). */

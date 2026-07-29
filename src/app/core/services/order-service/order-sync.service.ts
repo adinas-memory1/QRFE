@@ -451,19 +451,14 @@ export class OrderSyncService {
                 watermarkSequence: this.watermarkSequence,
               });
               // #endregion
-              this.scheduleRefreshAfterWatermarkDrop();
+              this.scheduleRefreshAfterWatermarkDrop('watermark-drop');
             }
             return;
           }
 
-          if (
-            Sequence
-            && this.isOrderSyncEventType(EventType)
-            && this.lastDispatchedSequence > 0
-            && Sequence > this.lastDispatchedSequence + 1
-          ) {
-            this.scheduleRefreshAfterWatermarkDrop();
-          }
+          // Do NOT refresh on global sequence gaps: OrderItemQuantityUpdated / NewOrderPrivateEvent
+          // interleave between OrderUpdated pairs (e.g. 3544→3547) and caused false-positive /api/sync
+          // refreshes that intermittently wiped kitchen carts via snapshotRefreshed$.
 
           if (this.isRefreshing && this.bufferWhileReconnecting) {
             this.bufferEvent(sse);
@@ -657,10 +652,13 @@ export class OrderSyncService {
     }
   }
 
-  private scheduleRefreshAfterWatermarkDrop(): void {
+  private scheduleRefreshAfterWatermarkDrop(reason: string): void {
     if (this.watermarkDropRefreshTimer !== null) {
       return;
     }
+    // #region agent log
+    agentDebugLog('H3', 'order-sync.scheduleRefresh', 'snapshot-refresh-scheduled', { reason });
+    // #endregion
     this.watermarkDropRefreshTimer = setTimeout(() => {
       this.watermarkDropRefreshTimer = null;
       void this.refreshRestaurantSnapshot({ force: true });
