@@ -98,6 +98,10 @@ export class OrderSyncService {
       const sse = msg?.sse;
       if (!sse) return;
       if (msg?.sourceTabId && msg.sourceTabId === this.tabId) return; // ignore own echoes
+      // Tabs in the same browser may be logged into different restaurants (multi-role testing);
+      // without this guard a foreign tab's events would clear/overwrite this restaurant's UI.
+      const currentRestaurantId = this.connectedRestaurantId ?? this.resolveRestaurantId();
+      if (sse.RestaurantId && currentRestaurantId && sse.RestaurantId !== currentRestaurantId) return;
       this.ngZone.run(() => {
         if (sse.EventType === 'RestaurantSyncLocked') {
           this.offlineSyncLock.setRestaurantSyncLocked(true);
