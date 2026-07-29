@@ -16,6 +16,9 @@ export const ORDER_B = '019f3376-eac8-79e0-bc15-784160691f5d';
 export const LINE_PIZZA_1 = 'line-pizza-001';
 export const LINE_BEER_1 = 'line-beer-001';
 export const LINE_SALAD_1 = 'line-salad-001';
+export const LINE_GELATO_1 = 'line-gelato-001';
+
+export const MENU_GELATO = 'menu-gelato-001';
 
 const ts = '2026-07-05T12:00:00.000Z';
 const tsQty = '2026-07-05T12:01:00.000Z';
@@ -92,6 +95,57 @@ export function fixtureOrderUpdatedQtyTripleFood(tableId = SYNC_TABLE_A, orderId
     LastAddedItem: 'Pizza',
     LastActionAt: '2026-07-05T12:02:00.000Z',
     Items: [sseLine(LINE_PIZZA_1, MENU_PIZZA, 'Pizza', 3, 'Main')],
+  };
+}
+
+/** Two kitchen lines — e.g. 20× main + 1× dessert. */
+export function fixtureOrderUpdatedTwoKitchenLines(tableId = SYNC_TABLE_A, orderId = ORDER_A): OrderUpdatedSSEPayload {
+  return {
+    RestaurantId: SYNC_TEST_RESTAURANT_ID,
+    TableId: tableId,
+    OrderId: orderId,
+    SubTotal: { Amount: 525, Currency: 'RON' },
+    ItemCount: 21,
+    LastAddedItem: 'Gelato',
+    LastActionAt: tsQty,
+    Items: [
+      sseLine(LINE_PIZZA_1, MENU_PIZZA, 'Tiramisu', 20, 'Main'),
+      sseLine(LINE_GELATO_1, MENU_GELATO, 'Gelato', 1, 'Dessert'),
+    ],
+  };
+}
+
+/** Increment first line only (20 → 21) while second line unchanged. */
+export function fixtureOrderUpdatedFirstKitchenLineIncrement(
+  tableId = SYNC_TABLE_A,
+  orderId = ORDER_A,
+): OrderUpdatedSSEPayload {
+  return {
+    RestaurantId: SYNC_TEST_RESTAURANT_ID,
+    TableId: tableId,
+    OrderId: orderId,
+    SubTotal: { Amount: 550, Currency: 'RON' },
+    ItemCount: 22,
+    LastAddedItem: 'Tiramisu',
+    LastActionAt: '2026-07-05T12:03:00.000Z',
+    Items: [
+      sseLine(LINE_PIZZA_1, MENU_PIZZA, 'Tiramisu', 21, 'Main'),
+      sseLine(LINE_GELATO_1, MENU_GELATO, 'Gelato', 1, 'Dessert'),
+    ],
+  };
+}
+
+/** Corrupt/incomplete SSE — must not wipe Dexie cart. */
+export function fixtureOrderUpdatedIncompleteItems(tableId = SYNC_TABLE_A, orderId = ORDER_A): OrderUpdatedSSEPayload {
+  return {
+    RestaurantId: SYNC_TEST_RESTAURANT_ID,
+    TableId: tableId,
+    OrderId: orderId,
+    SubTotal: { Amount: 550, Currency: 'RON' },
+    ItemCount: 22,
+    LastAddedItem: 'Tiramisu',
+    LastActionAt: '2026-07-05T12:04:00.000Z',
+    Items: [],
   };
 }
 

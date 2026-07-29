@@ -35,6 +35,13 @@ import { AppToastService } from '../../../core/services/toast-service/toast-serv
 import { OfflineDbService } from '../../../core/offline/offline-db';
 import { NotificationSoundService, type NotificationSoundKind } from '../../../core/services/sound/notification-sound.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import {
+  isIncompleteOrderUpdatedPayload,
+  resolveBaselineCart,
+  resolveIsNewStationOrder,
+  shouldClearStationOrder,
+} from '../station-order-snapshot.util';
+import { kitchenDebugLog } from './kitchen-debug.logger';
 
 type MarkKind = 'added' | 'updated' | 'deleted';
 type ItemMark = { kind: MarkKind; until: number };
@@ -269,7 +276,13 @@ export class KitchenComponent implements OnInit, OnDestroy {
 
   private handleSseEvent({ EventType, Data, Sequence }: SseEvent<any>) {
     if (typeof Sequence === 'number' && Sequence > 0) {
-      if (this.recentSseSequenceSet.has(Sequence)) return;
+      if (this.recentSseSequenceSet.has(Sequence)) {
+        kitchenDebugLog('H4', 'kitchen.handleSseEvent', 'sequence-dedup-skip', {
+          eventType: EventType,
+          sequence: Sequence,
+        });
+        return;
+      }
       this.recentSseSequenceSet.add(Sequence);
       this.recentSseSequences.push(Sequence);
       if (this.recentSseSequences.length > this.maxRecentSseSequences) {
@@ -280,6 +293,19 @@ export class KitchenComponent implements OnInit, OnDestroy {
     switch (EventType) {
       case 'OrderUpdated': {
         const payload = Data as OrderUpdatedSSEPayload;
+        const rawItems = (payload as { Items?: unknown[]; items?: unknown[] }).Items
+          ?? (payload as { items?: unknown[] }).items
+          ?? [];
+        kitchenDebugLog('H4', 'kitchen.handleSseEvent', 'order-updated-received', {
+          sequence: Sequence,
+          tableId: (payload as { TableId?: string; tableId?: string }).TableId
+            ?? (payload as { tableId?: string }).tableId,
+          orderId: (payload as { OrderId?: string; orderId?: string }).OrderId
+            ?? (payload as { orderId?: string }).orderId,
+          itemCount: (payload as { ItemCount?: number; itemCount?: number }).ItemCount
+            ?? (payload as { itemCount?: number }).itemCount,
+          itemsLen: rawItems.length,
+        });
         this.enqueueOrderUpdated(payload, Sequence);
         break;
       }
@@ -395,6 +421,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   private async clearTableOrder(tableId: string, orderId?: string): Promise<void> {
+    kitchenDebugLog('H1', 'kitchen.clearTableOrder', 'clear-invoked', { tableId, orderId });
     delete this.ordersByTableId[tableId];
     delete this.lastCartSnapshotByTableId[tableId];
     delete this.lastOrderUpdatedKeyByTableId[tableId];
@@ -468,17 +495,28 @@ export class KitchenComponent implements OnInit, OnDestroy {
         ? `${orderId}:seq:${envelopeSequence}`
         : `${orderId}:${lastActionAt}`;
     if (this.lastOrderUpdatedKeyByTableId[tableId] === dedupeKey) {
+      kitchenDebugLog('H4', 'kitchen.applyOrderUpdated', 'dedupe-key-skip', {
+        tableId,
+        orderId,
+        dedupeKey,
+        envelopeSequence,
+      });
       return;
     }
     if (this.isStaleOrderUpdated(tableId, lastActionAt, envelopeSequence)) {
+      kitchenDebugLog('H3', 'kitchen.applyOrderUpdated', 'stale-skip', {
+        tableId,
+        orderId,
+        lastActionAt,
+        envelopeSequence,
+        lastSeq: this.lastAppliedSequenceByTableId[tableId] ?? 0,
+        lastActionMs: this.lastAppliedActionAtMsByTableId[tableId] ?? 0,
+      });
       return;
     }
-    this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
 
     this.orderIdToTableId[orderId] = tableId;
 
-    const existing = this.lastCartSnapshotByTableId[tableId] ?? [];
-    const prevFood = this.filterFood(existing);
     const rawItems = (this.sseField<any[]>(payload, 'Items', 'items') ?? []) as any[];
     const nextCart: CartItem[] = rawItems.map(i => {
       const menuItemId: string = String(i?.MenuItemId ?? i?.menuItemId ?? '');
@@ -494,16 +532,63 @@ export class KitchenComponent implements OnInit, OnDestroy {
     });
 
     const itemCount = this.itemCountFromPayload(payload, nextCart);
-    if (itemCount <= 0 || nextCart.length === 0) {
+    if (isIncompleteOrderUpdatedPayload(itemCount, nextCart.length)) {
+      kitchenDebugLog('H1', 'kitchen.applyOrderUpdated', 'incomplete-payload-skip', {
+        tableId,
+        orderId,
+        itemCount,
+        nextCartLen: nextCart.length,
+        envelopeSequence,
+      });
+      return;
+    }
+    if (shouldClearStationOrder(itemCount, nextCart.length)) {
+      kitchenDebugLog('H1', 'kitchen.applyOrderUpdated', 'should-clear-order', {
+        tableId,
+        orderId,
+        itemCount,
+        nextCartLen: nextCart.length,
+        envelopeSequence,
+      });
+      this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
       this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
       await this.clearTableOrder(tableId, orderId);
       return;
     }
 
+    const existing = await resolveBaselineCart(
+      tableId,
+      orderId,
+      this.lastCartSnapshotByTableId[tableId],
+      tid => this.offlineDB.loadCartRecord(tid),
+    );
+    const prevFood = this.filterFood(existing);
     const nextFood = this.filterFood(nextCart);
+    const memoryLen = this.lastCartSnapshotByTableId[tableId]?.length ?? 0;
+    const addedIds = nextFood
+      .filter(n => {
+        const id = n.orderItemId ?? `menu:${n.item.menuItemId}`;
+        return !prevFood.some(p => (p.orderItemId ?? `menu:${p.item.menuItemId}`) === id);
+      })
+      .map(n => n.item.menuItemName ?? n.item.menuItemId);
+    kitchenDebugLog('H2', 'kitchen.applyOrderUpdated', 'diff-baseline', {
+      tableId,
+      orderId,
+      memorySnapshotLen: memoryLen,
+      baselineLen: existing.length,
+      prevFoodLen: prevFood.length,
+      nextFoodLen: nextFood.length,
+      nextCartLen: nextCart.length,
+      addedLineNames: addedIds,
+      envelopeSequence,
+    });
     const isServerOrderId = !!orderId && !orderId.startsWith('local-');
-    const isNewOrder =
-      isServerOrderId && !this.seenServerOrderIds.has(orderId) && nextFood.length > 0;
+    const isNewOrder = resolveIsNewStationOrder(
+      orderId,
+      nextFood.length,
+      prevFood.length,
+      this.seenServerOrderIds,
+    );
     if (isServerOrderId) this.seenServerOrderIds.add(orderId);
 
     if (isNewOrder && !this.hydrating && !document.hidden && !this.soundMuted) {
@@ -523,12 +608,21 @@ export class KitchenComponent implements OnInit, OnDestroy {
 
     // Update in-memory snapshot for next diffs/toasts (avoid Dexie race across tabs).
     this.lastCartSnapshotByTableId[tableId] = nextCart;
+    this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
     this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
 
     this.applyingOrderUpdateTables.add(tableId);
     try {
       await this.offlineDB.saveCart(tableId, nextCart, orderId, true);
       await this.rebuildFromDexie(tableId, lastActionAt);
+      const mappedLen = this.ordersByTableId[tableId]?.items.length ?? 0;
+      kitchenDebugLog('H5', 'kitchen.applyOrderUpdated', 'after-rebuild', {
+        tableId,
+        orderId,
+        orderVisible: !!this.ordersByTableId[tableId],
+        mappedKitchenLines: mappedLen,
+        envelopeSequence,
+      });
     } finally {
       this.applyingOrderUpdateTables.delete(tableId);
     }

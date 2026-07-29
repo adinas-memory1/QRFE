@@ -32,6 +32,12 @@ import { AppToastService } from '../../../core/services/toast-service/toast-serv
 import { OfflineDbService } from '../../../core/offline/offline-db';
 import { NotificationSoundService, type NotificationSoundKind } from '../../../core/services/sound/notification-sound.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import {
+  isIncompleteOrderUpdatedPayload,
+  resolveBaselineCart,
+  resolveIsNewStationOrder,
+  shouldClearStationOrder,
+} from '../station-order-snapshot.util';
 
 type MarkKind = 'added' | 'updated' | 'deleted';
 type ItemMark = { kind: MarkKind; until: number };
@@ -433,28 +439,40 @@ export class BarComponent implements OnInit, OnDestroy {
         : `${orderId}:${lastActionAt}`;
     if (this.lastOrderUpdatedKeyByTableId[tableId] === dedupeKey) return;
     if (this.isStaleOrderUpdated(tableId, lastActionAt, envelopeSequence)) return;
-    this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
 
     this.orderIdToTableId[orderId] = tableId;
 
-    const existing = this.lastCartSnapshotByTableId[tableId] ?? [];
-    const prevDrinks = this.filterDrinks(existing);
     const rawItems = (this.sseField<any[]>(payload, 'Items', 'items') ?? []) as any[];
     const nextCart: CartItem[] = rawItems.map(i =>
       cartLineFromOrderRaw(i as Record<string, unknown>, this.menuItemsById),
     );
 
     const itemCount = this.itemCountFromPayload(payload, nextCart);
-    if (itemCount <= 0 || nextCart.length === 0) {
+    if (isIncompleteOrderUpdatedPayload(itemCount, nextCart.length)) {
+      return;
+    }
+    if (shouldClearStationOrder(itemCount, nextCart.length)) {
+      this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
       this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
       await this.clearTableOrder(tableId, orderId);
       return;
     }
 
+    const existing = await resolveBaselineCart(
+      tableId,
+      orderId,
+      this.lastCartSnapshotByTableId[tableId],
+      tid => this.offlineDB.loadCartRecord(tid),
+    );
+    const prevDrinks = this.filterDrinks(existing);
     const nextDrinks = this.filterDrinks(nextCart);
     const isServerOrderId = !!orderId && !orderId.startsWith('local-');
-    const isNewOrder =
-      isServerOrderId && !this.seenServerOrderIds.has(orderId) && nextDrinks.length > 0;
+    const isNewOrder = resolveIsNewStationOrder(
+      orderId,
+      nextDrinks.length,
+      prevDrinks.length,
+      this.seenServerOrderIds,
+    );
     if (isServerOrderId) this.seenServerOrderIds.add(orderId);
 
     if (isNewOrder && !this.hydrating && !document.hidden && !this.soundMuted) {
@@ -473,6 +491,7 @@ export class BarComponent implements OnInit, OnDestroy {
     this.diffAndMark(tableId, prevDrinks, nextDrinks, isNewOrder);
 
     this.lastCartSnapshotByTableId[tableId] = nextCart;
+    this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
     this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
 
     this.applyingOrderUpdateTables.add(tableId);
