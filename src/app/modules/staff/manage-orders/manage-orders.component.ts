@@ -1326,11 +1326,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   }
 
   snoozeWaiterCall(tableId: string): void {
-    delete this.waiterState[tableId];
-    const table = this.tables.find(t => t.tableId === tableId);
-    if (table && this.tableComputed[tableId]) {
-      this.tableComputed[tableId].cssClass = this.miscService.getTableCss(table, this.waiterState);
-    }
+    this.applyGuestWaiterHighlight(tableId, false);
     this.tablesService.snoozeWaiterCall(this.restaurantId, tableId)
       .pipe(take(1))
       .subscribe({ error: (err: unknown) => console.error('Error snoozing waiter call', err) });
@@ -2111,17 +2107,64 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
     return this.miscService.getTableCss(table, waiterState);
   }
 
+  /** Map SSE/sync table ids onto the canonical casing used by `tables` / template lookups. */
+  private resolveKnownTableId(rawTableId: string | null | undefined): string | null {
+    const raw = typeof rawTableId === 'string' ? rawTableId.trim() : '';
+    if (!raw) return null;
+    const exact = this.tables.find(t => t.tableId === raw);
+    if (exact) return exact.tableId;
+    const lower = raw.toLowerCase();
+    const ci = this.tables.find(t => t.tableId?.toLowerCase() === lower);
+    return ci?.tableId ?? raw;
+  }
+
+  private applyGuestWaiterHighlight(tableId: string, active: boolean): void {
+    const next = { ...this.waiterState };
+    if (active) {
+      next[tableId] = WaiterCallState.Active;
+    } else {
+      delete next[tableId];
+    }
+    this.waiterState = next;
+
+    const table = this.tables.find(t => t.tableId === tableId);
+    if (table && this.tableComputed[tableId]) {
+      this.tableComputed = {
+        ...this.tableComputed,
+        [tableId]: {
+          ...this.tableComputed[tableId],
+          cssClass: this.miscService.getTableCss(table, this.waiterState),
+        },
+      };
+    }
+  }
+
   /** Align in-memory guest waiter highlights with /api/sync stream backfill (missed SSE while screen locked). */
   private reconcileGuestWaiterCalls(activeTableIds: string[]): void {
-    const activeSet = new Set(activeTableIds);
+    const canonicalActive = activeTableIds
+      .map(id => this.resolveKnownTableId(id))
+      .filter((id): id is string => !!id);
+    const activeSet = new Set(canonicalActive.map(id => id.toLowerCase()));
+    const next: Record<string, WaiterCallState> = {};
     for (const tableId of Object.keys(this.waiterState)) {
-      if (!activeSet.has(tableId)) {
-        delete this.waiterState[tableId];
+      if (activeSet.has(tableId.toLowerCase())) {
+        next[tableId] = WaiterCallState.Active;
       }
     }
-    for (const tableId of activeTableIds) {
-      this.waiterState[tableId] = WaiterCallState.Active;
+    for (const tableId of canonicalActive) {
+      next[tableId] = WaiterCallState.Active;
     }
+    this.waiterState = next;
+    const nextComputed = { ...this.tableComputed };
+    for (const table of this.tables) {
+      const existing = nextComputed[table.tableId];
+      if (!existing) continue;
+      nextComputed[table.tableId] = {
+        ...existing,
+        cssClass: this.miscService.getTableCss(table, this.waiterState),
+      };
+    }
+    this.tableComputed = nextComputed;
   }
 
   getLastActionTime(ts: string | null): string {
@@ -2199,21 +2242,19 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
       }
 
       case 'WaiterCall': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const rawTableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const tableId = this.resolveKnownTableId(rawTableId);
         if (tableId) {
-          this.waiterState[tableId] = WaiterCallState.Active;
+          this.applyGuestWaiterHighlight(tableId, true);
         }
         break;
       }
 
       case 'WaiterCallSnoozed': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const rawTableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? Data?.TableId ?? Data?.tableId;
+        const tableId = this.resolveKnownTableId(rawTableId);
         if (tableId) {
-          delete this.waiterState[tableId];
-          const table = this.tables.find(t => t.tableId === tableId);
-          if (table && this.tableComputed[tableId]) {
-            this.tableComputed[tableId].cssClass = this.miscService.getTableCss(table, this.waiterState);
-          }
+          this.applyGuestWaiterHighlight(tableId, false);
         }
         break;
       }

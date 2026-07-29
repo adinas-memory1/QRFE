@@ -456,20 +456,55 @@ describe('ManageOrdersComponent', () => {
       seedComponentTables(component);
     });
 
+    const emptyComputed = {
+      total: 0,
+      currency: 'EUR',
+      itemCount: 0,
+      lastAddedItem: '',
+      lastActionAt: '',
+      initiatedBy: '',
+      cssClass: 'table-css',
+    };
+
     it('WaiterCall sets waiter id from PascalCase TableId', async () => {
+      component.tableComputed[TABLE_A] = { ...(component.tableComputed[TABLE_A] ?? emptyComputed) };
       await invokeSse(component, 'WaiterCall', { TableId: TABLE_A });
       expect(component.waiterState[TABLE_A]).toBe(WaiterCallState.Active);
+      expect(component.tableComputed[TABLE_A]?.cssClass).toContain('bg-warning');
     });
 
     it('WaiterCall sets id from camelCase tableId', async () => {
+      component.tableComputed[TABLE_B] = { ...(component.tableComputed[TABLE_B] ?? emptyComputed) };
       await invokeSse(component, 'WaiterCall', { tableId: TABLE_B });
       expect(component.waiterState[TABLE_B]).toBe(WaiterCallState.Active);
+      expect(component.tableComputed[TABLE_B]?.cssClass).toContain('bg-warning');
+    });
+
+    it('WaiterCall normalizes tableId casing to match tables', async () => {
+      const mixedCaseId = 'AaBbCcDd-EeFf-1122-3344-556677889900';
+      const canonicalId = 'aabbccdd-eeff-1122-3344-556677889900';
+      component.tables = [
+        ...component.tables,
+        {
+          tableId: canonicalId,
+          tableName: 'T-mixed',
+          isTableOpen: true,
+          order: null,
+        } as any,
+      ];
+      component.tableComputed[canonicalId] = { ...emptyComputed };
+      await invokeSse(component, 'WaiterCall', { TableId: mixedCaseId });
+      expect(component.waiterState[canonicalId]).toBe(WaiterCallState.Active);
+      expect(component.waiterState[mixedCaseId]).toBeUndefined();
+      expect(component.tableComputed[canonicalId]?.cssClass).toContain('bg-warning');
     });
 
     it('WaiterCallSnoozed clears active waiter highlight', async () => {
-      component.waiterState[TABLE_A] = WaiterCallState.Active;
+      component.waiterState = { [TABLE_A]: WaiterCallState.Active };
+      component.tableComputed[TABLE_A] = { ...emptyComputed, cssClass: 'bg-warning text-dark' };
       await invokeSse(component, 'WaiterCallSnoozed', { TableId: TABLE_A });
       expect(component.waiterState[TABLE_A]).toBeUndefined();
+      expect(component.tableComputed[TABLE_A]?.cssClass).not.toContain('bg-warning');
     });
 
     it('KitchenWaiterCall sets kitchen pickup flag and shows toast', async () => {

@@ -401,7 +401,15 @@ export function createManageOrdersMocks(options: SetupManageOrdersOptions = {}):
       info: jasmine.createSpy('info'),
     },
     miscService: {
-      getTableCss: jasmine.createSpy('getTableCss').and.returnValue('table-css'),
+      getTableCss: jasmine.createSpy('getTableCss').and.callFake(
+        (table: { tableId?: string } | null, waiterState: Record<string, string>) => {
+          const id = table?.tableId;
+          if (id && waiterState?.[id] === 'active') {
+            return 'bg-warning text-dark';
+          }
+          return 'table-css';
+        },
+      ),
       getLastActionTime: jasmine.createSpy('getLastActionTime').and.returnValue('1m ago'),
       parseApiError: jasmine.createSpy('parseApiError').and.returnValue({ details: 'conflict' }),
     },
