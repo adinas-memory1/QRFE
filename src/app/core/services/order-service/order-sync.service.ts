@@ -19,6 +19,7 @@ import { OfflineSyncLockService } from '../../offline/offline-sync-lock.service'
 import { SseConnectivityService } from '../../offline/sse-connectivity.service';
 import { RestaurantCurrencyService } from '../../offline/restaurant-currency.service';
 import { Capacitor } from '@capacitor/core';
+import { agentDebugLog } from '../../debug/agent-debug.logger';
 
 @Injectable({
   providedIn: 'root'
@@ -366,6 +367,13 @@ export class OrderSyncService {
         }
         this.sseConnectivity.reportStreamOpened();
 
+        // #region agent log
+        agentDebugLog('H3', 'order-sync.onopen', 'sse-connected', {
+          restaurantId,
+          hasBearer: !!this.nativeAuthTokens.getAccessToken(),
+        });
+        // #endregion
+
         const reconnectBusy = this.syncScheduler.isReconnectWorkflowActive();
         if (!reconnectBusy) {
           void this.refreshRestaurantSnapshot();
@@ -436,6 +444,13 @@ export class OrderSyncService {
 
           if (Sequence && Sequence < this.watermarkSequence) {
             if (this.isOrderSyncEventType(EventType)) {
+              // #region agent log
+              agentDebugLog('H3', 'order-sync.onmessage', 'watermark-drop', {
+                eventType: EventType,
+                sequence: Sequence,
+                watermarkSequence: this.watermarkSequence,
+              });
+              // #endregion
               this.scheduleRefreshAfterWatermarkDrop();
             }
             return;
@@ -456,6 +471,14 @@ export class OrderSyncService {
             if (this.isOrderSyncEventType(EventType)) {
               this.noteDispatchedSequence(Sequence);
             }
+            // #region agent log
+            agentDebugLog('H3', 'order-sync.onmessage', 'dispatch', {
+              eventType: EventType,
+              sequence: Sequence,
+              watermarkSequence: this.watermarkSequence,
+              buffered: false,
+            });
+            // #endregion
             this.eventsSubject.next(sse);
           }
 
@@ -488,6 +511,15 @@ export class OrderSyncService {
         const status = (err as { status?: number })?.status;
         const msg = String((err as Error)?.message ?? '');
         const isAuth401 = status === 401 || msg.includes('HTTP 401') || msg.includes('invalid_token');
+
+        // #region agent log
+        agentDebugLog('H3', 'order-sync.onerror', 'sse-error', {
+          restaurantId,
+          status: status ?? null,
+          isAuth401,
+          message: msg.slice(0, 120),
+        });
+        // #endregion
 
         // 401 (expired token) is NOT "offline". Let refresh flow handle it.
         if (!isAuth401) {

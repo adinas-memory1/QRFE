@@ -1,5 +1,5 @@
 /** Kitchen SSE debug — re-exports shared agent logger. */
-import { agentDebugLog } from '../../core/debug/agent-debug.logger';
+import { agentDebugLog } from '../../../core/debug/agent-debug.logger';
 
 export function kitchenDebugLog(
   hypothesisId: string,

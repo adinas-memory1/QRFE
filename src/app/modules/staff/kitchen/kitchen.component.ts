@@ -190,7 +190,14 @@ export class KitchenComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.hydrating) return;
-        void this.rebuildFromDexie();
+        void this.rebuildFromDexie().then(() => {
+          // #region agent log
+          kitchenDebugLog('H5', 'kitchen.snapshotRefreshed', 'rebuild-done', {
+            orderCount: Object.keys(this.ordersByTableId).length,
+            tableIds: Object.keys(this.ordersByTableId),
+          });
+          // #endregion
+        });
       });
 
     // UI should reflect Dexie: rebuild when carts mutate.
@@ -275,6 +282,12 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   private handleSseEvent({ EventType, Data, Sequence }: SseEvent<any>) {
+    // #region agent log
+    kitchenDebugLog('H3', 'kitchen.handleSseEvent', 'sse-event-entry', {
+      eventType: EventType,
+      sequence: Sequence,
+    });
+    // #endregion
     if (typeof Sequence === 'number' && Sequence > 0) {
       if (this.recentSseSequenceSet.has(Sequence)) {
         kitchenDebugLog('H4', 'kitchen.handleSseEvent', 'sequence-dedup-skip', {
@@ -324,6 +337,11 @@ export class KitchenComponent implements OnInit, OnDestroy {
       case 'OrderClosedWithPayment': {
         const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? '';
         const orderId = this.sseField<string>(Data, 'OrderId', 'orderId') ?? '';
+        kitchenDebugLog('H1', 'kitchen.handleSseEvent', 'order-closed-received', {
+          tableId,
+          orderId,
+          sequence: Sequence,
+        });
         if (tableId) this.enqueueOrderClosed(tableId, orderId);
         break;
       }
@@ -488,7 +506,15 @@ export class KitchenComponent implements OnInit, OnDestroy {
     const lastActionAt =
       this.sseField<string>(payload, 'LastActionAt', 'lastActionAt') ?? new Date().toISOString();
 
-    if (!tableId || !orderId) return;
+    if (!tableId || !orderId) {
+      kitchenDebugLog('H2', 'kitchen.applyOrderUpdated', 'missing-ids-skip', {
+        tableId,
+        orderId,
+        payloadKeys: Object.keys(payload as object),
+        envelopeSequence,
+      });
+      return;
+    }
 
     const dedupeKey =
       typeof envelopeSequence === 'number' && envelopeSequence > 0
@@ -540,6 +566,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
         nextCartLen: nextCart.length,
         envelopeSequence,
       });
+      void this.sse.refreshRestaurantSnapshot?.({ force: true });
       return;
     }
     if (shouldClearStationOrder(itemCount, nextCart.length)) {
