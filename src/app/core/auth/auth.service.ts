@@ -22,6 +22,7 @@ import {
   writeAuthRestaurantCtx,
   writeAuthUserCtx,
 } from './auth-session.storage';
+import { agentDebugLog } from '../debug/agent-debug.logger';
 
 export function isHttpAuthFailure(err: unknown): boolean {
   const status = (err as HttpErrorResponse)?.status;
@@ -305,10 +306,15 @@ export class AuthService {
       }),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401 && !isPublic) {
+          agentDebugLog('A1', 'auth.pingSession', 'ping-401-refresh', {
+            hasBearer: !!this.nativeAuthTokens.getAccessToken(),
+            hasRefresh: !!this.nativeAuthTokens.getRefreshToken(),
+          });
           return this.refreshUserContext({ redirectOnFailure: false }).pipe(
             switchMap(user => {
               this.hydrateSessionFromStorageIfNeeded();
               if (!user && !this.isAuthenticated()) {
+                agentDebugLog('A1', 'auth.pingSession', 'logout-after-refresh-fail', {});
                 console.warn('Refresh credentials failed. Redirect @Login.');
                 this.clearUser();
                 this.clearRestaurantCtx();
@@ -320,6 +326,7 @@ export class AuthService {
                   if (u) this.setUser(u);
                 }),
                 catchError(() => {
+                  agentDebugLog('A1', 'auth.pingSession', 'logout-ping-retry-fail', {});
                   this.clearUser();
                   this.clearRestaurantCtx();
                   return of(null);
@@ -382,6 +389,13 @@ export class AuthService {
 
         const sentRefreshToken = !!refreshToken || !this.nativeAuthTokens.usesSessionStorage();
 
+        agentDebugLog('A2', 'auth.refreshUserContext', 'refresh-start', {
+          role,
+          hasRefreshToken: !!refreshToken,
+          sentRefreshToken,
+          redirectOnFailure,
+        });
+
         return this.http
           .post<unknown>(`${this.apiUrl}/api/user/refresh-token`, refreshBody, {
             withCredentials: true,
@@ -397,6 +411,11 @@ export class AuthService {
             }),
             catchError(err => {
               console.error('Refresh failed', err);
+              agentDebugLog('A2', 'auth.refreshUserContext', 'refresh-error', {
+                status: (err as HttpErrorResponse)?.status ?? null,
+                sentRefreshToken,
+                willClear: isHttpAuthFailure(err) && sentRefreshToken,
+              });
               if (isHttpAuthFailure(err) && sentRefreshToken) {
                 this.clearUser();
                 if (redirectOnFailure) {
