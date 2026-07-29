@@ -26,6 +26,7 @@ import { SubscriptionService } from '../../../core/services/subscription-service
 import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 import { MiscellaneousService } from '../../../core/services/misc/miscellaneous.service';
 import { UserContextModel } from '../../../core/models/userContextModel';
+import { SeoService } from '../../../core/services/seo/seo.service';
 import { agentDebugLog } from '../../../core/debug/agent-debug.logger';
 
 @Component({
