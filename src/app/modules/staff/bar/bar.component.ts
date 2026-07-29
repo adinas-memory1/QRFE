@@ -32,6 +32,12 @@ import { AppToastService } from '../../../core/services/toast-service/toast-serv
 import { OfflineDbService } from '../../../core/offline/offline-db';
 import { NotificationSoundService, type NotificationSoundKind } from '../../../core/services/sound/notification-sound.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import {
+  isIncompleteOrderUpdatedPayload,
+  resolveBaselineCart,
+  resolveIsNewStationOrder,
+  shouldClearStationOrder,
+} from '../station-order-snapshot.util';
 
 type MarkKind = 'added' | 'updated' | 'deleted';
 type ItemMark = { kind: MarkKind; until: number };
@@ -112,6 +118,7 @@ export class BarComponent implements OnInit, OnDestroy {
   private lastCartSnapshotByTableId: Record<string, CartItem[]> = {};
   private lastAppliedSequenceByTableId: Record<string, number> = {};
   private lastAppliedActionAtMsByTableId: Record<string, number> = {};
+  private recentlyClosedOrderIds = new Set<string>();
   private orderUpdatedChainByTableId = new Map<string, Promise<void>>();
   private applyingOrderUpdateTables = new Set<string>();
   private toastOnce(key: string, ms: number, fn: () => void): void {
@@ -158,9 +165,9 @@ export class BarComponent implements OnInit, OnDestroy {
 
     this.offlineDB.cartsChanged$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(async ({ tableId }) => {
+      .subscribe(async ({ tableId, deleted }) => {
         if (this.hydrating) return;
-        if (this.applyingOrderUpdateTables.has(tableId)) return;
+        if (!deleted && this.applyingOrderUpdateTables.has(tableId)) return;
         await this.rebuildFromDexie(tableId);
       });
 
@@ -234,14 +241,24 @@ export class BarComponent implements OnInit, OnDestroy {
   }
 
   private handleSseEvent({ EventType, Data, Sequence }: SseEvent<unknown>) {
+    if (EventType === 'OrderClosedWithPayment') {
+      const tableId = this.normalizeSseId(this.sseField<string>(Data, 'TableId', 'tableId'));
+      const orderId = this.normalizeSseId(this.sseField<string>(Data, 'OrderId', 'orderId'));
+      this.markSseSequence(Sequence);
+      if (tableId) {
+        this.enqueueOrderClosed(tableId, orderId || undefined, Sequence);
+      } else if (orderId) {
+        const mappedTableId = this.orderIdToTableId[orderId];
+        if (mappedTableId) {
+          this.enqueueOrderClosed(mappedTableId, orderId, Sequence);
+        }
+      }
+      return;
+    }
+
     if (typeof Sequence === 'number' && Sequence > 0) {
       if (this.recentSseSequenceSet.has(Sequence)) return;
-      this.recentSseSequenceSet.add(Sequence);
-      this.recentSseSequences.push(Sequence);
-      if (this.recentSseSequences.length > this.maxRecentSseSequences) {
-        const old = this.recentSseSequences.shift();
-        if (typeof old === 'number') this.recentSseSequenceSet.delete(old);
-      }
+      this.markSseSequence(Sequence);
     }
     switch (EventType) {
       case 'OrderUpdated': {
@@ -261,15 +278,26 @@ export class BarComponent implements OnInit, OnDestroy {
         // Intentionally ignored: we compute delete from OrderUpdated diffs.
         break;
       }
-      case 'OrderClosedWithPayment': {
-        const tableId = this.sseField<string>(Data, 'TableId', 'tableId') ?? '';
-        const orderId = this.sseField<string>(Data, 'OrderId', 'orderId') ?? '';
-        if (tableId) this.enqueueOrderClosed(tableId, orderId);
-        break;
-      }
       default:
         break;
     }
+  }
+
+  private markSseSequence(Sequence: number | undefined): void {
+    if (typeof Sequence !== 'number' || Sequence <= 0) return;
+    if (this.recentSseSequenceSet.has(Sequence)) return;
+    this.recentSseSequenceSet.add(Sequence);
+    this.recentSseSequences.push(Sequence);
+    if (this.recentSseSequences.length > this.maxRecentSseSequences) {
+      const old = this.recentSseSequences.shift();
+      if (typeof old === 'number') this.recentSseSequenceSet.delete(old);
+    }
+  }
+
+  private normalizeSseId(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (value == null) return '';
+    return String(value).trim();
   }
 
   /**
@@ -327,10 +355,10 @@ export class BarComponent implements OnInit, OnDestroy {
     });
   }
 
-  private enqueueOrderClosed(tableId: string, orderId?: string): void {
+  private enqueueOrderClosed(tableId: string, orderId?: string, closedSequence?: number): void {
     const prev = this.orderUpdatedChainByTableId.get(tableId) ?? Promise.resolve();
     const next = prev
-      .then(() => this.clearTableOrder(tableId, orderId))
+      .then(() => this.clearTableOrder(tableId, orderId, closedSequence))
       .catch(err => console.error('[Bar] clearTableOrder failed', err));
     this.orderUpdatedChainByTableId.set(tableId, next);
     void next.finally(() => {
@@ -359,21 +387,31 @@ export class BarComponent implements OnInit, OnDestroy {
     return nextCart.reduce((sum, line) => sum + line.quantity, 0);
   }
 
-  private async clearTableOrder(tableId: string, orderId?: string): Promise<void> {
+  private async clearTableOrder(tableId: string, orderId?: string, closedSequence?: number): Promise<void> {
     delete this.ordersByTableId[tableId];
     delete this.lastCartSnapshotByTableId[tableId];
     delete this.lastOrderUpdatedKeyByTableId[tableId];
-    delete this.lastAppliedSequenceByTableId[tableId];
     delete this.lastAppliedActionAtMsByTableId[tableId];
     delete this.marksByTableId[tableId];
     this.expandedTableIds.delete(tableId);
 
     if (orderId) {
+      this.recentlyClosedOrderIds.add(orderId);
       delete this.orderIdToTableId[orderId];
     } else {
       for (const [oid, tid] of Object.entries(this.orderIdToTableId)) {
-        if (tid === tableId) delete this.orderIdToTableId[oid];
+        if (tid === tableId) {
+          this.recentlyClosedOrderIds.add(oid);
+          delete this.orderIdToTableId[oid];
+        }
       }
+    }
+
+    if (typeof closedSequence === 'number' && closedSequence > 0) {
+      this.lastAppliedSequenceByTableId[tableId] = Math.max(
+        this.lastAppliedSequenceByTableId[tableId] ?? 0,
+        closedSequence,
+      );
     }
 
     this.applyingOrderUpdateTables.add(tableId);
@@ -427,34 +465,50 @@ export class BarComponent implements OnInit, OnDestroy {
 
     if (!tableId || !orderId) return;
 
+    if (this.recentlyClosedOrderIds.has(orderId)) {
+      return;
+    }
+
     const dedupeKey =
       typeof envelopeSequence === 'number' && envelopeSequence > 0
         ? `${orderId}:seq:${envelopeSequence}`
         : `${orderId}:${lastActionAt}`;
     if (this.lastOrderUpdatedKeyByTableId[tableId] === dedupeKey) return;
     if (this.isStaleOrderUpdated(tableId, lastActionAt, envelopeSequence)) return;
-    this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
 
     this.orderIdToTableId[orderId] = tableId;
 
-    const existing = this.lastCartSnapshotByTableId[tableId] ?? [];
-    const prevDrinks = this.filterDrinks(existing);
     const rawItems = (this.sseField<any[]>(payload, 'Items', 'items') ?? []) as any[];
     const nextCart: CartItem[] = rawItems.map(i =>
       cartLineFromOrderRaw(i as Record<string, unknown>, this.menuItemsById),
     );
 
     const itemCount = this.itemCountFromPayload(payload, nextCart);
-    if (itemCount <= 0 || nextCart.length === 0) {
+    if (isIncompleteOrderUpdatedPayload(itemCount, nextCart.length)) {
+      return;
+    }
+    if (shouldClearStationOrder(itemCount, nextCart.length)) {
+      this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
       this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
-      await this.clearTableOrder(tableId, orderId);
+      await this.clearTableOrder(tableId, orderId, envelopeSequence);
       return;
     }
 
+    const existing = await resolveBaselineCart(
+      tableId,
+      orderId,
+      this.lastCartSnapshotByTableId[tableId],
+      tid => this.offlineDB.loadCartRecord(tid),
+    );
+    const prevDrinks = this.filterDrinks(existing);
     const nextDrinks = this.filterDrinks(nextCart);
     const isServerOrderId = !!orderId && !orderId.startsWith('local-');
-    const isNewOrder =
-      isServerOrderId && !this.seenServerOrderIds.has(orderId) && nextDrinks.length > 0;
+    const isNewOrder = resolveIsNewStationOrder(
+      orderId,
+      nextDrinks.length,
+      prevDrinks.length,
+      this.seenServerOrderIds,
+    );
     if (isServerOrderId) this.seenServerOrderIds.add(orderId);
 
     if (isNewOrder && !this.hydrating && !document.hidden && !this.soundMuted) {
@@ -473,15 +527,40 @@ export class BarComponent implements OnInit, OnDestroy {
     this.diffAndMark(tableId, prevDrinks, nextDrinks, isNewOrder);
 
     this.lastCartSnapshotByTableId[tableId] = nextCart;
+    this.lastOrderUpdatedKeyByTableId[tableId] = dedupeKey;
     this.markOrderUpdatedApplied(tableId, lastActionAt, envelopeSequence);
 
     this.applyingOrderUpdateTables.add(tableId);
     try {
       await this.offlineDB.saveCart(tableId, nextCart, orderId, true);
-      await this.rebuildFromDexie(tableId, lastActionAt);
+      this.applyStationUiFromCart(tableId, orderId, nextCart, lastActionAt);
     } finally {
       this.applyingOrderUpdateTables.delete(tableId);
     }
+  }
+
+  private applyStationUiFromCart(
+    tableId: string,
+    orderId: string,
+    cart: CartItem[],
+    lastActionAt: string,
+  ): void {
+    if (!this.restaurantId) return;
+
+    const mapped = this.mapCartToBarItems(tableId, cart);
+    if (!mapped.length) {
+      delete this.ordersByTableId[tableId];
+      return;
+    }
+
+    this.ordersByTableId[tableId] = {
+      restaurantId: this.restaurantId,
+      tableId,
+      tableName: this.tablesById[tableId]?.tableName ?? '—',
+      orderId,
+      lastActionAt,
+      items: mapped,
+    };
   }
 
   private async rebuildFromDexie(tableId?: string, lastActionAt?: string) {

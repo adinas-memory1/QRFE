@@ -11,7 +11,8 @@ import { OnlineStateService } from './core/offline/online-state-service';
 import { OfflinePolicyService } from './core/offline/offline-policy.service';
 import { ColorModeService } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
-import { of } from 'rxjs';
+import { SwUpdate } from '@angular/service-worker';
+import { EMPTY, of } from 'rxjs';
 
 describe('AppComponent', () => {
   let authSpy: any;
@@ -73,7 +74,16 @@ describe('AppComponent', () => {
             canUseFullOffline: () => false,
           },
         },
-        { provide: ColorModeService, useValue: colorModeSpy }
+        { provide: ColorModeService, useValue: colorModeSpy },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: false,
+            versionUpdates: EMPTY,
+            checkForUpdate: () => Promise.resolve(false),
+            activateUpdate: () => Promise.resolve(false),
+          },
+        }
       ]
     }).compileComponents();
   });

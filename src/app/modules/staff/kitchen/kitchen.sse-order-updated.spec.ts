@@ -1,10 +1,12 @@
 /**
  * Kitchen station OrderUpdated diff — sync-baseline-pwa contract.
  */
+import { TestBed } from '@angular/core/testing';
 import { KitchenComponent } from './kitchen.component';
 import {
   createCartLine,
   createFoodMenuItem,
+  createStarterMenuItem,
   invokeStationSse,
   setupKitchenComponent,
   SYNC_TABLE_A,
@@ -12,12 +14,17 @@ import {
 import {
   fixtureOrderUpdatedAddNewFood,
   fixtureOrderUpdatedDeleteFood,
+  fixtureOrderUpdatedFirstKitchenLineIncrement,
+  fixtureOrderUpdatedIncompleteItems,
   fixtureOrderUpdatedQtyDecreaseFood,
   fixtureOrderUpdatedQtyIncreaseFood,
   fixtureOrderUpdatedQtyTripleFood,
+  fixtureOrderUpdatedTwoKitchenLines,
+  LINE_GELATO_1,
   LINE_PIZZA_1,
   ORDER_A,
 } from '../../../testing/sse-fixtures/order-mutation.fixtures';
+import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 
 async function flushKitchenOrderUpdates(
   component: KitchenComponent,
@@ -148,6 +155,30 @@ describe('KitchenComponent OrderUpdated SSE (sync regression)', () => {
     expect(mocks.offlineDb.deleteCart).toHaveBeenCalledWith(SYNC_TABLE_A);
   });
 
+  it('does not resurrect kitchen order when stale OrderUpdated arrives after close', async () => {
+    const pizza = createFoodMenuItem();
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 2, LINE_PIZZA_1)], ORDER_A, true);
+    (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {
+      [SYNC_TABLE_A]: [createCartLine(pizza, 2, LINE_PIZZA_1)],
+    };
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
+    await (component as unknown as { rebuildFromDexie: (id: string) => Promise<void> }).rebuildFromDexie(SYNC_TABLE_A);
+
+    await invokeStationSse(component, 'OrderClosedWithPayment', {
+      TableId: SYNC_TABLE_A,
+      OrderId: ORDER_A,
+    }, 410);
+    await flushKitchenOrderUpdates(component);
+    expect(component.ordersByTableId[SYNC_TABLE_A]).toBeUndefined();
+
+    mocks.offlineDb.saveCart.calls.reset();
+    await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedQtyIncreaseFood(), 404);
+    await flushKitchenOrderUpdates(component);
+
+    expect(component.ordersByTableId[SYNC_TABLE_A]).toBeUndefined();
+    expect(mocks.offlineDb.saveCart).not.toHaveBeenCalled();
+  });
+
   it('clears kitchen order when last food line removed (delete via x)', async () => {
     const pizza = createFoodMenuItem();
     await mocks.offlineDb.saveCart(SYNC_TABLE_A, [createCartLine(pizza, 1, LINE_PIZZA_1)], ORDER_A, true);
@@ -161,5 +192,46 @@ describe('KitchenComponent OrderUpdated SSE (sync regression)', () => {
 
     expect(component.ordersByTableId[SYNC_TABLE_A]).toBeUndefined();
     expect(mocks.offlineDb.deleteCart).toHaveBeenCalledWith(SYNC_TABLE_A);
+  });
+
+  it('does not clear kitchen order on incomplete OrderUpdated (empty Items, ItemCount > 0)', async () => {
+    const pizza = createFoodMenuItem({ menuItemName: 'Tiramisu' });
+    const gelato = createStarterMenuItem({ menuItemId: 'menu-gelato-001', menuItemName: 'Gelato', category: 'Dessert' });
+    const cart = [
+      createCartLine(pizza, 21, LINE_PIZZA_1),
+      createCartLine(gelato, 1, LINE_GELATO_1),
+    ];
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, cart, ORDER_A, true);
+    await (component as unknown as { rebuildFromDexie: (id: string) => Promise<void> }).rebuildFromDexie(SYNC_TABLE_A);
+    expect(component.ordersByTableId[SYNC_TABLE_A]).toBeDefined();
+
+    mocks.offlineDb.deleteCart.calls.reset();
+    await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedIncompleteItems(), 500);
+    await flushKitchenOrderUpdates(component);
+
+    expect(component.ordersByTableId[SYNC_TABLE_A]).toBeDefined();
+    expect(mocks.offlineDb.deleteCart).not.toHaveBeenCalled();
+  });
+
+  it('increment on one line does not toast other lines when memory snapshot was empty', async () => {
+    const toast = TestBed.inject(AppToastService) as jasmine.SpyObj<AppToastService>;
+    const pizza = createFoodMenuItem({ menuItemName: 'Tiramisu' });
+    const gelato = createStarterMenuItem({ menuItemId: 'menu-gelato-001', menuItemName: 'Gelato', category: 'Dessert' });
+    const cart = [
+      createCartLine(pizza, 20, LINE_PIZZA_1),
+      createCartLine(gelato, 1, LINE_GELATO_1),
+    ];
+    await mocks.offlineDb.saveCart(SYNC_TABLE_A, cart, ORDER_A, true);
+    (component as unknown as { lastCartSnapshotByTableId: Record<string, unknown[]> }).lastCartSnapshotByTableId = {};
+    (component as unknown as { seenServerOrderIds: Set<string> }).seenServerOrderIds.add(ORDER_A);
+    await (component as unknown as { rebuildFromDexie: (id: string) => Promise<void> }).rebuildFromDexie(SYNC_TABLE_A);
+
+    await invokeStationSse(component, 'OrderUpdated', fixtureOrderUpdatedFirstKitchenLineIncrement(), 501);
+    await flushKitchenOrderUpdates(component);
+
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items.length).toBe(2);
+    expect(component.ordersByTableId[SYNC_TABLE_A]?.items[0].opText).toBe('↑ 20 → 21');
+    const stickyBodies = toast.sticky.calls.allArgs().map(args => String(args[0]));
+    expect(stickyBodies.some(body => body.includes('Gelato'))).toBe(false);
   });
 });

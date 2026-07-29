@@ -19,6 +19,7 @@ import { OfflineSyncLockService } from '../../offline/offline-sync-lock.service'
 import { SseConnectivityService } from '../../offline/sse-connectivity.service';
 import { RestaurantCurrencyService } from '../../offline/restaurant-currency.service';
 import { Capacitor } from '@capacitor/core';
+import { agentDebugLog } from '../../debug/agent-debug.logger';
 
 @Injectable({
   providedIn: 'root'
@@ -51,6 +52,8 @@ export class OrderSyncService {
   private lastDispatchedSequence = 0;
   private watermarkDropRefreshTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly watermarkDropRefreshDebounceMs = 250;
+  private orderClosedSyncTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly orderClosedSyncDebounceMs = 300;
 
   // event stream
   private eventsSubject = new Subject<SseEvent<any>>();
@@ -95,6 +98,10 @@ export class OrderSyncService {
       const sse = msg?.sse;
       if (!sse) return;
       if (msg?.sourceTabId && msg.sourceTabId === this.tabId) return; // ignore own echoes
+      // Tabs in the same browser may be logged into different restaurants (multi-role testing);
+      // without this guard a foreign tab's events would clear/overwrite this restaurant's UI.
+      const currentRestaurantId = this.connectedRestaurantId ?? this.resolveRestaurantId();
+      if (sse.RestaurantId && currentRestaurantId && sse.RestaurantId !== currentRestaurantId) return;
       this.ngZone.run(() => {
         if (sse.EventType === 'RestaurantSyncLocked') {
           this.offlineSyncLock.setRestaurantSyncLocked(true);
@@ -107,7 +114,7 @@ export class OrderSyncService {
           return;
         }
         this.noteDispatchedSequence(sse.Sequence);
-        this.eventsSubject.next(sse);
+        this.dispatchSseEvent(sse, { broadcastCrossTab: false });
       });
     });
 
@@ -366,6 +373,13 @@ export class OrderSyncService {
         }
         this.sseConnectivity.reportStreamOpened();
 
+        // #region agent log
+        agentDebugLog('H3', 'order-sync.onopen', 'sse-connected', {
+          restaurantId,
+          hasBearer: !!this.nativeAuthTokens.getAccessToken(),
+        });
+        // #endregion
+
         const reconnectBusy = this.syncScheduler.isReconnectWorkflowActive();
         if (!reconnectBusy) {
           void this.refreshRestaurantSnapshot();
@@ -435,20 +449,32 @@ export class OrderSyncService {
           }
 
           if (Sequence && Sequence < this.watermarkSequence) {
+            if (EventType === 'OrderClosedWithPayment') {
+              // #region agent log
+              agentDebugLog('H1', 'order-sync.onmessage', 'watermark-close-force-dispatch', {
+                sequence: Sequence,
+                watermarkSequence: this.watermarkSequence,
+              });
+              // #endregion
+              this.dispatchSseEvent(sse);
+              return;
+            }
             if (this.isOrderSyncEventType(EventType)) {
-              this.scheduleRefreshAfterWatermarkDrop();
+              // #region agent log
+              agentDebugLog('H3', 'order-sync.onmessage', 'watermark-drop', {
+                eventType: EventType,
+                sequence: Sequence,
+                watermarkSequence: this.watermarkSequence,
+              });
+              // #endregion
+              this.scheduleRefreshAfterWatermarkDrop('watermark-drop');
             }
             return;
           }
 
-          if (
-            Sequence
-            && this.isOrderSyncEventType(EventType)
-            && this.lastDispatchedSequence > 0
-            && Sequence > this.lastDispatchedSequence + 1
-          ) {
-            this.scheduleRefreshAfterWatermarkDrop();
-          }
+          // Do NOT refresh on global sequence gaps: OrderItemQuantityUpdated / NewOrderPrivateEvent
+          // interleave between OrderUpdated pairs (e.g. 3544→3547) and caused false-positive /api/sync
+          // refreshes that intermittently wiped kitchen carts via snapshotRefreshed$.
 
           if (this.isRefreshing && this.bufferWhileReconnecting) {
             this.bufferEvent(sse);
@@ -456,15 +482,18 @@ export class OrderSyncService {
             if (this.isOrderSyncEventType(EventType)) {
               this.noteDispatchedSequence(Sequence);
             }
-            this.eventsSubject.next(sse);
+            // #region agent log
+            agentDebugLog('H3', 'order-sync.onmessage', 'dispatch', {
+              eventType: EventType,
+              sequence: Sequence,
+              watermarkSequence: this.watermarkSequence,
+              buffered: false,
+            });
+            // #endregion
+            this.dispatchSseEvent(sse);
           }
 
-          // also broadcast to other tabs (best-effort)
-          try {
-            this.bc?.postMessage({ sourceTabId: this.tabId, sse });
-          } catch {
-            // ignore
-          }
+          // Buffered events are replayed via flushBuffer (with cross-tab fanout there).
         });
       },
       onerror: (err) => {
@@ -488,6 +517,15 @@ export class OrderSyncService {
         const status = (err as { status?: number })?.status;
         const msg = String((err as Error)?.message ?? '');
         const isAuth401 = status === 401 || msg.includes('HTTP 401') || msg.includes('invalid_token');
+
+        // #region agent log
+        agentDebugLog('H3', 'order-sync.onerror', 'sse-error', {
+          restaurantId,
+          status: status ?? null,
+          isAuth401,
+          message: msg.slice(0, 120),
+        });
+        // #endregion
 
         // 401 (expired token) is NOT "offline". Let refresh flow handle it.
         if (!isAuth401) {
@@ -625,10 +663,40 @@ export class OrderSyncService {
     }
   }
 
-  private scheduleRefreshAfterWatermarkDrop(): void {
+  private scheduleSyncAfterOrderClosed(): void {
+    if (this.orderClosedSyncTimer !== null) {
+      return;
+    }
+    // #region agent log
+    agentDebugLog('H6', 'order-sync.scheduleSyncAfterOrderClosed', 'sync-scheduled', {});
+    // #endregion
+    this.orderClosedSyncTimer = setTimeout(() => {
+      this.orderClosedSyncTimer = null;
+      void this.refreshRestaurantSnapshot({ force: true });
+    }, this.orderClosedSyncDebounceMs);
+  }
+
+  private dispatchSseEvent(sse: SseEvent<any>, options?: { broadcastCrossTab?: boolean }): void {
+    this.eventsSubject.next(sse);
+    if (options?.broadcastCrossTab !== false) {
+      try {
+        this.bc?.postMessage({ sourceTabId: this.tabId, sse });
+      } catch {
+        /* ignore */
+      }
+    }
+    if (sse.EventType === 'OrderClosedWithPayment') {
+      this.scheduleSyncAfterOrderClosed();
+    }
+  }
+
+  private scheduleRefreshAfterWatermarkDrop(reason: string): void {
     if (this.watermarkDropRefreshTimer !== null) {
       return;
     }
+    // #region agent log
+    agentDebugLog('H3', 'order-sync.scheduleRefresh', 'snapshot-refresh-scheduled', { reason });
+    // #endregion
     this.watermarkDropRefreshTimer = setTimeout(() => {
       this.watermarkDropRefreshTimer = null;
       void this.refreshRestaurantSnapshot({ force: true });
@@ -654,7 +722,7 @@ export class OrderSyncService {
     while (this.eventBuffer.length) {
       const ev = this.eventBuffer.shift()!;
       this.noteDispatchedSequence(ev.Sequence);
-      this.eventsSubject.next(ev);
+      this.dispatchSseEvent(ev);
     }
   }
 
