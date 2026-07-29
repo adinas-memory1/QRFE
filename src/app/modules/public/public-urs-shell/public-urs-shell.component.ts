@@ -51,8 +51,6 @@ export class PublicUrsShellComponent implements OnInit, OnDestroy {
   @Input() activeSection = 'top';
   @Input() showFooter = true;
   @Input() showFeedback = true;
-  /** Partner / reseller portal CTA in the public header. */
-  @Input() showPartnerPortal = false;
   @Input() mainTopPadding = '9rem';
 
   @Output() sectionNavigate = new EventEmitter<string>();
