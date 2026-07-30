@@ -16,7 +16,7 @@ import { acquireRefreshLeader, initRefreshCoordinator, releaseRefreshLeader, try
 import {
   clearAuthRestaurantCtx,
   clearAuthUserCtx,
-  clearLegacyAuthLocalStorage,
+  migrateAuthCtxFromSessionStorage,
   readAuthRestaurantCtx,
   readAuthUserCtx,
   writeAuthRestaurantCtx,
@@ -114,7 +114,7 @@ export class AuthService {
     private injector: Injector,
     private nativeAuthTokens: NativeAuthTokenService,
   ) {
-    clearLegacyAuthLocalStorage();
+    migrateAuthCtxFromSessionStorage();
   }
 
   // --- Public API ---
@@ -258,25 +258,33 @@ export class AuthService {
   }
 
   /**
-   * Native startup: restore local UserCtx then validate/renew via refresh-token cookie (7d).
+   * Native startup: restore local UserCtx then validate/renew via stored refresh token.
    * Does not navigate on failure — caller shows login when unauthenticated.
    */
   async tryRestoreNativeSession(): Promise<UserContextModel | null> {
     await this.nativeAuthTokens.initialize();
     await firstValueFrom(this.restoreSession());
+    if (this.nativeAuthTokens.isAccessTokenValid()) {
+      return this.getUserSnapshot();
+    }
     return firstValueFrom(this.refreshUserContext({ redirectOnFailure: false }));
   }
 
-  /** PWA startup: restore UserCtx then validate/renew via refresh-token (tab-scoped). */
+  /** Web startup: restore UserCtx then validate/renew via HttpOnly refresh cookie. */
   async tryRestoreWebSession(): Promise<UserContextModel | null> {
     initRefreshCoordinator();
+    migrateAuthCtxFromSessionStorage();
     await this.nativeAuthTokens.initialize();
     await firstValueFrom(this.restoreSession());
-    if (!this.isAuthenticated()) {
-      return null;
+
+    if (this.isAuthenticated()) {
+      // Cookie JWT may still be valid — ping first; refresh only on 401.
+      const pinged = await firstValueFrom(this.pingSession(false));
+      return pinged ?? this.getUserSnapshot();
     }
-    const user = await firstValueFrom(this.refreshUserContext({ redirectOnFailure: false }));
-    return user;
+
+    // No local UserCtx (new tab / cleared storage) — cookie may still be valid.
+    return firstValueFrom(this.refreshUserContext({ redirectOnFailure: false }));
   }
 
   restoreSession(): Observable<UserContextModel | null> {
@@ -295,11 +303,11 @@ export class AuthService {
   // --- Refresh from backend ---
 
   pingSession(isPublic: boolean = false): Observable<UserContextModel | null> {
-    const pingOptions = {
+    const buildPingOptions = () => ({
       withCredentials: true,
       headers: this.nativeAuthTokens.authHeaders(),
-    };
-    return this.http.get<unknown>(`${this.apiUrl}/api/user/ping`, pingOptions).pipe(
+    });
+    return this.http.get<unknown>(`${this.apiUrl}/api/user/ping`, buildPingOptions()).pipe(
       map(raw => normalizeUserContext(raw)),
       tap(user => {
         if (user) this.setUser(user);
@@ -320,7 +328,8 @@ export class AuthService {
                 this.clearRestaurantCtx();
                 return of(null);
               }
-              return this.http.get<unknown>(`${this.apiUrl}/api/user/ping`, pingOptions).pipe(
+              // Re-read Bearer after refresh — do not reuse the expired header snapshot.
+              return this.http.get<unknown>(`${this.apiUrl}/api/user/ping`, buildPingOptions()).pipe(
                 map(raw => normalizeUserContext(raw)),
                 tap(u => {
                   if (u) this.setUser(u);
@@ -351,14 +360,6 @@ export class AuthService {
       return this.refreshShared$;
     }
 
-    if (!this.nativeAuthTokens.isEnabled()) {
-      this.hydrateSessionFromStorageIfNeeded();
-      const hasLocalSession = !!readAuthUserCtx() || !!this.userSubject.value;
-      if (!hasLocalSession) {
-        return of(null);
-      }
-    }
-
     const refresh$ = (this.nativeAuthTokens.isEnabled()
       ? from(this.nativeAuthTokens.initialize())
       : of(undefined)
@@ -374,25 +375,37 @@ export class AuthService {
         return of(syncRole);
       }),
       switchMap((role) => {
-        if (role === 'follower' && !this.nativeAuthTokens.isEnabled()) {
-          this.hydrateSessionFromStorageIfNeeded();
-          const snapshot = this.getUserSnapshot();
-          return of(snapshot);
+        if (role === 'follower') {
+          // Leader already rotated refresh tokens; a second refresh revokes the session.
+          const reload$ = this.nativeAuthTokens.isEnabled()
+            ? from(this.nativeAuthTokens.reloadFromStorage())
+            : of(undefined);
+          return reload$.pipe(
+            map(() => {
+              this.hydrateSessionFromStorageIfNeeded();
+              return this.getUserSnapshot();
+            }),
+          );
         }
 
-        const refreshToken = this.nativeAuthTokens.getRefreshToken();
+        const refreshToken =
+          this.nativeAuthTokens.getRefreshToken() ??
+          this.nativeAuthTokens.takeWebLegacyRefreshToken();
         const refreshBody = refreshToken ? { refreshToken } : {};
         const refreshHeaders: Record<string, string> = {};
         if (this.nativeAuthTokens.isEnabled()) {
           refreshHeaders[NATIVE_AUTH_HEADER] = '1';
         }
 
-        const sentRefreshToken = !!refreshToken || !this.nativeAuthTokens.usesSessionStorage();
+        // Cookie web: empty body is fine (credentials carry RefreshToken).
+        // Native: must have a stored refresh token.
+        const sentRefreshToken = !this.nativeAuthTokens.isEnabled() || !!refreshToken;
 
         agentDebugLog('A2', 'auth.refreshUserContext', 'refresh-start', {
           role,
           hasRefreshToken: !!refreshToken,
           sentRefreshToken,
+          native: this.nativeAuthTokens.isEnabled(),
           redirectOnFailure,
         });
 

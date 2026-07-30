@@ -3,12 +3,20 @@ import { UserContextModel } from '../models/userContextModel';
 const USER_CTX_KEY = 'UserCtx';
 const RESTAURANT_CTX_KEY = 'RestaurantCtx';
 
+function authStorage(): Storage | null {
+  if (typeof localStorage === 'undefined') {
+    return null;
+  }
+  return localStorage;
+}
+
 function readJson<T>(key: string): T | null {
-  if (typeof sessionStorage === 'undefined') {
+  const store = authStorage();
+  if (!store) {
     return null;
   }
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = store.getItem(key);
     if (!raw) {
       return null;
     }
@@ -19,32 +27,49 @@ function readJson<T>(key: string): T | null {
 }
 
 function writeJson(key: string, value: unknown): void {
-  if (typeof sessionStorage === 'undefined') {
+  const store = authStorage();
+  if (!store) {
     return;
   }
   try {
-    sessionStorage.setItem(key, JSON.stringify(value));
+    store.setItem(key, JSON.stringify(value));
   } catch {
     // ignore quota / private mode
   }
 }
 
 function removeKey(key: string): void {
-  if (typeof sessionStorage === 'undefined') {
+  const store = authStorage();
+  if (!store) {
     return;
   }
   try {
-    sessionStorage.removeItem(key);
+    store.removeItem(key);
   } catch {
     // ignore
   }
 }
 
-/** Drop legacy shared localStorage auth keys (one browser profile = one cookie jar). */
-export function clearLegacyAuthLocalStorage(): void {
+/**
+ * One-time: move UserCtx / RestaurantCtx from sessionStorage (tab-scoped era)
+ * into localStorage (cookie-backed web session).
+ */
+export function migrateAuthCtxFromSessionStorage(): void {
+  if (typeof sessionStorage === 'undefined' || typeof localStorage === 'undefined') {
+    return;
+  }
   try {
-    localStorage.removeItem(USER_CTX_KEY);
-    localStorage.removeItem(RESTAURANT_CTX_KEY);
+    for (const key of [USER_CTX_KEY, RESTAURANT_CTX_KEY]) {
+      if (localStorage.getItem(key)) {
+        sessionStorage.removeItem(key);
+        continue;
+      }
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        localStorage.setItem(key, raw);
+        sessionStorage.removeItem(key);
+      }
+    }
   } catch {
     // ignore
   }

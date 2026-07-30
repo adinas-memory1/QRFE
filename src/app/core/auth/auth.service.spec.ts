@@ -4,15 +4,9 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { Router } from '@angular/router';
 import { AuthService, isHttpAuthFailure, normalizeUserContext } from './auth.service';
 import { initRefreshCoordinator, resetRefreshCoordinatorForTests } from './auth-refresh-coordinator';
-import { clearAuthSessionStorageForTests, writeAuthUserCtx } from './auth-session.storage';
+import { writeAuthUserCtx } from './auth-session.storage';
 import { UserContextModel } from '../models/userContextModel';
 import { environment } from '../../../environments/environment';
-
-const REFRESH_TOKEN_KEY = 'NativeAuthRefreshToken';
-
-function seedTabRefreshToken(token = 'tab-refresh-token'): void {
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
-}
 
 /** Flush async refresh leader acquisition before HttpTestingController assertions. */
 function flushRefreshPipeline(): void {
@@ -90,7 +84,6 @@ describe('AuthService offline session handling', () => {
     sessionStorage.clear();
     resetRefreshCoordinatorForTests();
     initRefreshCoordinator();
-    seedTabRefreshToken();
 
     TestBed.configureTestingModule({
       providers: [
@@ -122,7 +115,9 @@ describe('AuthService offline session handling', () => {
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ refreshToken: 'tab-refresh-token' });
+    expect(req.request.body).toEqual({});
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.headers.has('X-URS-Native-Auth')).toBe(false);
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
     tick();
 
@@ -197,6 +192,23 @@ describe('AuthService offline session handling', () => {
 
     expect(first?.id).toBe('1');
     expect(second?.id).toBe('1');
+  }));
+
+  it('refreshUserContext sends leftover sessionStorage refresh token once for cookie migration', fakeAsync(() => {
+    sessionStorage.setItem('NativeAuthRefreshToken', 'legacy-tab-token');
+    service.setUser({ id: '1', role: 'manager', restaurantId: 'r1', restaurantName: 'R', restaurantType: 'Small' });
+
+    service.refreshUserContext().subscribe(result => {
+      expect(result?.id).toBe('1');
+    });
+    flushRefreshPipeline();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/user/refresh-token`);
+    expect(req.request.body).toEqual({ refreshToken: 'legacy-tab-token' });
+    expect(req.request.headers.has('X-URS-Native-Auth')).toBe(false);
+    expect(sessionStorage.getItem('NativeAuthRefreshToken')).toBeNull();
+    req.flush({ isSuccess: true, message: 'refreshed successfully' });
+    tick();
   }));
 
   it('hydrateSessionFromStorageIfNeeded restores user from UserCtx when subject is empty', () => {

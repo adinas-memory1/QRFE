@@ -16,13 +16,9 @@ export class NativeAuthTokenService {
 
   constructor(private readonly storage: PlatformStorageService) {}
 
-  /** Tab-scoped Bearer tokens: native app + each browser tab/window (sessionStorage). */
+  /** Bearer tokens in app storage — Capacitor only. Web uses HttpOnly cookies. */
   isEnabled(): boolean {
-    return Capacitor.isNativePlatform() || typeof sessionStorage !== 'undefined';
-  }
-
-  usesSessionStorage(): boolean {
-    return !Capacitor.isNativePlatform();
+    return Capacitor.isNativePlatform();
   }
 
   async initialize(): Promise<void> {
@@ -35,12 +31,53 @@ export class NativeAuthTokenService {
     await this.initPromise;
   }
 
+  /** Re-read tokens from storage (e.g. after another refresh rotated them). */
+  async reloadFromStorage(): Promise<void> {
+    if (!this.isEnabled()) {
+      return;
+    }
+    await this.loadFromStorage();
+  }
+
+  /** True when the access JWT is present and not expired (with small clock skew). */
+  isAccessTokenValid(skewSeconds = 60): boolean {
+    const token = this.getAccessToken();
+    if (!token) {
+      return false;
+    }
+    const exp = readJwtExpSeconds(token);
+    if (exp == null) {
+      return false;
+    }
+    return exp * 1000 > Date.now() + skewSeconds * 1000;
+  }
+
   getAccessToken(): string | null {
     return this.accessToken?.trim() || null;
   }
 
   getRefreshToken(): string | null {
     return this.normalizeRefreshToken(this.refreshToken);
+  }
+
+  /**
+   * Web migration: leftover tab-scoped refresh token in sessionStorage.
+   * Send once in refresh body (no native header) so the API can mint cookies.
+   */
+  takeWebLegacyRefreshToken(): string | null {
+    if (this.isEnabled() || typeof sessionStorage === 'undefined') {
+      return null;
+    }
+    try {
+      const token = this.normalizeRefreshToken(sessionStorage.getItem(REFRESH_TOKEN_KEY));
+      if (token) {
+        sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      }
+      return token;
+    } catch {
+      return null;
+    }
   }
 
   authHeaders(): Record<string, string> {
@@ -82,23 +119,27 @@ export class NativeAuthTokenService {
   async clear(): Promise<void> {
     this.accessToken = null;
     this.refreshToken = null;
+    this.clearWebLegacySessionTokens();
     if (!this.isEnabled()) {
-      return;
-    }
-    if (this.usesSessionStorage()) {
-      this.clearSessionStorageTokens();
       return;
     }
     await this.storage.setString(ACCESS_TOKEN_KEY, '');
     await this.storage.setString(REFRESH_TOKEN_KEY, '');
   }
 
-  private async loadFromStorage(): Promise<void> {
-    if (this.usesSessionStorage()) {
-      this.accessToken = sessionStorage.getItem(ACCESS_TOKEN_KEY)?.trim() || null;
-      this.refreshToken = this.normalizeRefreshToken(sessionStorage.getItem(REFRESH_TOKEN_KEY));
+  private clearWebLegacySessionTokens(): void {
+    if (typeof sessionStorage === 'undefined') {
       return;
     }
+    try {
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    } catch {
+      // ignore
+    }
+  }
+
+  private async loadFromStorage(): Promise<void> {
     const [access, refresh] = await Promise.all([
       this.storage.getString(ACCESS_TOKEN_KEY),
       this.storage.getString(REFRESH_TOKEN_KEY),
@@ -124,10 +165,6 @@ export class NativeAuthTokenService {
   }
 
   private async persist(): Promise<void> {
-    if (this.usesSessionStorage()) {
-      this.persistSessionStorageTokens();
-      return;
-    }
     if (this.accessToken) {
       await this.storage.setString(ACCESS_TOKEN_KEY, this.accessToken);
     } else {
@@ -139,30 +176,19 @@ export class NativeAuthTokenService {
       await this.storage.setString(REFRESH_TOKEN_KEY, '');
     }
   }
+}
 
-  private persistSessionStorageTokens(): void {
-    try {
-      if (this.accessToken) {
-        sessionStorage.setItem(ACCESS_TOKEN_KEY, this.accessToken);
-      } else {
-        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-      }
-      if (this.refreshToken) {
-        sessionStorage.setItem(REFRESH_TOKEN_KEY, this.refreshToken);
-      } else {
-        sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-      }
-    } catch {
-      // ignore
+function readJwtExpSeconds(token: string): number | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) {
+      return null;
     }
-  }
-
-  private clearSessionStorageTokens(): void {
-    try {
-      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-      sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-    } catch {
-      // ignore
-    }
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded)) as { exp?: unknown };
+    return typeof payload.exp === 'number' ? payload.exp : null;
+  } catch {
+    return null;
   }
 }
