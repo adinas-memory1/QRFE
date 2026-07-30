@@ -26,6 +26,17 @@ import { RouterLink } from '@angular/router';
 import { cilBellExclamation } from '@coreui/icons';
 import { UserContextModel } from '../../../core/models/userContextModel';
 import { WaiterCallState } from '../../../core/models/callWaiter/callWaiter';
+
+/** Payment methods for fiscal-receipt payload (FiscalNet RO P^ mapping). */
+export type FiscalPaymentMethod =
+  | 'cash'
+  | 'card'
+  | 'meal-ticket'
+  | 'value-ticket'
+  | 'voucher'
+  | 'glovo'
+  | 'tazz'
+  | 'bolt';
 import { MenuItem } from '../../../core/models/menu/menuItem';
 import { SetMenuDTO, setMenuToMenuItem } from '../../../core/models/menu/setMenu';
 import { isKitchenCartLine } from '../../../core/models/menu/cart-item-category';
@@ -526,6 +537,11 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
 
   get isRomanianLocale(): boolean {
     return this.transloco.getActiveLang() === 'ro';
+  }
+
+  /** FiscalNet „Alte Metode” (tichete / delivery) — only for restaurants with FiscalCountry RO. */
+  get isRomanianFiscalMarket(): boolean {
+    return (this.fiscalStaffConfig()?.fiscalCountryCode ?? 'RO') === 'RO';
   }
 
   /** Print allowed online, or offline on primary device with cached agent config. */
@@ -1464,6 +1480,22 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   }
   cancelCloseOrder() { this.showCloseConfirm = false; this.taxPreview = null; }
 
+  /**
+   * RO/FiscalNet only: print fiscal receipt with a non-cash/card payment method, then close.
+   * If fiscal print fails or market is not RO, the order stays open.
+   */
+  async closeWithOtherPayment(paymentMethod: FiscalPaymentMethod): Promise<void> {
+    if (this.closeInFlight || !this.isRomanianFiscalMarket) return;
+    try {
+      const printed = await this.printFiscalReceipt(paymentMethod);
+      if (printed) {
+        await this.confirmCloseOrder();
+      }
+    } catch (err) {
+      console.error('Close with other payment failed', err);
+    }
+  }
+
   private async refreshTaxPreview(): Promise<void> {
     if (!this.isUsMarket || !this.currentOrderId || this.currentOrderId.startsWith('local-')) {
       this.taxPreview = null;
@@ -1809,18 +1841,18 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
     return escPosId;
   }
 
-  async printFiscalReceipt(paymentMethod: 'cash' | 'card' = 'cash'): Promise<void> {
+  async printFiscalReceipt(paymentMethod: FiscalPaymentMethod = 'cash'): Promise<boolean> {
     if (!this.canPrintFiscal) {
       this.appToast.info(
         this.transloco.translate('manageOrders.fiscalPrintNoPrinterBody'),
         this.transloco.translate('manageOrders.fiscalPrintNoPrinterTitle'),
       );
-      return;
+      return false;
     }
 
     const restaurantId = this.restaurantId;
     const orderId = this.currentOrderId;
-    if (!restaurantId || !orderId) return;
+    if (!restaurantId || !orderId) return false;
 
     if (!orderId.startsWith('local-') && this.isOnline) {
       try {
@@ -1832,14 +1864,14 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
             this.transloco.translate('manageOrders.fiscalReceiptBlockedBody'),
             this.transloco.translate('manageOrders.fiscalReceiptBlockedTitle'),
           );
-          return;
+          return false;
         }
       } catch (err) {
         console.warn('Failed to verify fiscal documents before receipt print', err);
       }
     }
 
-    await this.enqueueFiscalReceiptJob({ restaurantId, orderId, paymentMethod });
+    return await this.enqueueFiscalReceiptJob({ restaurantId, orderId, paymentMethod });
   }
 
   async openCashDrawer(): Promise<void> {
@@ -1924,8 +1956,8 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
   private async enqueueFiscalReceiptJob(args: {
     restaurantId: string;
     orderId: string;
-    paymentMethod: 'cash' | 'card';
-  }): Promise<void> {
+    paymentMethod: FiscalPaymentMethod;
+  }): Promise<boolean> {
     try {
       const offlineFiscal = !this.isOnline && this.offlinePolicy.canUseFullOffline();
       let fiscalPrintingEnabled = false;
@@ -1948,7 +1980,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
           this.transloco.translate('manageOrders.fiscalPrintNoPrinterBody'),
           this.transloco.translate('manageOrders.fiscalPrintNoPrinterTitle'),
         );
-        return;
+        return false;
       }
 
       if (!printerId) {
@@ -1956,7 +1988,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
           this.transloco.translate('manageOrders.fiscalPrintNoPrinterBody'),
           this.transloco.translate('manageOrders.fiscalPrintNoPrinterTitle'),
         );
-        return;
+        return false;
       }
 
       const mappedItems = buildFiscalPrintItems(
@@ -2000,7 +2032,7 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
           this.transloco.translate('manageOrders.fiscalPrintQueuedBody'),
           this.transloco.translate('manageOrders.fiscalPrintQueuedTitle'),
         );
-        return;
+        return true;
       }
 
       await firstValueFrom(this.printJobs.createBillPrintJob(args.restaurantId, printerId, payload));
@@ -2008,12 +2040,14 @@ export class ManageOrdersComponent implements OnInit, OnDestroy {
         this.transloco.translate('manageOrders.fiscalPrintQueuedBody'),
         this.transloco.translate('manageOrders.fiscalPrintQueuedTitle'),
       );
+      return true;
     } catch (err) {
       console.error('Fiscal print job failed', err);
       this.appToast.error(
         this.transloco.translate('manageOrders.fiscalPrintErrorBody'),
         this.transloco.translate('manageOrders.fiscalPrintErrorTitle'),
       );
+      return false;
     }
   }
 

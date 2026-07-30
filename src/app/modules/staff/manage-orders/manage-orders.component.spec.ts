@@ -1165,6 +1165,64 @@ describe('ManageOrdersComponent', () => {
       );
     });
 
+    it('isRomanianFiscalMarket is false when fiscalCountryCode is IT', async () => {
+      const { component } = await setupManageOrdersComponent({ skipNgOnInit: true, isOnline: true });
+      component.fiscalStaffConfig.set(createDefaultFiscalPrinterSettings({
+        fiscalCountryCode: 'IT',
+        fiscalPrintingEnabled: true,
+        defaultFiscalPrinterId: 'main-fiscal',
+      }));
+      expect(component.isRomanianFiscalMarket).toBeFalse();
+    });
+
+    it('closeWithOtherPayment prints glovo then closes for RO', async () => {
+      const { component, mocks } = await setupManageOrdersComponent({ skipNgOnInit: true, isOnline: true });
+      setRestaurantId(component);
+      component.currentTableId = TABLE_A;
+      component.currentOrderId = 'order-1';
+      component.tableCarts[TABLE_A] = [{ item: createMenuItem({ menuItemName: 'Burger' }), quantity: 1 }];
+      component.showCloseConfirm = true;
+      component.fiscalStaffConfig.set(createDefaultFiscalPrinterSettings({
+        fiscalCountryCode: 'RO',
+        fiscalPrintingEnabled: true,
+        defaultFiscalPrinterId: 'main-fiscal',
+      }));
+      mocks.printJobs.getDefaultFiscalPrinterForStaff.and.returnValue(
+        of(createDefaultFiscalPrinterSettings({
+          fiscalCountryCode: 'RO',
+          fiscalPrintingEnabled: true,
+          defaultFiscalPrinterId: 'main-fiscal',
+        })),
+      );
+      spyOn(component, 'confirmCloseOrder').and.resolveTo();
+
+      await component.closeWithOtherPayment('glovo');
+
+      expect(mocks.printJobs.createBillPrintJob).toHaveBeenCalledWith(
+        TEST_RESTAURANT_ID,
+        'main-fiscal',
+        jasmine.objectContaining({ type: 'fiscal-receipt', paymentMethod: 'glovo' }),
+      );
+      expect(component.confirmCloseOrder).toHaveBeenCalled();
+    });
+
+    it('closeWithOtherPayment is a no-op for IT fiscal country', async () => {
+      const { component, mocks } = await setupManageOrdersComponent({ skipNgOnInit: true, isOnline: true });
+      setRestaurantId(component);
+      component.currentOrderId = 'order-1';
+      component.fiscalStaffConfig.set(createDefaultFiscalPrinterSettings({
+        fiscalCountryCode: 'IT',
+        fiscalPrintingEnabled: true,
+        defaultFiscalPrinterId: 'main-fiscal',
+      }));
+      spyOn(component, 'confirmCloseOrder').and.resolveTo();
+
+      await component.closeWithOtherPayment('glovo');
+
+      expect(mocks.printJobs.createBillPrintJob).not.toHaveBeenCalled();
+      expect(component.confirmCloseOrder).not.toHaveBeenCalled();
+    });
+
     it('openCashDrawer queues fiscal-command payload online', async () => {
       const { component, mocks } = await setupManageOrdersComponent({ skipNgOnInit: true, isOnline: true });
       setRestaurantId(component);

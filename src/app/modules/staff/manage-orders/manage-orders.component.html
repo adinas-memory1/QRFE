@@ -316,9 +316,60 @@
           <p class="mb-1 small text-body-secondary">Sales tax: {{ taxPreview.taxAmount | currency: operatingCurrency }}</p>
           <p class="mb-2 fw-semibold">Total: {{ cartTotalWithTax | currency: operatingCurrency }}</p>
         }
-        <div class="d-flex justify-content-end"> <button cButton color="secondary" class="me-2"
-            (click)="cancelCloseOrder()"> {{ 'manageOrders.cancel' | transloco }} </button> <button cButton color="warning"
-            (click)="confirmCloseOrder()"> {{ 'manageOrders.closeOrder' | transloco }} </button> </div>
+        <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
+          @if (isRomanianFiscalMarket) {
+            <c-dropdown class="dropup" alignment="end">
+              <button
+                cButton
+                cDropdownToggle
+                color="secondary outline"
+                size="sm"
+                type="button"
+                [disabled]="selectedItems.length === 0 || !canPrintBill || !canPrintFiscal"
+              >
+                {{ 'manageOrders.otherPaymentMethods' | transloco }}
+              </button>
+              <ul cDropdownMenu>
+                <li>
+                  <button type="button" cDropdownItem (click)="closeWithOtherPayment('meal-ticket')">
+                    {{ 'manageOrders.paymentMealTicket' | transloco }}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" cDropdownItem (click)="closeWithOtherPayment('value-ticket')">
+                    {{ 'manageOrders.paymentValueTicket' | transloco }}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" cDropdownItem (click)="closeWithOtherPayment('voucher')">
+                    {{ 'manageOrders.paymentVoucher' | transloco }}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" cDropdownItem (click)="closeWithOtherPayment('glovo')">
+                    {{ 'manageOrders.paymentGlovo' | transloco }}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" cDropdownItem (click)="closeWithOtherPayment('tazz')">
+                    {{ 'manageOrders.paymentTazz' | transloco }}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" cDropdownItem (click)="closeWithOtherPayment('bolt')">
+                    {{ 'manageOrders.paymentBolt' | transloco }}
+                  </button>
+                </li>
+              </ul>
+            </c-dropdown>
+          }
+          <button cButton color="secondary" type="button" (click)="cancelCloseOrder()">
+            {{ 'manageOrders.cancel' | transloco }}
+          </button>
+          <button cButton color="warning" type="button" (click)="confirmCloseOrder()">
+            {{ 'manageOrders.closeOrder' | transloco }}
+          </button>
+        </div>
       </div>
 
       <div class="cart-actions" *ngIf="orderIsConfirmed">
