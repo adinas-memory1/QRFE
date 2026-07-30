@@ -316,15 +316,16 @@
           <p class="mb-1 small text-body-secondary">Sales tax: {{ taxPreview.taxAmount | currency: operatingCurrency }}</p>
           <p class="mb-2 fw-semibold">Total: {{ cartTotalWithTax | currency: operatingCurrency }}</p>
         }
-        <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
+        <div class="close-order-confirm__actions">
           @if (isRomanianFiscalMarket) {
-            <c-dropdown class="dropup" alignment="end">
+            <c-dropdown class="dropup close-order-confirm__action" alignment="end">
               <button
                 cButton
                 cDropdownToggle
                 color="secondary outline"
                 size="sm"
                 type="button"
+                class="close-order-confirm__btn"
                 [disabled]="selectedItems.length === 0 || !canPrintBill || !canPrintFiscal"
               >
                 {{ 'manageOrders.otherPaymentMethods' | transloco }}
@@ -363,10 +364,24 @@
               </ul>
             </c-dropdown>
           }
-          <button cButton color="secondary" type="button" (click)="cancelCloseOrder()">
+          <button
+            cButton
+            color="secondary"
+            size="sm"
+            type="button"
+            class="close-order-confirm__btn close-order-confirm__action"
+            (click)="cancelCloseOrder()"
+          >
             {{ 'manageOrders.cancel' | transloco }}
           </button>
-          <button cButton color="warning" type="button" (click)="confirmCloseOrder()">
+          <button
+            cButton
+            color="warning"
+            size="sm"
+            type="button"
+            class="close-order-confirm__btn close-order-confirm__action"
+            (click)="confirmCloseOrder()"
+          >
             {{ 'manageOrders.closeOrder' | transloco }}
           </button>
         </div>
