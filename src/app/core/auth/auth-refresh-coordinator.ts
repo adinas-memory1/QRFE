@@ -10,12 +10,24 @@ let lifecycleBound = false;
 
 type LockPayload = { owner: string; startedAt: number };
 
+/** Shared across tabs — web auth cookies are also shared per browser profile. */
+function lockStorage(): Storage | null {
+  if (typeof localStorage !== 'undefined') {
+    return localStorage;
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    return sessionStorage;
+  }
+  return null;
+}
+
 function readLock(): LockPayload | null {
-  if (typeof sessionStorage === 'undefined') {
+  const store = lockStorage();
+  if (!store) {
     return null;
   }
   try {
-    const raw = sessionStorage.getItem(LOCK_KEY);
+    const raw = store.getItem(LOCK_KEY);
     if (!raw) {
       return null;
     }
@@ -33,25 +45,27 @@ function readLock(): LockPayload | null {
 }
 
 function writeLock(owner: string): void {
-  if (typeof sessionStorage === 'undefined') {
+  const store = lockStorage();
+  if (!store) {
     return;
   }
   try {
     const payload: LockPayload = { owner, startedAt: Date.now() };
-    sessionStorage.setItem(LOCK_KEY, JSON.stringify(payload));
+    store.setItem(LOCK_KEY, JSON.stringify(payload));
   } catch {
     // ignore quota / private mode
   }
 }
 
 function clearLock(owner: string): void {
-  if (typeof sessionStorage === 'undefined') {
+  const store = lockStorage();
+  if (!store) {
     return;
   }
   try {
     const current = readLock();
     if (!current || current.owner === owner) {
-      sessionStorage.removeItem(LOCK_KEY);
+      store.removeItem(LOCK_KEY);
     }
   } catch {
     // ignore
@@ -126,6 +140,21 @@ function isDocumentReload(): boolean {
   return nav?.type === 'reload';
 }
 
+function clearRefreshLockOnReload(): void {
+  if (!isDocumentReload()) {
+    return;
+  }
+  const store = lockStorage();
+  if (!store) {
+    return;
+  }
+  try {
+    store.removeItem(LOCK_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 function clearForeignLockIfOrphan(reason: 'bootstrap' | 'reload'): boolean {
   const existing = readLock();
   if (!existing || existing.owner === TAB_ID) {
@@ -171,11 +200,13 @@ function bindRefreshCoordinatorLifecycle(): void {
 /** Call once on app bootstrap (before auth refresh). */
 export function initRefreshCoordinator(): void {
   bindRefreshCoordinatorLifecycle();
+  clearRefreshLockOnReload();
   clearForeignLockIfOrphan('bootstrap');
 }
 
 export function tryAcquireRefreshLeaderSync(): 'leader' | 'follower' | 'contended' {
   bindRefreshCoordinatorLifecycle();
+  clearRefreshLockOnReload();
   if (isDocumentReload()) {
     clearForeignLockIfOrphan('reload');
   }
@@ -184,6 +215,7 @@ export function tryAcquireRefreshLeaderSync(): 'leader' | 'follower' | 'contende
     if (existing.owner !== TAB_ID) {
       return 'contended';
     }
+    // Same tab already holds the lock (concurrent refresh pipeline).
     return 'contended';
   }
   writeLock(TAB_ID);
@@ -194,7 +226,7 @@ export function tryAcquireRefreshLeaderSync(): 'leader' | 'follower' | 'contende
   return 'leader';
 }
 
-/** Cross-tab / cross-bootstrap singleflight for cookie refresh (rotation revokes reused tokens). */
+/** Cross-tab / cross-bootstrap singleflight for refresh (rotation revokes reused tokens). */
 export async function acquireRefreshLeader(): Promise<'leader' | 'follower'> {
   bindRefreshCoordinatorLifecycle();
 
@@ -219,11 +251,12 @@ export function releaseRefreshLeader(ok: boolean): void {
 
 /** Test helper: clear cross-tab refresh lock between specs. */
 export function resetRefreshCoordinatorForTests(): void {
-  if (typeof sessionStorage === 'undefined') {
+  const store = lockStorage();
+  if (!store) {
     return;
   }
   try {
-    sessionStorage.removeItem(LOCK_KEY);
+    store.removeItem(LOCK_KEY);
   } catch {
     // ignore
   }

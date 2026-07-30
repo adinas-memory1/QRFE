@@ -31,12 +31,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isRefresh = req.url.includes('/refresh-token');
   const isLogin = req.url.includes('/login');
 
-  const withAuthHeaders = (base: typeof req, retried: boolean) =>
-    base.clone({
+  const withAuthHeaders = (base: typeof req, retried: boolean) => {
+    const headers = isRefresh ? {} : nativeAuthTokens.authHeaders();
+    return base.clone({
       context: base.context.set(AUTH_RETRIED, retried),
       withCredentials: true,
-      setHeaders: nativeAuthTokens.authHeaders(),
+      setHeaders: headers,
     });
+  };
 
   const request = withAuthHeaders(req, false);
 
