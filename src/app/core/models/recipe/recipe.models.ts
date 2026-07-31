@@ -44,6 +44,7 @@ export interface RecipeLineDto {
   ingredientId: string;
   ingredientName: string;
   unitOfMeasure: UnitOfMeasure;
+  stockUnitOfMeasure?: UnitOfMeasure;
   quantity: number;
   unitCostAmount: number;
   lineCostAmount: number;
@@ -85,6 +86,7 @@ export interface RecipeLineInput {
   ingredientId?: string | null;
   name: string;
   unitOfMeasure: UnitOfMeasure | number;
+  stockUnitOfMeasure?: UnitOfMeasure | number;
   quantity: number;
   unitCostAmount: number;
   currentStockQty: number;
@@ -155,6 +157,53 @@ export const UNIT_OF_MEASURE_OPTIONS: { value: number; labelKey: string }[] = [
   { value: 3, labelKey: 'recipes.uom.l' },
   { value: 4, labelKey: 'recipes.uom.pcs' },
 ];
+
+/** Normalize API enum/string UOM to numeric form used in forms. */
+export function normalizeUom(value: string | number): number {
+  if (typeof value === 'number') return value;
+  const map: Record<string, number> = { G: 0, Kg: 1, Ml: 2, L: 3, Pcs: 4 };
+  return map[value] ?? 4;
+}
+
+function uomFamily(uom: number): 'mass' | 'volume' | 'count' {
+  if (uom === 0 || uom === 1) return 'mass';
+  if (uom === 2 || uom === 3) return 'volume';
+  return 'count';
+}
+
+function toCanonical(qty: number, uom: number): number {
+  if (uom === 1 || uom === 3) return qty * 1000; // kg / l
+  return qty; // g / ml / pcs
+}
+
+function fromCanonical(canonical: number, uom: number): number {
+  if (uom === 1 || uom === 3) return canonical / 1000;
+  return canonical;
+}
+
+export function canConvertUom(from: number, to: number): boolean {
+  return from === to || (uomFamily(from) === uomFamily(to) && uomFamily(from) !== 'count');
+}
+
+/** Convert quantity between compatible UOMs (g↔kg, ml↔l). */
+export function convertUomQuantity(quantity: number, from: number, to: number): number {
+  if (from === to) return quantity;
+  if (!canConvertUom(from, to)) {
+    throw new Error(`Cannot convert UOM ${from} to ${to}`);
+  }
+  return fromCanonical(toCanonical(quantity, from), to);
+}
+
+/** Qty in stock UOM after yield, for cost / portions. */
+export function effectiveQtyInStockUom(
+  quantity: number,
+  recipeUom: number,
+  stockUom: number,
+  yieldPercent: number | null | undefined,
+): number {
+  const qtyInStock = convertUomQuantity(quantity, recipeUom, stockUom);
+  return effectiveQtyForYield(qtyInStock, yieldPercent);
+}
 
 /** Collapse whitespace / trim for display & API. */
 export function normalizeIngredientName(name: string): string {

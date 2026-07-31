@@ -39,8 +39,10 @@ import {
   LowStockIngredientDto,
   RecipeDto,
   UNIT_OF_MEASURE_OPTIONS,
-  effectiveQtyForYield,
+  canConvertUom,
+  effectiveQtyInStockUom,
   normalizeIngredientName,
+  normalizeUom,
   splitVat,
   suggestedPriceFromMargin,
 } from '../../../core/models/recipe/recipe.models';
@@ -143,14 +145,12 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       ?? 19;
   }
 
-  /** Sum of line costs ex-VAT (with yield). */
+  /** Sum of line costs ex-VAT (qty converted to stock UOM, with yield). */
   get portionCostExVat(): number {
     return this.recipeLines.controls.reduce((sum, ctrl) => {
       const g = ctrl as FormGroup;
       const raw = g.getRawValue() as LineFormValue;
-      const { exVat } = splitVat(Number(raw.unitCostAmount) || 0, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
-      const qty = effectiveQtyForYield(Number(raw.quantity) || 0, raw.yieldPercent);
-      return sum + exVat * qty;
+      return sum + this.computeLineCost(raw, 'exVat');
     }, 0);
   }
 
@@ -309,6 +309,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
               ingredientId: line.ingredientId,
               name: line.ingredientName,
               unitOfMeasure: normalizeUom(line.unitOfMeasure),
+              stockUnitOfMeasure: normalizeUom(line.stockUnitOfMeasure ?? line.unitOfMeasure),
               quantity: line.quantity,
               unitCostAmount: line.unitCostAmount,
               currentStockQty: line.currentStockQty,
@@ -333,10 +334,12 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   }
 
   private createLineGroup(values?: Partial<LineFormValue>): FormGroup {
+    const recipeUom = values?.unitOfMeasure ?? 4;
     return this.fb.group({
       ingredientId: [values?.ingredientId ?? null],
       name: [values?.name ?? '', Validators.required],
-      unitOfMeasure: [values?.unitOfMeasure ?? 4, Validators.required],
+      unitOfMeasure: [recipeUom, Validators.required],
+      stockUnitOfMeasure: [values?.stockUnitOfMeasure ?? recipeUom, Validators.required],
       quantity: [values?.quantity ?? 1, [Validators.required, Validators.min(0.0001)]],
       unitCostAmount: [values?.unitCostAmount ?? 0, [Validators.required, Validators.min(0)]],
       currentStockQty: [values?.currentStockQty ?? 0, [Validators.required, Validators.min(0)]],
@@ -375,17 +378,30 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   lineCostExVat(index: number): number {
     const g = this.recipeLines.at(index) as FormGroup | null;
     if (!g) return 0;
-    const raw = g.getRawValue() as LineFormValue;
-    const { exVat } = splitVat(Number(raw.unitCostAmount) || 0, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
-    return exVat * effectiveQtyForYield(Number(raw.quantity) || 0, raw.yieldPercent);
+    return this.computeLineCost(g.getRawValue() as LineFormValue, 'exVat');
   }
 
   lineCostIncVat(index: number): number {
     const g = this.recipeLines.at(index) as FormGroup | null;
     if (!g) return 0;
-    const raw = g.getRawValue() as LineFormValue;
-    const { incVat } = splitVat(Number(raw.unitCostAmount) || 0, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
-    return incVat * effectiveQtyForYield(Number(raw.quantity) || 0, raw.yieldPercent);
+    return this.computeLineCost(g.getRawValue() as LineFormValue, 'incVat');
+  }
+
+  private computeLineCost(raw: LineFormValue, mode: 'exVat' | 'incVat'): number {
+    const recipeUom = Number(raw.unitOfMeasure);
+    const stockUom = Number(raw.stockUnitOfMeasure ?? raw.unitOfMeasure);
+    if (!canConvertUom(recipeUom, stockUom)) {
+      return 0;
+    }
+    const split = splitVat(Number(raw.unitCostAmount) || 0, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
+    const unit = mode === 'exVat' ? split.exVat : split.incVat;
+    const qty = effectiveQtyInStockUom(
+      Number(raw.quantity) || 0,
+      recipeUom,
+      stockUom,
+      raw.yieldPercent,
+    );
+    return unit * qty;
   }
 
   isLineExpired(index: number): boolean {
@@ -417,6 +433,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       ingredientId: l.ingredientId || undefined,
       name: normalizeIngredientName(l.name),
       unitOfMeasure: Number(l.unitOfMeasure),
+      stockUnitOfMeasure: Number(l.stockUnitOfMeasure ?? l.unitOfMeasure),
       quantity: Number(l.quantity),
       unitCostAmount: Number(l.unitCostAmount),
       currentStockQty: Number(l.currentStockQty),
@@ -434,7 +451,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
           : Number(l.lowStockAlertPercent),
     }));
 
-    if (lines.some((l) => !l.name)) {
+    if (lines.some((l) => !l.name || !canConvertUom(l.unitOfMeasure, l.stockUnitOfMeasure))) {
       this.toast.error(this.transloco.translate('recipes.saveError'));
       return;
     }
@@ -502,6 +519,7 @@ interface LineFormValue {
   ingredientId: string | null;
   name: string;
   unitOfMeasure: number;
+  stockUnitOfMeasure: number;
   quantity: number;
   unitCostAmount: number;
   currentStockQty: number;
@@ -514,10 +532,4 @@ interface LineFormValue {
   purchaseDate: string;
   supplier: string;
   lowStockAlertPercent: number | null;
-}
-
-function normalizeUom(value: string | number): number {
-  if (typeof value === 'number') return value;
-  const map: Record<string, number> = { G: 0, Kg: 1, Ml: 2, L: 3, Pcs: 4 };
-  return map[value] ?? 4;
 }

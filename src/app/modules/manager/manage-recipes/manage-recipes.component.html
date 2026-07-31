@@ -275,11 +275,11 @@
             </div>
 
             <div class="row g-2">
-              <div class="col-md-4">
+              <div class="col-12 col-sm-6 col-md-4">
                 <label cLabel>{{ 'recipes.ingredientName' | transloco }}</label>
                 <input cFormControl type="text" formControlName="name" maxlength="120" autocomplete="off" />
               </div>
-              <div class="col-md-2">
+              <div class="col-6 col-sm-3 col-md-4">
                 <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
                 <select cSelect class="form-select" formControlName="unitOfMeasure">
                   @for (opt of uomOptions; track opt.value) {
@@ -287,27 +287,38 @@
                   }
                 </select>
               </div>
-              <div class="col-md-2">
-                <label cLabel>{{ 'recipes.qtyPerPortion' | transloco }}</label>
+              <div class="col-6 col-sm-3 col-md-4">
+                <label cLabel>{{ 'recipes.cols.qtyPerPortion' | transloco }}</label>
                 <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" />
               </div>
-              <div class="col-md-2">
+            </div>
+
+            <div class="row g-2 mt-1">
+              <div class="col-6 col-sm-4">
                 <label cLabel>{{ 'recipes.cols.stock' | transloco }}</label>
                 <input cFormControl type="number" step="0.01" min="0" formControlName="currentStockQty" />
               </div>
-              <div class="col-md-2">
+              <div class="col-6 col-sm-4">
+                <label cLabel>{{ 'recipes.stockUom' | transloco }}</label>
+                <select cSelect class="form-select" formControlName="stockUnitOfMeasure">
+                  @for (opt of uomOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-12 col-sm-4">
                 <label cLabel>{{ 'recipes.stockPrice' | transloco }} ({{ restaurantCurrency }})</label>
                 <input cFormControl type="number" step="0.01" min="0" formControlName="unitCostAmount" />
               </div>
             </div>
 
-            <div class="row g-2 mt-1">
-              <div class="col-md-2">
+            <div class="row g-2 mt-1 align-items-end">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.ingredientVat' | transloco }}</label>
                 <input cFormControl type="number" min="0" max="100" step="0.1" formControlName="vatPercent" />
               </div>
-              <div class="col-md-3 d-flex align-items-end pb-1">
-                <div class="form-check">
+              <div class="col-6 col-sm-3 pb-1">
+                <div class="form-check mt-sm-4">
                   <input
                     cFormCheckInput
                     class="form-check-input"
@@ -318,62 +329,63 @@
                   <label class="form-check-label" [for]="'vatInc' + i">{{ 'recipes.vatInclusive' | transloco }}</label>
                 </div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.costExVat' | transloco }}</label>
-                <div class="form-control-plaintext py-1">{{ lineCostExVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</div>
+                <div class="form-control-plaintext py-1 small">{{ lineCostExVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</div>
               </div>
-              <div class="col-md-4">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.costIncVat' | transloco }}</label>
-                <div class="form-control-plaintext py-1">{{ lineCostIncVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</div>
+                <div class="form-control-plaintext py-1 small">{{ lineCostIncVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</div>
               </div>
             </div>
 
             <div class="row g-2 mt-1">
-              <div class="col-md-3">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.yieldPercent' | transloco }}</label>
                 <input cFormControl type="number" min="0.0001" max="1000" step="0.1" formControlName="yieldPercent" />
-                <div class="form-text">{{ 'recipes.yieldHint' | transloco }}</div>
+                <div class="form-text d-none d-md-block">{{ 'recipes.yieldHint' | transloco }}</div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.lowStockAlertPercent' | transloco }}</label>
                 <input cFormControl type="number" min="0" max="100" step="1" formControlName="lowStockAlertPercent" />
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.supplier' | transloco }}</label>
                 <input cFormControl type="text" formControlName="supplier" maxlength="120" />
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-sm-3">
                 <label cLabel>{{ 'recipes.lotNumber' | transloco }}</label>
                 <input cFormControl type="text" formControlName="lotNumber" maxlength="80" />
               </div>
             </div>
 
             <div class="row g-2 mt-1">
-              <div class="col-md-3">
+              <div class="col-6 col-sm-6 col-md-3">
                 <label cLabel>{{ 'recipes.purchaseDate' | transloco }}</label>
                 <input cFormControl type="date" formControlName="purchaseDate" />
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-sm-6 col-md-3">
                 <label cLabel>{{ 'recipes.expiryDate' | transloco }}</label>
                 <input cFormControl type="date" formControlName="expiryDate" />
               </div>
-              <div class="col-12">
-                <label cLabel class="d-block">{{ 'recipes.allergensLabel' | transloco }}</label>
-                <div class="d-flex flex-wrap gap-2">
-                  @for (code of allergenCodes; track code) {
-                    <div class="form-check form-check-inline">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        [id]="'alg-' + i + '-' + code"
-                        [checked]="hasAllergen(i, code)"
-                        (change)="toggleAllergen(i, code, $any($event.target).checked)"
-                        (click)="$event.stopPropagation()"
-                      />
-                      <label class="form-check-label" [for]="'alg-' + i + '-' + code">{{ allergenLabel(code) }}</label>
-                    </div>
-                  }
-                </div>
+            </div>
+
+            <div class="mt-2">
+              <label cLabel class="d-block">{{ 'recipes.allergensLabel' | transloco }}</label>
+              <div class="recipe-allergens-grid">
+                @for (code of allergenCodes; track code) {
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="'alg-' + i + '-' + code"
+                      [checked]="hasAllergen(i, code)"
+                      (change)="toggleAllergen(i, code, $any($event.target).checked)"
+                      (click)="$event.stopPropagation()"
+                    />
+                    <label class="form-check-label" [for]="'alg-' + i + '-' + code">{{ allergenLabel(code) }}</label>
+                  </div>
+                }
               </div>
             </div>
           </div>
