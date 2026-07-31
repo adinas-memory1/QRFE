@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe, DatePipe, NgFor, NgIf } from '@angular/common';
 import {
+  AccordionButtonDirective,
+  AccordionComponent,
+  AccordionItemComponent,
   ButtonDirective,
+  ButtonCloseDirective,
   CardBodyComponent,
   CardComponent,
   CardHeaderComponent,
@@ -13,7 +17,7 @@ import {
   ModalFooterComponent,
   ModalHeaderComponent,
   ModalTitleDirective,
-  ButtonCloseDirective,
+  TemplateIdDirective,
 } from '@coreui/angular';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -23,6 +27,10 @@ import { MenuItemServiceService } from '../../../core/services/menu-item-service
 import { RecipeInventoryService } from '../../../core/services/recipe-inventory/recipe-inventory.service';
 import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 import { MenuItem } from '../../../core/models/menu/menuItem';
+import {
+  canonicalMenuItemCategory,
+  mergeManagementCategories,
+} from '../../../core/models/menu/menu-item-categories';
 import {
   IngredientConsumptionRow,
   IngredientDto,
@@ -37,6 +45,8 @@ type TabId = 'ingredients' | 'recipes' | 'consumption';
   selector: 'app-manage-recipes',
   standalone: true,
   imports: [
+    NgFor,
+    NgIf,
     FormsModule,
     ReactiveFormsModule,
     TranslocoPipe,
@@ -55,6 +65,10 @@ type TabId = 'ingredients' | 'recipes' | 'consumption';
     ButtonCloseDirective,
     ModalBodyComponent,
     ModalFooterComponent,
+    AccordionComponent,
+    AccordionItemComponent,
+    AccordionButtonDirective,
+    TemplateIdDirective,
   ],
   templateUrl: './manage-recipes.component.html',
   styleUrls: ['./manage-recipes.component.scss'],
@@ -65,6 +79,8 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   restaurantId: string | null = null;
   ingredients: IngredientDto[] = [];
   menuItems: MenuItem[] = [];
+  categories: string[] = [];
+  groupedMenuItems: { [category: string]: MenuItem[] } = {};
   selectedMenuItemId = '';
   recipe: RecipeDto | null = null;
   consumption: IngredientConsumptionRow[] = [];
@@ -118,6 +134,16 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     return this.recipeForm.get('lines') as FormArray;
   }
 
+  get selectedMenuItem(): MenuItem | null {
+    return this.menuItems.find((m) => m.menuItemId === this.selectedMenuItemId) ?? null;
+  }
+
+  get selectedMenuItemName(): string {
+    return this.recipe?.menuItemName
+      ?? this.selectedMenuItem?.menuItemName
+      ?? '';
+  }
+
   ngOnInit(): void {
     const id = this.auth.getUserRestaurantId();
     this.restaurantId = Array.isArray(id) ? id[0] ?? null : id;
@@ -166,14 +192,36 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
-          this.menuItems = (res.menu?.menuItems ?? []).filter(
-            (i) => (i.category ?? '').toString().toLowerCase() !== 'setmenu',
-          );
+          this.categories = mergeManagementCategories(res?.categories);
+          this.menuItems = (res.menu?.menuItems ?? [])
+            .map((item) => ({
+              ...item,
+              category: canonicalMenuItemCategory(item.category),
+            }))
+            .filter((i) => i.category.toLowerCase() !== 'setmenu');
+          this.rebuildGroupedMenuItems();
         },
         error: () => {
           this.toast.error(this.transloco.translate('recipes.loadError'));
         },
       });
+  }
+
+  private rebuildGroupedMenuItems(): void {
+    this.groupedMenuItems = this.menuItems.reduce(
+      (acc, item) => {
+        const cat = canonicalMenuItemCategory(item.category);
+        if (cat.toLowerCase() === 'setmenu') {
+          return acc;
+        }
+        if (!acc[cat]) {
+          acc[cat] = [];
+        }
+        acc[cat].push(item);
+        return acc;
+      },
+      {} as { [category: string]: MenuItem[] },
+    );
   }
 
   openCreateIngredient(): void {
@@ -241,8 +289,12 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       });
   }
 
-  deactivateIngredient(item: IngredientDto): void {
+  deleteIngredient(item: IngredientDto): void {
     if (!this.restaurantId) return;
+    const ok = confirm(
+      this.transloco.translate('recipes.confirmDeleteIngredient', { name: item.name }),
+    );
+    if (!ok) return;
     this.recipesApi
       .deactivateIngredient(this.restaurantId, item.ingredientId)
       .pipe(takeUntil(this.destroy$))
@@ -292,7 +344,14 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   onMenuItemSelected(menuItemId: string): void {
     this.selectedMenuItemId = menuItemId;
+    this.activeTab = 'recipes';
     this.loadRecipe();
+  }
+
+  clearMenuItemSelection(): void {
+    this.selectedMenuItemId = '';
+    this.recipe = null;
+    this.recipeLines.clear();
   }
 
   loadRecipe(): void {
@@ -334,6 +393,11 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   removeRecipeLine(index: number): void {
     this.recipeLines.removeAt(index);
+  }
+
+  ingredientUomForLine(ingredientId: string): string {
+    const ing = this.ingredients.find((i) => i.ingredientId === ingredientId);
+    return ing ? this.uomLabel(ing.unitOfMeasure) : '';
   }
 
   saveRecipe(): void {

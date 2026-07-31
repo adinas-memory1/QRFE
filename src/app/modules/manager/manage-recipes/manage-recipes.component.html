@@ -17,7 +17,10 @@
   @if (activeTab === 'ingredients') {
     <c-card>
       <c-card-header class="d-flex justify-content-between align-items-center">
-        <span>{{ 'recipes.ingredientsTitle' | transloco }}</span>
+        <div>
+          <div>{{ 'recipes.ingredientsTitle' | transloco }}</div>
+          <small class="text-body-secondary">{{ 'recipes.ingredientsCatalogHint' | transloco }}</small>
+        </div>
         <button cButton color="primary" size="sm" type="button" (click)="openCreateIngredient()">
           {{ 'recipes.addIngredient' | transloco }}
         </button>
@@ -51,8 +54,8 @@
                       {{ 'recipes.edit' | transloco }}
                     </button>
                     @if (item.isActive) {
-                      <button cButton color="danger" variant="outline" size="sm" type="button" (click)="deactivateIngredient(item)">
-                        {{ 'recipes.deactivate' | transloco }}
+                      <button cButton color="danger" variant="outline" size="sm" type="button" (click)="deleteIngredient(item)">
+                        {{ 'recipes.delete' | transloco }}
                       </button>
                     }
                   </td>
@@ -70,33 +73,108 @@
   }
 
   @if (activeTab === 'recipes') {
-    <c-card>
-      <c-card-header>{{ 'recipes.recipeTitle' | transloco }}</c-card-header>
+    <c-card class="mb-3">
+      <c-card-header>{{ 'recipes.pickMenuItemTitle' | transloco }}</c-card-header>
       <c-card-body>
-        <div class="mb-3">
-          <label cLabel>{{ 'recipes.selectMenuItem' | transloco }}</label>
-          <select cSelect class="form-select" [value]="selectedMenuItemId" (change)="onMenuItemSelected($any($event.target).value)">
-            <option value="">{{ 'recipes.selectPlaceholder' | transloco }}</option>
-            @for (item of menuItems; track item.menuItemId) {
-              <option [value]="item.menuItemId">{{ item.menuItemName }}</option>
-            }
-          </select>
-        </div>
+        <p class="text-body-secondary small mb-3">{{ 'recipes.pickMenuItemHint' | transloco }}</p>
+        <c-accordion [flush]="true">
+          <c-accordion-item
+            *ngFor="let cat of categories"
+            #accordionItem="cAccordionItem"
+            [visible]="false"
+            [hidden]="!groupedMenuItems[cat]?.length"
+          >
+            <ng-template cTemplateId="accordionHeaderTemplate">
+              <button
+                type="button"
+                (click)="accordionItem.toggleItem()"
+                [collapsed]="!accordionItem.visible"
+                cAccordionButton
+              >
+                {{ cat }}
+              </button>
+            </ng-template>
+            <ng-template cTemplateId="accordionBodyTemplate">
+              <div class="accordion-body p-0">
+                <ul class="list-group list-group-flush">
+                  <li
+                    *ngFor="let item of groupedMenuItems[cat]"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    [class.active]="item.menuItemId === selectedMenuItemId"
+                    role="button"
+                    (click)="onMenuItemSelected(item.menuItemId)"
+                    (keydown.enter)="onMenuItemSelected(item.menuItemId)"
+                    tabindex="0"
+                  >
+                    <span>
+                      <strong>{{ item.menuItemName }}</strong>
+                      <span *ngIf="item.isAvailable === false" class="badge bg-secondary ms-2">
+                        {{ 'menu.availability.unavailableBadge' | transloco }}
+                      </span>
+                    </span>
+                    <span class="text-body-secondary small">
+                      {{ item.menuItemPriceAmount | number:'1.2-2' }} {{ currencyCode(item.menuItemPriceCurrency) }}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </ng-template>
+          </c-accordion-item>
+        </c-accordion>
+      </c-card-body>
+    </c-card>
 
-        @if (selectedMenuItemId) {
+    @if (selectedMenuItemId) {
+      <c-card>
+        <c-card-header class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <div class="fw-semibold">
+              {{ 'recipes.recipeFor' | transloco: { name: selectedMenuItemName } }}
+            </div>
+            <small class="text-body-secondary">{{ 'recipes.qtyPerPortionHint' | transloco }}</small>
+          </div>
+          <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="clearMenuItemSelection()">
+            {{ 'recipes.changeMenuItem' | transloco }}
+          </button>
+        </c-card-header>
+        <c-card-body>
           @if (recipe) {
             <div class="mb-3 recipes-cost-summary">
               <div>{{ 'recipes.portionCost' | transloco }}: <strong>{{ recipe.portionCostAmount | number:'1.2-4' }} {{ currencyCode(recipe.menuItemPriceCurrency) }}</strong></div>
               <div>{{ 'recipes.foodCostPercent' | transloco }}: <strong>{{ recipe.foodCostPercent ?? '—' }}%</strong></div>
               <div>{{ 'recipes.portionsRemaining' | transloco }}: <strong>{{ recipe.portionsRemaining ?? '—' }}</strong></div>
             </div>
+
+            @if (recipe.lines?.length) {
+              <div class="table-responsive mb-3">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>{{ 'recipes.cols.name' | transloco }}</th>
+                      <th>{{ 'recipes.cols.qtyPerPortion' | transloco }}</th>
+                      <th>{{ 'recipes.cols.lineCost' | transloco }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (line of recipe.lines; track line.ingredientId) {
+                      <tr>
+                        <td>{{ line.ingredientName }}</td>
+                        <td>{{ line.quantity | number:'1.0-4' }} {{ uomLabel(line.unitOfMeasure) }}</td>
+                        <td>{{ line.lineCostAmount | number:'1.2-4' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           }
 
           <form [formGroup]="recipeForm" (ngSubmit)="saveRecipe()">
             <div formArrayName="lines">
               @for (line of recipeLines.controls; track $index; let i = $index) {
-                <div class="row g-2 mb-2" [formGroupName]="i">
+                <div class="row g-2 mb-2 align-items-end" [formGroupName]="i">
                   <div class="col-md-6">
+                    <label cLabel>{{ 'recipes.selectIngredient' | transloco }}</label>
                     <select cSelect class="form-select" formControlName="ingredientId">
                       <option value="">{{ 'recipes.selectIngredient' | transloco }}</option>
                       @for (ing of ingredients; track ing.ingredientId) {
@@ -107,7 +185,13 @@
                     </select>
                   </div>
                   <div class="col-md-4">
-                    <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" [placeholder]="'recipes.qtyPerPortion' | transloco" />
+                    <label cLabel>
+                      {{ 'recipes.qtyPerPortion' | transloco }}
+                      @if (line.get('ingredientId')?.value) {
+                        <span>({{ ingredientUomForLine(line.get('ingredientId')?.value) }})</span>
+                      }
+                    </label>
+                    <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" />
                   </div>
                   <div class="col-md-2">
                     <button cButton color="danger" variant="outline" type="button" (click)="removeRecipeLine(i)">×</button>
@@ -115,15 +199,15 @@
                 </div>
               }
             </div>
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex gap-2 mt-3 flex-wrap">
               <button cButton color="secondary" variant="outline" type="button" (click)="addRecipeLine()">{{ 'recipes.addLine' | transloco }}</button>
               <button cButton color="primary" type="submit">{{ 'recipes.saveRecipe' | transloco }}</button>
               <button cButton color="danger" variant="outline" type="button" (click)="clearRecipe()">{{ 'recipes.clearRecipe' | transloco }}</button>
             </div>
           </form>
-        }
-      </c-card-body>
-    </c-card>
+        </c-card-body>
+      </c-card>
+    }
   }
 
   @if (activeTab === 'consumption') {
