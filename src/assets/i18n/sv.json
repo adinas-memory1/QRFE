@@ -346,7 +346,8 @@
       "todaysMenuHint": "Dagens urval",
       "dailyMenuButton": "Dagens meny",
       "weeklyMenuButton": "Veckomeny",
-      "backToMainMenu": "Tillbaka till menyn"
+      "backToMainMenu": "Tillbaka till menyn",
+      "allergens": "Allergens"
     }
   },
   "pricing": {
@@ -492,7 +493,10 @@
     "exportsTitle": "Accounting export (CSV)",
     "exportsHint": "UTF-8 CSV with BOM. Uses the same date range as above.",
     "exportOrders": "Download orders (totals)",
-    "exportLines": "Download order lines (detail)"
+    "exportLines": "Download order lines (detail)",
+    "lowStockTitle": "Low stock alerts",
+    "lowStockEmpty": "No ingredients under their stock alert threshold.",
+    "colStockPercent": "% of baseline"
   },
   "orderHistory": {
     "title": "Beställningshistorik",
@@ -1189,7 +1193,9 @@
     "tabs": {
       "ingredients": "Ingredients",
       "recipes": "Recipes",
-      "consumption": "Consumption"
+      "consumption": "Consumption",
+      "stockAlerts": "Stock alerts",
+      "expiryAlerts": "Expiry alerts"
     },
     "ingredientsTitle": "Ingredients",
     "recipeTitle": "Recipe by menu item",
@@ -1262,6 +1268,45 @@
     "ingredientName": "Ingredient",
     "stockPrice": "Stock unit price",
     "vatFromMenuItem": "VAT",
-    "vatFromMenuItemHint": "from menu item"
+    "vatFromMenuItemHint": "from menu item",
+    "ingredientVat": "Ingredient VAT %",
+    "vatInclusive": "VAT included in unit price",
+    "costExVat": "Ingredient cost excl. VAT",
+    "costIncVat": "Ingredient cost incl. VAT",
+    "exVat": "excl. VAT",
+    "yieldPercent": "Yield %",
+    "yieldHint": "e.g. 80% → 100g usable costs as 125g stock",
+    "lowStockAlertPercent": "Stock alert at %",
+    "supplier": "Supplier",
+    "lotNumber": "Lot",
+    "purchaseDate": "Purchase date",
+    "expiryDate": "Expiry date",
+    "expired": "Expired",
+    "allergensLabel": "Allergens",
+    "desiredMargin": "Desired margin %",
+    "suggestedPrice": "Suggested menu price",
+    "removeLine": "Remove line",
+    "lineN": "Line {{n}}",
+    "allergens": {
+      "gluten": "gluten",
+      "lactose": "lactose",
+      "egg": "egg",
+      "fish": "fish",
+      "crustaceans": "crustaceans",
+      "peanuts": "peanuts",
+      "soy": "soy",
+      "celery": "celery",
+      "mustard": "mustard",
+      "sesame": "sesame",
+      "sulphites": "sulphites"
+    },
+    "stockAlertsTitle": "Low stock alerts",
+    "stockAlertsEmpty": "No ingredients under their stock alert threshold.",
+    "expiryAlertsTitle": "Expiry alerts",
+    "expiryAlertsHint": "Ingredients expiring within the next 10 days (including already expired).",
+    "expiryAlertsEmpty": "No ingredients expiring in the next 10 days.",
+    "alertsLoading": "Loading…",
+    "daysUntilExpiry": "Days until expiry",
+    "colStockPercent": "% of baseline"
   }
 }

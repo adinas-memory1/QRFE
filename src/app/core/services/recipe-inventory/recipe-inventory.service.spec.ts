@@ -74,4 +74,27 @@ describe('RecipeInventoryService', () => {
       { withCredentials: true },
     );
   });
+
+  it('lists low-stock ingredients', () => {
+    http.get.and.returnValue(of([]));
+    service.listLowStockIngredients('r1').subscribe();
+    expect(http.get).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/reports/low-stock-ingredients`,
+      { withCredentials: true },
+    );
+  });
+
+  it('lists expiring ingredients with daysAhead', () => {
+    http.get.and.returnValue(of([]));
+    service.listExpiringIngredients('r1', 10).subscribe();
+    expect(http.get).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/reports/expiring-ingredients`,
+      jasmine.objectContaining({
+        withCredentials: true,
+        params: jasmine.any(HttpParams),
+      }),
+    );
+    const params = http.get.calls.mostRecent().args[1]?.params as HttpParams;
+    expect(params.get('daysAhead')).toBe('10');
+  });
 });

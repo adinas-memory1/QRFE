@@ -5,6 +5,8 @@ import { environment } from '../../../../environments/environment';
 import {
   IngredientConsumptionRow,
   IngredientDto,
+  ExpiringIngredientDto,
+  LowStockIngredientDto,
   MenuItemPortionsDto,
   RecipeDto,
   RecipeLineInput,
@@ -139,6 +141,21 @@ export class RecipeInventoryService {
     const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
     return this.http.get<IngredientConsumptionRow[]>(
       `${this.apiUrl}/api/restaurants/${restaurantId}/admin/reports/ingredient-consumption`,
+      { params, withCredentials: true },
+    );
+  }
+
+  listLowStockIngredients(restaurantId: string): Observable<LowStockIngredientDto[]> {
+    return this.http.get<LowStockIngredientDto[]>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/reports/low-stock-ingredients`,
+      { withCredentials: true },
+    );
+  }
+
+  listExpiringIngredients(restaurantId: string, daysAhead = 10): Observable<ExpiringIngredientDto[]> {
+    const params = new HttpParams().set('daysAhead', String(daysAhead));
+    return this.http.get<ExpiringIngredientDto[]>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/reports/expiring-ingredients`,
       { params, withCredentials: true },
     );
   }

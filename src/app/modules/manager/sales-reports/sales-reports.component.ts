@@ -116,7 +116,7 @@ export class SalesReportsComponent implements OnInit {
     this.loading = true;
     forkJoin({
       summary: this.reporting.getSalesSummary(this.restaurantId, this.startDate, this.endDate),
-      top: this.reporting.getTopProducts(this.restaurantId, this.startDate, this.endDate, top)
+      top: this.reporting.getTopProducts(this.restaurantId, this.startDate, this.endDate, top),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

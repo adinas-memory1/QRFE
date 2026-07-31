@@ -349,7 +349,8 @@
       "todaysMenuHint": "Selecția zilei",
       "dailyMenuButton": "Meniu zilei",
       "weeklyMenuButton": "Set menu of the day",
-      "backToMainMenu": "Înapoi la meniu"
+      "backToMainMenu": "Înapoi la meniu",
+      "allergens": "Alergeni"
     }
   },
   "pricing": {
@@ -590,7 +591,10 @@
     "exportsTitle": "Export contabilitate (CSV)",
     "exportsHint": "CSV UTF-8 cu BOM. Folosește același interval ca mai sus.",
     "exportOrders": "Descarcă comenzi (totaluri)",
-    "exportLines": "Descarcă linii comandă (detaliu)"
+    "exportLines": "Descarcă linii comandă (detaliu)",
+    "lowStockTitle": "Alerte stoc scăzut",
+    "lowStockEmpty": "Niciun ingredient sub pragul de alertă stoc.",
+    "colStockPercent": "% din baseline"
   },
   "orderHistory": {
     "title": "Istoric comenzi",
@@ -1409,7 +1413,9 @@
     "tabs": {
       "ingredients": "Ingrediente",
       "recipes": "Rețete",
-      "consumption": "Consum"
+      "consumption": "Consum",
+      "stockAlerts": "Alerte stoc",
+      "expiryAlerts": "Alerte expirare"
     },
     "ingredientsTitle": "Ingrediente",
     "recipeTitle": "Rețetă pe produs",
@@ -1482,6 +1488,45 @@
     "ingredientName": "Ingredient",
     "stockPrice": "Preț stoc / UM",
     "vatFromMenuItem": "TVA",
-    "vatFromMenuItemHint": "din produsul de meniu"
+    "vatFromMenuItemHint": "din produsul de meniu",
+    "ingredientVat": "TVA ingredient %",
+    "vatInclusive": "TVA inclus în prețul unitar",
+    "costExVat": "Cost ingredient fără TVA",
+    "costIncVat": "Cost ingredient cu TVA",
+    "exVat": "fără TVA",
+    "yieldPercent": "Randament %",
+    "yieldHint": "ex. 80% → 100g utilizabil costă ca 125g stock",
+    "lowStockAlertPercent": "Alertă stoc la %",
+    "supplier": "Furnizor",
+    "lotNumber": "Lot",
+    "purchaseDate": "Data achiziției",
+    "expiryDate": "Data expirării",
+    "expired": "Expirat",
+    "allergensLabel": "Alergeni",
+    "desiredMargin": "Marjă dorită %",
+    "suggestedPrice": "Preț meniu sugerat",
+    "removeLine": "Șterge linie",
+    "lineN": "Linia {{n}}",
+    "allergens": {
+      "gluten": "gluten",
+      "lactose": "lactoză",
+      "egg": "ou",
+      "fish": "pește",
+      "crustaceans": "crustacee",
+      "peanuts": "arahide",
+      "soy": "soia",
+      "celery": "țelină",
+      "mustard": "muștar",
+      "sesame": "susan",
+      "sulphites": "sulfiți"
+    },
+    "stockAlertsTitle": "Alerte stoc scăzut",
+    "stockAlertsEmpty": "Niciun ingredient sub pragul de alertă stoc.",
+    "expiryAlertsTitle": "Alerte expirare",
+    "expiryAlertsHint": "Ingrediente care expiră în următoarele 10 zile (inclusiv deja expirate).",
+    "expiryAlertsEmpty": "Niciun ingredient care expiră în următoarele 10 zile.",
+    "alertsLoading": "Se încarcă…",
+    "daysUntilExpiry": "Zile până la expirare",
+    "colStockPercent": "% din baseline"
   }
 }

@@ -89,6 +89,11 @@ export class NativeAuthTokenService {
   }
 
   captureFromAuthPayload(raw: unknown): void {
+    void this.captureFromAuthPayloadAsync(raw);
+  }
+
+  /** Persist before releasing cross-tab refresh lock (native). */
+  async captureFromAuthPayloadAsync(raw: unknown): Promise<void> {
     if (!this.isEnabled() || !raw || typeof raw !== 'object') {
       return;
     }
@@ -112,7 +117,7 @@ export class NativeAuthTokenService {
       this.refreshToken = normalizedRefresh;
     }
     if (access?.trim() || normalizedRefresh) {
-      void this.persist();
+      await this.persist();
     }
   }
 

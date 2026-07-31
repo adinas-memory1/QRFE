@@ -77,6 +77,14 @@
                           }})
                         </span>
                         <div>{{ item.menuItemDescription }}</div>
+                        @if (item.allergens?.length) {
+                          <div class="text-muted small mt-1">
+                            {{ 'menu.guest.allergens' | transloco }}:
+                            @for (code of item.allergens; track code; let last = $last) {
+                              {{ ('recipes.allergens.' + code) | transloco }}@if (!last) {, }
+                            }
+                          </div>
+                        }
                       </div>
                       <div class="d-flex align-items-center">
                         <img

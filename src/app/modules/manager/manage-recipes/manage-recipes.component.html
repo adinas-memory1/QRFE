@@ -2,12 +2,18 @@
   <h2 class="mb-3">{{ 'recipes.title' | transloco }}</h2>
   <p class="text-body-secondary mb-4">{{ 'recipes.subtitle' | transloco }}</p>
 
-  <div class="btn-group mb-3" role="group">
+  <div class="btn-group mb-3 flex-wrap" role="group">
     <button type="button" class="btn" [class.btn-primary]="activeTab === 'menu'" [class.btn-outline-primary]="activeTab !== 'menu'" (click)="setTab('menu')">
       {{ 'recipes.tabs.recipes' | transloco }}
     </button>
     <button type="button" class="btn" [class.btn-primary]="activeTab === 'consumption'" [class.btn-outline-primary]="activeTab !== 'consumption'" (click)="setTab('consumption')">
       {{ 'recipes.tabs.consumption' | transloco }}
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="activeTab === 'stockAlerts'" [class.btn-outline-primary]="activeTab !== 'stockAlerts'" (click)="setTab('stockAlerts')">
+      {{ 'recipes.tabs.stockAlerts' | transloco }}
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="activeTab === 'expiryAlerts'" [class.btn-outline-primary]="activeTab !== 'expiryAlerts'" (click)="setTab('expiryAlerts')">
+      {{ 'recipes.tabs.expiryAlerts' | transloco }}
     </button>
   </div>
 
@@ -116,9 +122,98 @@
       </c-card-body>
     </c-card>
   }
+
+  @if (activeTab === 'stockAlerts') {
+    <c-card>
+      <c-card-header>{{ 'recipes.stockAlertsTitle' | transloco }}</c-card-header>
+      <c-card-body>
+        @if (alertsLoading) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.alertsLoading' | transloco }}</p>
+        } @else if (!lowStockAlerts.length) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.stockAlertsEmpty' | transloco }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>{{ 'recipes.cols.name' | transloco }}</th>
+                  <th>{{ 'recipes.cols.stock' | transloco }}</th>
+                  <th>{{ 'recipes.colStockPercent' | transloco }}</th>
+                  <th>{{ 'recipes.lowStockAlertPercent' | transloco }}</th>
+                  <th>{{ 'recipes.expiryDate' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of lowStockAlerts; track row.ingredientId) {
+                  <tr>
+                    <td>
+                      {{ row.name }}
+                      @if (row.isExpired) {
+                        <span class="badge bg-danger ms-1">{{ 'recipes.expired' | transloco }}</span>
+                      }
+                    </td>
+                    <td>{{ row.currentStockQty | number: '1.2-4' }} {{ uomLabel(row.unitOfMeasure) }}</td>
+                    <td>{{ row.stockPercentOfBaseline | number: '1.0-1' }}%</td>
+                    <td>{{ row.lowStockAlertPercent | number: '1.0-1' }}%</td>
+                    <td>{{ row.expiryDate || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </c-card-body>
+    </c-card>
+  }
+
+  @if (activeTab === 'expiryAlerts') {
+    <c-card>
+      <c-card-header>{{ 'recipes.expiryAlertsTitle' | transloco }}</c-card-header>
+      <c-card-body>
+        <p class="text-body-secondary small mb-3">{{ 'recipes.expiryAlertsHint' | transloco }}</p>
+        @if (alertsLoading) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.alertsLoading' | transloco }}</p>
+        } @else if (!expiryAlerts.length) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.expiryAlertsEmpty' | transloco }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>{{ 'recipes.cols.name' | transloco }}</th>
+                  <th>{{ 'recipes.expiryDate' | transloco }}</th>
+                  <th>{{ 'recipes.daysUntilExpiry' | transloco }}</th>
+                  <th>{{ 'recipes.cols.stock' | transloco }}</th>
+                  <th>{{ 'recipes.lotNumber' | transloco }}</th>
+                  <th>{{ 'recipes.supplier' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of expiryAlerts; track row.ingredientId) {
+                  <tr>
+                    <td>
+                      {{ row.name }}
+                      @if (row.isExpired) {
+                        <span class="badge bg-danger ms-1">{{ 'recipes.expired' | transloco }}</span>
+                      }
+                    </td>
+                    <td>{{ row.expiryDate }}</td>
+                    <td>{{ row.daysUntilExpiry }}</td>
+                    <td>{{ row.currentStockQty | number: '1.2-4' }} {{ uomLabel(row.unitOfMeasure) }}</td>
+                    <td>{{ row.lotNumber || '—' }}</td>
+                    <td>{{ row.supplier || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </c-card-body>
+    </c-card>
+  }
 </div>
 
-<c-modal [visible]="showRecipeModal" (visibleChange)="onRecipeModalVisible($event)" alignment="center" size="xl">
+<c-modal [visible]="showRecipeModal" (visibleChange)="onRecipeModalVisible($event)" alignment="center" size="xl" scrollable>
   <c-modal-header>
     <h5 cModalTitle>{{ 'recipes.recipeFor' | transloco: { name: selectedMenuItemName } }}</h5>
     <button cButtonClose (click)="closeRecipeModal()"></button>
@@ -132,55 +227,176 @@
         <strong>{{ selectedMenuItemVatPercent }}%</strong>
         <span class="text-body-secondary small"> ({{ 'recipes.vatFromMenuItemHint' | transloco }})</span>
       </div>
+      <div>{{ 'recipes.portionCost' | transloco }} (= {{ 'recipes.oneOrderItemCost' | transloco }}):
+        <strong>{{ portionCostExVat | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
+        <span class="text-body-secondary small"> ({{ 'recipes.exVat' | transloco }})</span>
+      </div>
       @if (recipe) {
-        <div>{{ 'recipes.portionCost' | transloco }} (= {{ 'recipes.oneOrderItemCost' | transloco }}):
-          <strong>{{ recipe.portionCostAmount | number:'1.2-4' }} {{ currencyCode(recipe.menuItemPriceCurrency) }}</strong>
-        </div>
         <div>{{ 'recipes.foodCostPercent' | transloco }}: <strong>{{ recipe.foodCostPercent ?? '—' }}%</strong></div>
         <div>{{ 'recipes.portionsRemaining' | transloco }}: <strong>{{ recipe.portionsRemaining ?? '—' }}</strong></div>
       }
+
+      <div class="row g-2 align-items-end mt-2">
+        <div class="col-sm-4">
+          <label cLabel>{{ 'recipes.desiredMargin' | transloco }}</label>
+          <input
+            cFormControl
+            type="number"
+            min="0"
+            max="99.99"
+            step="0.1"
+            [(ngModel)]="desiredMarginPercent"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+        @if (suggestedSellPrice != null) {
+          <div class="col-sm-8">
+            <div class="small text-body-secondary">{{ 'recipes.suggestedPrice' | transloco }}</div>
+            <strong>{{ suggestedSellPrice | number:'1.2-2' }} {{ restaurantCurrency }}</strong>
+          </div>
+        }
+      </div>
     </div>
 
     <form [formGroup]="recipeForm">
       <div formArrayName="lines">
         @for (line of recipeLines.controls; track $index; let i = $index) {
-          <div class="row g-2 mb-3 align-items-end border-bottom pb-3" [formGroupName]="i">
-            <div class="col-md-3">
-              <label cLabel>{{ 'recipes.ingredientName' | transloco }}</label>
-              <input cFormControl type="text" formControlName="name" maxlength="120" autocomplete="off" />
+          <div
+            class="recipe-line-card mb-3 p-3 border rounded"
+            [class.border-primary]="selectedLineIndex === i"
+            [formGroupName]="i"
+            (click)="selectLine(i)"
+          >
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong>{{ 'recipes.lineN' | transloco: { n: i + 1 } }}</strong>
+              @if (isLineExpired(i)) {
+                <span class="badge bg-danger">{{ 'recipes.expired' | transloco }}</span>
+              }
             </div>
-            <div class="col-md-2">
-              <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
-              <select cSelect class="form-select" formControlName="unitOfMeasure">
-                @for (opt of uomOptions; track opt.value) {
-                  <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
-                }
-              </select>
+
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label cLabel>{{ 'recipes.ingredientName' | transloco }}</label>
+                <input cFormControl type="text" formControlName="name" maxlength="120" autocomplete="off" />
+              </div>
+              <div class="col-md-2">
+                <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
+                <select cSelect class="form-select" formControlName="unitOfMeasure">
+                  @for (opt of uomOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label cLabel>{{ 'recipes.qtyPerPortion' | transloco }}</label>
+                <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" />
+              </div>
+              <div class="col-md-2">
+                <label cLabel>{{ 'recipes.cols.stock' | transloco }}</label>
+                <input cFormControl type="number" step="0.01" min="0" formControlName="currentStockQty" />
+              </div>
+              <div class="col-md-2">
+                <label cLabel>{{ 'recipes.stockPrice' | transloco }} ({{ restaurantCurrency }})</label>
+                <input cFormControl type="number" step="0.01" min="0" formControlName="unitCostAmount" />
+              </div>
             </div>
-            <div class="col-md-2">
-              <label cLabel>{{ 'recipes.qtyPerPortion' | transloco }}</label>
-              <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" />
+
+            <div class="row g-2 mt-1">
+              <div class="col-md-2">
+                <label cLabel>{{ 'recipes.ingredientVat' | transloco }}</label>
+                <input cFormControl type="number" min="0" max="100" step="0.1" formControlName="vatPercent" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end pb-1">
+                <div class="form-check">
+                  <input
+                    cFormCheckInput
+                    class="form-check-input"
+                    type="checkbox"
+                    formControlName="vatInclusive"
+                    [id]="'vatInc' + i"
+                  />
+                  <label class="form-check-label" [for]="'vatInc' + i">{{ 'recipes.vatInclusive' | transloco }}</label>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.costExVat' | transloco }}</label>
+                <div class="form-control-plaintext py-1">{{ lineCostExVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</div>
+              </div>
+              <div class="col-md-4">
+                <label cLabel>{{ 'recipes.costIncVat' | transloco }}</label>
+                <div class="form-control-plaintext py-1">{{ lineCostIncVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</div>
+              </div>
             </div>
-            <div class="col-md-2">
-              <label cLabel>{{ 'recipes.cols.stock' | transloco }}</label>
-              <input cFormControl type="number" step="0.01" min="0" formControlName="currentStockQty" />
+
+            <div class="row g-2 mt-1">
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.yieldPercent' | transloco }}</label>
+                <input cFormControl type="number" min="0.0001" max="1000" step="0.1" formControlName="yieldPercent" />
+                <div class="form-text">{{ 'recipes.yieldHint' | transloco }}</div>
+              </div>
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.lowStockAlertPercent' | transloco }}</label>
+                <input cFormControl type="number" min="0" max="100" step="1" formControlName="lowStockAlertPercent" />
+              </div>
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.supplier' | transloco }}</label>
+                <input cFormControl type="text" formControlName="supplier" maxlength="120" />
+              </div>
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.lotNumber' | transloco }}</label>
+                <input cFormControl type="text" formControlName="lotNumber" maxlength="80" />
+              </div>
             </div>
-            <div class="col-md-2">
-              <label cLabel>{{ 'recipes.stockPrice' | transloco }} ({{ restaurantCurrency }})</label>
-              <input cFormControl type="number" step="0.01" min="0" formControlName="unitCostAmount" />
-            </div>
-            <div class="col-md-1">
-              <button cButton color="danger" variant="outline" type="button" (click)="removeRecipeLine(i)">×</button>
+
+            <div class="row g-2 mt-1">
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.purchaseDate' | transloco }}</label>
+                <input cFormControl type="date" formControlName="purchaseDate" />
+              </div>
+              <div class="col-md-3">
+                <label cLabel>{{ 'recipes.expiryDate' | transloco }}</label>
+                <input cFormControl type="date" formControlName="expiryDate" />
+              </div>
+              <div class="col-12">
+                <label cLabel class="d-block">{{ 'recipes.allergensLabel' | transloco }}</label>
+                <div class="d-flex flex-wrap gap-2">
+                  @for (code of allergenCodes; track code) {
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [id]="'alg-' + i + '-' + code"
+                        [checked]="hasAllergen(i, code)"
+                        (change)="toggleAllergen(i, code, $any($event.target).checked)"
+                        (click)="$event.stopPropagation()"
+                      />
+                      <label class="form-check-label" [for]="'alg-' + i + '-' + code">{{ allergenLabel(code) }}</label>
+                    </div>
+                  }
+                </div>
+              </div>
             </div>
           </div>
         }
       </div>
     </form>
   </c-modal-body>
-  <c-modal-footer class="flex-wrap gap-2">
-    <button cButton color="secondary" variant="outline" type="button" (click)="addRecipeLine()">{{ 'recipes.addLine' | transloco }}</button>
-    <button cButton color="danger" variant="outline" type="button" (click)="clearRecipe()">{{ 'recipes.clearRecipe' | transloco }}</button>
-    <button cButton color="secondary" variant="outline" type="button" (click)="closeRecipeModal()">{{ 'recipes.cancel' | transloco }}</button>
-    <button cButton color="primary" type="button" (click)="saveRecipe()">{{ 'recipes.saveRecipe' | transloco }}</button>
+  <c-modal-footer class="recipes-modal-footer">
+    <div class="recipes-modal-actions w-100">
+      <button cButton color="secondary" variant="outline" type="button" (click)="addRecipeLine()">{{ 'recipes.addLine' | transloco }}</button>
+      <button
+        cButton
+        color="warning"
+        variant="outline"
+        type="button"
+        (click)="removeSelectedRecipeLine()"
+        [disabled]="recipeLines.length === 0"
+      >
+        {{ 'recipes.removeLine' | transloco }}
+      </button>
+      <button cButton color="danger" variant="outline" type="button" (click)="clearRecipe()">{{ 'recipes.clearRecipe' | transloco }}</button>
+      <button cButton color="secondary" variant="outline" type="button" (click)="closeRecipeModal()">{{ 'recipes.cancel' | transloco }}</button>
+      <button cButton color="primary" type="button" (click)="saveRecipe()">{{ 'recipes.saveRecipe' | transloco }}</button>
+    </div>
   </c-modal-footer>
 </c-modal>

@@ -174,9 +174,9 @@ export class AuthService {
       headers,
       withCredentials: true,
     }).pipe(
-      tap((response) => {
-        this.nativeAuthTokens.captureFromAuthPayload(response);
-      }),
+      switchMap((response) =>
+        from(this.nativeAuthTokens.captureFromAuthPayloadAsync(response)).pipe(map(() => response)),
+      ),
     );
   }
 
@@ -415,9 +415,9 @@ export class AuthService {
             headers: refreshHeaders,
           })
           .pipe(
-            tap((raw) => {
-              this.nativeAuthTokens.captureFromAuthPayload(raw);
-            }),
+            switchMap((raw) =>
+              from(this.nativeAuthTokens.captureFromAuthPayloadAsync(raw)).pipe(map(() => raw)),
+            ),
             map(raw => this.resolveUserAfterRefresh(raw)),
             tap(user => {
               if (user) this.setUser(user);
@@ -427,6 +427,7 @@ export class AuthService {
               agentDebugLog('A2', 'auth.refreshUserContext', 'refresh-error', {
                 status: (err as HttpErrorResponse)?.status ?? null,
                 sentRefreshToken,
+                bodyHadRefresh: !!refreshToken,
                 willClear: isHttpAuthFailure(err) && sentRefreshToken,
               });
               if (isHttpAuthFailure(err) && sentRefreshToken) {
