@@ -16,18 +16,18 @@
       "badge": "Works fully offline",
       "title_pre": "The POS that keeps your ",
       "title_accent": "restaurant running",
-      "title_post": " â€” online or not.",
-      "lead": "Universal Restaurant Systems is an offline-first point of sale for cafÃ©s, bars and restaurants. Take orders on any device, print receipts, and sync sales to the cloud the moment you reconnect.",
+      "title_post": " — online or not.",
+      "lead": "Universal Restaurant Systems is an offline-first point of sale for cafés, bars and restaurants. Take orders on any device, print receipts, and sync sales to the cloud the moment you reconnect.",
       "cta_primary": "Start free trial",
       "cta_secondary": "See how it works",
-      "note": "Set up in minutes Â· Cancel anytime",
+      "note": "Set up in minutes · Cancel anytime",
       "offlineDisclaimer": "Offline mode is intentionally limited to the order already open on the device. In a restaurant with multiple active devices, full offline-first would create consistency risks (for example, two devices could open or edit the same table in parallel). Therefore, offline-first applies only to the current order, where there are no collisions."
     },
     "mock": {
       "synced": "Synced",
       "receipt": "Receipt printed",
       "today": "+18% today",
-      "order": "Table 7 Â· Order #1042",
+      "order": "Table 7 · Order #1042",
       "open": "Open",
       "total": "Total"
     },
@@ -40,7 +40,7 @@
     "features": {
       "eyebrow": "Everything you need",
       "title": "One system for the whole floor",
-      "lead": "From the first tap to the end-of-day report â€” built for the pace of a real kitchen."
+      "lead": "From the first tap to the end-of-day report — built for the pace of a real kitchen."
     },
     "feat": {
       "offline": {
@@ -57,7 +57,7 @@
       },
       "cloud": {
         "t": "Cloud sync",
-        "d": "Your menu, staff and sales live in the cloud â€” accessible from any device, backed up in real time."
+        "d": "Your menu, staff and sales live in the cloud — accessible from any device, backed up in real time."
       },
       "sales": {
         "t": "Sales management",
@@ -73,7 +73,7 @@
       "title": "Up and running before the next service",
       "s1": {
         "t": "Build your menu",
-        "d": "Add products, categories and prices in minutes â€” or import them from a spreadsheet."
+        "d": "Add products, categories and prices in minutes — or import them from a spreadsheet."
       },
       "s2": {
         "t": "Open on any device",
@@ -133,14 +133,14 @@
       "secondary": "Talk to sales"
     },
     "footer": {
-      "tagline": "Offline-first restaurant POS, mobile terminal and cloud sales management â€” built for small businesses.",
+      "tagline": "Offline-first restaurant POS, mobile terminal and cloud sales management — built for small businesses.",
       "product": "Product",
       "company": "Company",
       "about": "About",
       "blog": "Blog",
       "newsletter": "Stay in the loop",
       "email": "you@restaurant.com",
-      "rights": "Â© 2026 Universal Restaurant Systems. All rights reserved."
+      "rights": "© 2026 Universal Restaurant Systems. All rights reserved."
     }
   },
   "partners": {
@@ -179,7 +179,7 @@
       },
       "message": "Message / Questions",
       "submit": "Submit inquiry",
-      "submitting": "Sendingâ€¦",
+      "submitting": "Sending…",
       "success": "We received your inquiry. A solutions engineer will contact you within 48 hours.",
       "error": "We could not send your inquiry. Please try again or contact us directly.",
       "required": "This field is required",
@@ -187,7 +187,7 @@
     }
   },
   "seo": {
-    "landingTitle": "U.R.S. | Restaurant POS System â€” Cloud & Mobile POS Software",
+    "landingTitle": "U.R.S. | Restaurant POS System — Cloud & Mobile POS Software",
     "landingDescription": "Universal Restaurant Systems: offline-first restaurant POS, mobile POS terminal, cloud POS software, payment terminal, receipt printer integration, inventory and sales management for small businesses.",
     "faqTitle": "U.R.S. FAQ | Restaurant POS System & POS Software",
     "faqDescription": "Answers about U.R.S. restaurant POS: mobile POS, printer agent, offline orders, QR menu, Stripe payments, inventory and staff workflows.",
@@ -205,7 +205,7 @@
     "contact": {
       "pageTitle": "Contact us",
       "intro": "Reach the Universal Restaurant Systems team for sales, onboarding or technical support.",
-      "p1": "We help restaurants, bars and cafÃ©s get started with offline-first POS, QR menus, kitchen workflows and printer integration.",
+      "p1": "We help restaurants, bars and cafés get started with offline-first POS, QR menus, kitchen workflows and printer integration.",
       "p2": "For general inquiries and sales, email us. For technical support, call or message us on WhatsApp during business hours."
     },
     "privacy": {
@@ -230,9 +230,9 @@
     }
   },
   "footer": {
-    "copyright": "Â© Universal Restaurant Systems",
+    "copyright": "© Universal Restaurant Systems",
     "poweredBy": "Powered by",
-    "piva": "P.IVA: 03084340995 (registered in Italy â€” Genoa)",
+    "piva": "P.IVA: 03084340995 (registered in Italy — Genoa)",
     "phoneWhatsapp": "+39 353 213 26 36",
     "whatsappAria": "Contact us on WhatsApp",
     "whatsappSupportAria": "Contact technical support on WhatsApp",
@@ -294,8 +294,8 @@
     "manageMenu": {
       "presentationTitle": "How guests see the menu",
       "modeLabel": "Display mode",
-      "presentationHelp": "Choose what to edit: Ã  la carte dishes (always on the public menu) or the set menu for each weekday.",
-      "modeNormal": "Ã€ la carte menu",
+      "presentationHelp": "Choose what to edit: à la carte dishes (always on the public menu) or the set menu for each weekday.",
+      "modeNormal": "À la carte menu",
       "modeSetMenu": "Set menu of the day",
       "addMenuItem": "Add menu item",
       "hideAddItem": "Hide form",
@@ -319,7 +319,7 @@
       "scheduleTitle": "When to show this dish",
       "schedulePermanent": "Always on the menu",
       "scheduleDated": "Only on a specific date",
-      "scheduleWeekday": "Every week onâ€¦",
+      "scheduleWeekday": "Every week on…",
       "scheduledDate": "Date",
       "scheduledWeekday": "Weekday",
       "scheduleHint": "Choose how this row appears to guests according to your restaurant display mode.",
@@ -395,7 +395,7 @@
     "salesTax": "Sales tax",
     "total": "Total",
     "payByCard": "Pay by card",
-    "processingPayment": "Redirecting to paymentâ€¦",
+    "processingPayment": "Redirecting to payment…",
     "cardPaymentsPendingTitle": "Card payments not available yet",
     "cardPaymentsPendingBody": "This restaurant still needs to finish Stripe onboarding. Please ask staff for another payment method.",
     "theme": "Theme",
@@ -424,7 +424,7 @@
       "emailError": "Could not send the fiscal invoice. Please try again.",
       "downloadError": "Could not download the fiscal invoice. Please try again.",
       "rateLimited": "Too many requests. Please wait and try again.",
-      "preparing": "Your fiscal invoice is being preparedâ€¦",
+      "preparing": "Your fiscal invoice is being prepared…",
       "readyHint": "Your fiscal invoice is ready:"
     }
   },
@@ -441,7 +441,7 @@
   },
   "verifyEmail": {
     "title": "Email verification",
-    "verifying": "Verifying your emailâ€¦",
+    "verifying": "Verifying your email…",
     "successTitle": "Email verified!",
     "successMessage": "Your email address has been confirmed. You can now use all features.",
     "invalidToken": "This verification link is invalid or has expired.",
@@ -469,9 +469,9 @@
     "snoozeWaiter": "Dismiss",
     "notifications": {
       "enableSoundTitle": "Enable sound for waiter alerts",
-      "enableSoundBody": "To hear pickup alerts, turn on Sound for the â€œWaiter callsâ€ channel in the settings screen that opened.",
+      "enableSoundBody": "To hear pickup alerts, turn on Sound for the “Waiter calls” channel in the settings screen that opened.",
       "enableGuestWaiterSoundTitle": "Enable sound for guest waiter calls",
-      "enableGuestWaiterSoundBody": "To hear when a guest calls the waiter, turn on Sound for your restaurantâ€™s guest-call channel in the settings screen that opened."
+      "enableGuestWaiterSoundBody": "To hear when a guest calls the waiter, turn on Sound for your restaurant’s guest-call channel in the settings screen that opened."
     }
   },
   "sidebar": {
@@ -487,7 +487,7 @@
     "startDate": "From",
     "endDate": "To",
     "load": "Load report",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No events in this date range.",
     "error": "Could not load the report.",
     "noRestaurant": "Restaurant context is missing; sign in again as a manager.",
@@ -558,7 +558,7 @@
     "printOfflineSuccessBody": "Bill sent to printer.",
     "bookingsToday": "Today's bookings",
     "bindOfflinePrimaryCta": "Register this device as offline POS",
-    "bindOfflinePrimaryBinding": "Registeringâ€¦",
+    "bindOfflinePrimaryBinding": "Registering…",
     "bindOfflinePrimaryHint": "You are designated for full offline mode. Register this tablet or phone so it can open tables and confirm orders without internet.",
     "bindOfflinePrimarySuccessTitle": "Device registered",
     "bindOfflinePrimarySuccessBody": "This device is now the offline POS. Changes sync when you reconnect.",
@@ -566,8 +566,8 @@
     "offlinePrimaryDeviceActiveHint": "This device is registered for full offline mode. You can open tables and confirm orders without internet.",
     "offlineSyncModalTitle": "Offline order sync",
     "offlineSyncCountdown": "Sync starts in {{seconds}} seconds. Please wait and do not close the app.",
-    "offlineSyncInProgress": "Syncing offline orders to the server. Please waitâ€¦",
-    "offlineSyncReconciling": "Updating table status from server. Please waitâ€¦",
+    "offlineSyncInProgress": "Syncing offline orders to the server. Please wait…",
+    "offlineSyncReconciling": "Updating table status from server. Please wait…",
     "nonPrimaryOfflineHint": "Offline: you can only edit the order already open on this device.",
     "printKitchen": "Print kitchen"
   },
@@ -579,7 +579,7 @@
     "endDate": "To",
     "topN": "Top (max 100)",
     "load": "Load reports",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No data loaded yet.",
     "emptySales": "No closed orders in this date range.",
     "emptyTop": "No product lines in this date range.",
@@ -587,7 +587,7 @@
     "invalidRange": "The start date must be on or before the end date.",
     "error": "Could not load the reports.",
     "downloadError": "Could not download the file.",
-    "downloading": "Downloadingâ€¦",
+    "downloading": "Downloading…",
     "salesSummaryTitle": "Sales summary",
     "closedOrderCount": "Closed orders:",
     "colCurrency": "Currency",
@@ -613,7 +613,7 @@
     "startDate": "From",
     "endDate": "To",
     "load": "Load report",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No orders in this date range.",
     "emptyTotal": "No orders in this period.",
     "noRestaurant": "Restaurant context is missing; sign in again.",
@@ -698,7 +698,7 @@
     "errorGeneric": "Could not create the staff user. Check the details or try again.",
     "listTitle": "Staff accounts",
     "listSubtitle": "Disable access to block sign-in without deleting the account.",
-    "listLoading": "Loading staffâ€¦",
+    "listLoading": "Loading staff…",
     "listEmpty": "No staff accounts yet.",
     "listLoadError": "Could not load the staff list.",
     "refresh": "Refresh",
@@ -736,7 +736,7 @@
     "successBody": "The partner can sign in with the email and password you set.",
     "errorGeneric": "Could not create the reseller account. Check the details or try again.",
     "listTitle": "Reseller accounts",
-    "listLoading": "Loading resellersâ€¦",
+    "listLoading": "Loading resellers…",
     "listEmpty": "No reseller accounts yet.",
     "listLoadError": "Could not load reseller accounts.",
     "colName": "Name",
@@ -748,7 +748,7 @@
     "title": "Your restaurants",
     "subtitle": "Restaurants you provisioned for your clients.",
     "addRestaurant": "Add restaurant",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No restaurants yet. Use Add restaurant to provision the first one.",
     "colName": "Restaurant",
     "colType": "Type",
@@ -790,7 +790,7 @@
     "title": "Bookings",
     "listTitle": "Bookings list",
     "refresh": "Refresh",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No reservations yet.",
     "colWhen": "When",
     "colTable": "Table",
@@ -803,7 +803,7 @@
     "table": "Table",
     "tablePlaceholder": "Select a table",
     "emptyTables": "No tables are configured for this restaurant. Add tables first.",
-    "loadingTables": "Loading tablesâ€¦",
+    "loadingTables": "Loading tables…",
     "editTitle": "Edit reservation",
     "save": "Save changes",
     "cancelEdit": "Cancel editing",
@@ -812,7 +812,7 @@
     "partySize": "Number of guests",
     "dateTime": "Date and time",
     "submit": "Submit reservation",
-    "submitting": "Submittingâ€¦",
+    "submitting": "Submitting…",
     "success": "Reservation saved.",
     "eventIdLabel": "Event ID:",
     "missingRestaurant": "No restaurant is linked to this account.",
@@ -828,7 +828,7 @@
     "kpiTypes": "By type",
     "recentRestaurants": "Restaurants",
     "viewAll": "Manage all",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No restaurants yet.",
     "colBilling": "Billing",
     "colNextInvoice": "Next invoice on",
@@ -839,7 +839,7 @@
   "managePrinterFleet": {
     "title": "Printer fleet",
     "subtitle": "All printers reported by Printer Agent heartbeats across restaurants.",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "loadFailed": "Could not load printer fleet.",
     "refresh": "Refresh",
     "lastUpdated": "Updated",
@@ -872,7 +872,7 @@
     "fieldCurrency": "Currency",
     "fieldHasBar": "Has bar",
     "fieldMenu": "Menu",
-    "selectType": "Select typeâ€¦",
+    "selectType": "Select type…",
     "tablesShort": "tables",
     "barsShort": "bars",
     "create": "Create",
@@ -912,7 +912,7 @@
     "prev": "Previous",
     "next": "Next",
     "pageLabel": "Page {{page}} of {{total}}",
-    "loading": "Loadingâ€¦",
+    "loading": "Loading…",
     "empty": "No restaurants found.",
     "yes": "Yes",
     "no": "No",
@@ -945,8 +945,7 @@
     "subscriptionProducts": "Subscription products",
     "printerFleet": "Printer fleet",
     "resellers": "Resellers",
-    "addRestaurant": "Add restaurant",
-    "recipes": "Recipes"
+    "addRestaurant": "Add restaurant"
   },
   "header": {
     "settings": "Settings",
@@ -972,9 +971,9 @@
     "emailInvalid": "Enter a valid email address."
   },
   "offline": {
-    "bannerPrimary": "OFFLINE â€” full POS mode (syncs when you reconnect)",
+    "bannerPrimary": "OFFLINE — full POS mode (syncs when you reconnect)",
     "bannerLimited": "OFFLINE! Move to the device configured for offline work.",
-    "bannerRestaurantSyncLocked": "OFFLINE SYNC IN PROGRESS â€” please wait until the primary device finishes syncing orders."
+    "bannerRestaurantSyncLocked": "OFFLINE SYNC IN PROGRESS — please wait until the primary device finishes syncing orders."
   },
   "pwa": {
     "updateTitle": "Update available",
@@ -982,7 +981,7 @@
     "updateBlockedOpenOrders": "Update blocked: there are still open orders. Close them first, then try again.",
     "updateNow": "Update now",
     "later": "Later",
-    "updating": "Updatingâ€¦"
+    "updating": "Updating…"
   },
   "kitchen": {
     "title": "Kitchen",
@@ -1004,13 +1003,13 @@
     "toastNewOrderTitle": "New order",
     "toastNewOrderBody": "New order at table {{table}}.",
     "toastNewItemTitle": "New item",
-    "toastNewItemBody": "+ {{name}} Ã—{{qty}} (table {{table}})",
+    "toastNewItemBody": "+ {{name}} ×{{qty}} (table {{table}})",
     "toastQtyUpTitle": "Qty increased",
-    "toastQtyUpBody": "â†‘ {{name}}: {{prev}} â†’ {{next}} (table {{table}})",
+    "toastQtyUpBody": "↑ {{name}}: {{prev}} → {{next}} (table {{table}})",
     "toastQtyDownTitle": "Qty decreased",
-    "toastQtyDownBody": "â†“ {{name}}: {{prev}} â†’ {{next}} (table {{table}})",
+    "toastQtyDownBody": "↓ {{name}}: {{prev}} → {{next}} (table {{table}})",
     "toastItemDeletedTitle": "Item deleted",
-    "toastItemDeletedBody": "âˆ’ {{name}} (table {{table}})"
+    "toastItemDeletedBody": "− {{name}} (table {{table}})"
   },
   "push": {
     "kitchenTitle": "Kitchen",
@@ -1018,9 +1017,9 @@
     "tableTitle": "Table",
     "defaultTitle": "Notification",
     "pickupReady": "Order ready for pickup",
-    "pickupReadyTable": "Order ready for pickup â€” {{table}}",
+    "pickupReadyTable": "Order ready for pickup — {{table}}",
     "guestWaiterCall": "Guest is calling the waiter",
-    "guestWaiterCallTable": "Guest is calling the waiter â€” {{table}}",
+    "guestWaiterCallTable": "Guest is calling the waiter — {{table}}",
     "defaultBody": "New event"
   },
   "bar": {
@@ -1042,26 +1041,26 @@
     "toastNewOrderTitle": "New order",
     "toastNewOrderBody": "New order at table {{table}}.",
     "toastNewItemTitle": "New item",
-    "toastNewItemBody": "+ {{name}} Ã—{{qty}} (table {{table}})",
+    "toastNewItemBody": "+ {{name}} ×{{qty}} (table {{table}})",
     "toastQtyUpTitle": "Qty increased",
-    "toastQtyUpBody": "â†‘ {{name}}: {{prev}} â†’ {{next}} (table {{table}})",
+    "toastQtyUpBody": "↑ {{name}}: {{prev}} → {{next}} (table {{table}})",
     "toastQtyDownTitle": "Qty decreased",
-    "toastQtyDownBody": "â†“ {{name}}: {{prev}} â†’ {{next}} (table {{table}})",
+    "toastQtyDownBody": "↓ {{name}}: {{prev}} → {{next}} (table {{table}})",
     "toastItemDeletedTitle": "Item deleted",
-    "toastItemDeletedBody": "âˆ’ {{name}} (table {{table}})"
+    "toastItemDeletedBody": "− {{name}} (table {{table}})"
   },
   "restaurantSettings": {
     "title": "Restaurant settings",
     "currencyHint": "Operating currency for menu and orders. Subscription billing may use a different currency (Stripe).",
     "noRestaurant": "No restaurant is linked to this account; currency cannot be saved.",
     "currency": "Currency",
-    "saving": "Savingâ€¦",
+    "saving": "Saving…",
     "saveCurrency": "Save currency",
     "paymentsTitle": "Payments",
     "paymentsBody": "Subscription charges are processed by Stripe. Invoices and receipts are available from Stripe and by email.",
     "paymentsConnectStripe": "Connect Stripe",
     "paymentsRefreshStatus": "Refresh status",
-    "paymentsLoading": "Loading payment statusâ€¦",
+    "paymentsLoading": "Loading payment status…",
     "paymentsStripeStatus": "Stripe Connect status",
     "paymentsStripeAccount": "Connected account",
     "paymentsStripeFlags": "Account flags",
@@ -1079,13 +1078,13 @@
     "paymentsStatusPending": "Pending",
     "subscriptionTitle": "Subscription",
     "subscriptionCancelHint": "Cancel your Stripe subscription for this account. After cancelling, the end date will appear below.",
-    "canceling": "Processingâ€¦",
+    "canceling": "Processing…",
     "cancelSubscription": "Cancel subscription",
     "toastSavedBody": "Operating currency and menu prices currency updated.",
     "toastSavedTitle": "Settings saved",
     "toastCurrencyErrorTitle": "Could not update currency",
     "confirmCancelSubscription": "Are you sure you want to cancel your subscription? You will lose access to manager features when the billing period ends (per Stripe).",
-    "loadingSubscriptionStatus": "Loading subscription statusâ€¦",
+    "loadingSubscriptionStatus": "Loading subscription status…",
     "subscriptionEndsOn": "Your subscription ends on {{date}}.",
     "subscriptionScheduledCancelNoDate": "Your subscription is scheduled to cancel at the end of the current billing period.",
     "subscriptionStatusLoadError": "Could not load subscription status. Refresh the page or contact support if this persists.",
@@ -1099,9 +1098,9 @@
       "hint": "Generate a 10-character code for the printer agent on first run. Each code can be used a limited number of times until it expires.",
       "downloadLatest": "Download URS Printer Agent installer (Windows x64)",
       "generate": "Generate new code",
-      "generating": "Generatingâ€¦",
-      "loading": "Loading codesâ€¦",
-      "lastCodeLabel": "New code (copy now â€” it will not be shown again):",
+      "generating": "Generating…",
+      "loading": "Loading codes…",
+      "lastCodeLabel": "New code (copy now — it will not be shown again):",
       "copyHint": "Store this code securely. Anyone with it can enroll an agent for your restaurant.",
       "tableCreated": "Created",
       "tableExpires": "Expires",
@@ -1111,10 +1110,10 @@
       "loadError": "Could not load enrollment codes",
       "generateError": "Could not generate code",
       "revokeError": "Could not revoke code",
-      "deleteConfirm": "Delete this enrollment code? It does not remove enrolled PCs â€” use â€œEnrolled agentsâ€ below.",
+      "deleteConfirm": "Delete this enrollment code? It does not remove enrolled PCs — use “Enrolled agents” below.",
       "installationsTitle": "Enrolled agents (PCs)",
       "installationsHint": "Each install or re-enroll creates a new agent. Remove old agents here to clean up the database and VPN.",
-      "installationsLoading": "Loading agentsâ€¦",
+      "installationsLoading": "Loading agents…",
       "installationsEmpty": "No enrolled agents.",
       "installationsAgentId": "Agent ID",
       "installationsEnrolled": "Enrolled",
@@ -1161,11 +1160,11 @@
     "billPrinter": {
       "title": "Non-fiscal / kitchen printer",
       "hint": "Choose the ESC/POS printer used for kitchen order tickets (non-fiscal). Printers are reported by the Printer Agent via heartbeat.",
-      "loading": "Loading printersâ€¦",
+      "loading": "Loading printers…",
       "noPrinters": "No printers reported. Start the Printer Agent and verify heartbeat.",
       "label": "Printer",
       "save": "Save",
-      "saving": "Savingâ€¦",
+      "saving": "Saving…",
       "toastSavedTitle": "Settings saved",
       "toastSavedBody": "Non-fiscal / kitchen printer updated.",
       "toastErrorTitle": "Could not save printer",
@@ -1175,20 +1174,20 @@
       "autoRefreshFastHint": "Checking every 10 seconds until the agent reports a printer or the id mismatch is resolved.",
       "mismatchWarning": "The saved printer ({{id}}) is not reported by the Printer Agent. Bills will not print until you select a printer from the list and click Save.",
       "refresh": "Refresh list",
-      "fiscalBillHint": "Fiscal printing is enabled â€” FiscalNet Print includes all lines; ESC/POS (:9100) on Confirm prints kitchen items only."
+      "fiscalBillHint": "Fiscal printing is enabled — FiscalNet Print includes all lines; ESC/POS (:9100) on Confirm prints kitchen items only."
     },
     "offlinePrimaryStaff": {
       "title": "Setup default offline device",
-      "hint": "Choose one staff member (by email) who may use full offline mode on a single registered device â€” open tables, confirm orders, and close orders without internet.",
+      "hint": "Choose one staff member (by email) who may use full offline mode on a single registered device — open tables, confirm orders, and close orders without internet.",
       "disclaimer": "Best for total internet outages on one dedicated tablet. If other devices stay online, table conflicts are possible; staff on other devices should only edit their current order while offline.",
-      "loading": "Loading staffâ€¦",
+      "loading": "Loading staff…",
       "staffLabel": "Staff member",
-      "noneOption": "â€” None â€”",
+      "noneOption": "— None —",
       "deviceStatus": "Device",
       "deviceBound": "Registered",
-      "deviceNotBound": "Not registered â€” staff must open Manage orders while online",
+      "deviceNotBound": "Not registered — staff must open Manage orders while online",
       "save": "Save",
-      "saving": "Savingâ€¦",
+      "saving": "Saving…",
       "loadError": "Could not load offline POS settings",
       "saveError": "Could not save offline POS settings",
       "toastSavedTitle": "Offline POS saved",
@@ -1204,12 +1203,12 @@
     "bug": "Bug",
     "improvement": "Improvement",
     "message": "Message",
-    "placeholder": "Describe what happened or what you would likeâ€¦",
+    "placeholder": "Describe what happened or what you would like…",
     "charsLeft": "{{count}} left",
     "cancel": "Cancel",
-    "sending": "Sendingâ€¦",
+    "sending": "Sending…",
     "send": "Send",
-    "toastThanksBody": "Thank you â€” ticket #{{ticketId}} was sent.",
+    "toastThanksBody": "Thank you — ticket #{{ticketId}} was sent.",
     "toastThanksTitle": "Feedback",
     "toastErrorTitle": "Could not send feedback"
   },
@@ -1217,7 +1216,7 @@
     "navLink": "FAQ",
     "backHome": "Back to home",
     "sectionTitle": "How it works",
-    "sectionSubtitle": "Real behaviour of the floor plan, offline mode, and guest flows â€” not marketing fluff.",
+    "sectionSubtitle": "Real behaviour of the floor plan, offline mode, and guest flows — not marketing fluff.",
     "viewFull": "Full FAQ",
     "pageTitle": "Frequently asked questions",
     "pageIntro": "Answers below reflect how U.R.S. is built: SSE live updates, Dexie offline queue, role guards, and the public guest menu.",
@@ -1227,7 +1226,7 @@
         "a": "Download the latest production Android APK from GitHub Releases. Install it on the tablet with unknown sources enabled; the build is unsigned. Each production push publishes a new latest APK.",
         "aIntro": "Staff tablets can run the Capacitor POS APK instead of (or alongside) the browser PWA. The link below always points to the latest production build from GitHub Releases.",
         "linkLabel": "Download latest URS-POS Android APK",
-        "linkUnset": "Download URL is not configured for this deployment â€” open https://github.com/adrian-badulescu/URS-android/releases and download URS-POS-prod.apk."
+        "linkUnset": "Download URL is not configured for this deployment — open https://github.com/adrian-badulescu/URS-android/releases and download URS-POS-prod.apk."
       },
       "pwaSupportedBrowsers": {
         "q": "Which browsers work best with U.R.S.?",
@@ -1235,29 +1234,29 @@
       },
       "settingsCurrencyBeforeUse": {
         "q": "What must I set up before using the app for real service?",
-        "a": "Before you operate live, open Settings and choose the currency your restaurant will use for menus and orders. You cannot change currency while any table still has an open orderâ€”finish or close those orders first."
+        "a": "Before you operate live, open Settings and choose the currency your restaurant will use for menus and orders. You cannot change currency while any table still has an open order—finish or close those orders first."
       },
       "printerAgentDownload": {
         "q": "Where do I download the Printer Agent for Windows?",
-        "aIntro": "Printer Agent runs on a Windows x64 PC at the restaurant, talks to the backend, and reports printers via heartbeat. After installing, generate an enrollment code in Manager â†’ Settings (Printer agent section) and finish setup on that machine.",
+        "aIntro": "Printer Agent runs on a Windows x64 PC at the restaurant, talks to the backend, and reports printers via heartbeat. After installing, generate an enrollment code in Manager → Settings (Printer agent section) and finish setup on that machine.",
         "linkLabel": "Download URSPrinterAgentSetup.exe (Windows x64)",
-        "linkUnset": "Download URL is not configured for this deployment â€” open https://github.com/adrian-badulescu/Printer-Agent/releases and download URSPrinterAgentSetup.exe."
+        "linkUnset": "Download URL is not configured for this deployment — open https://github.com/adrian-badulescu/Printer-Agent/releases and download URSPrinterAgentSetup.exe."
       },
       "printerAgentInstall": {
         "q": "How do I set up the bill printer?",
-        "aIntro": "These steps assume a Windows x64 PC at the restaurant on the same network as the printer (Wiâ€‘Fi or cable).",
+        "aIntro": "These steps assume a Windows x64 PC at the restaurant on the same network as the printer (Wi‑Fi or cable).",
         "step1": "Download the official package (link above) and run the installer.",
-        "step2": "Windows may warn that the app is not digitally signed â€” you can continue the installation.",
-        "step3": "WireGuard is installed automatically. If the WireGuard app opens, activate the â€œurs-printer-agentâ€ tunnel (it must show as connected / Active), then you may close the window. Without an active tunnel, the agent cannot reach Redis and bill print jobs stay stuck at â€œReceivedâ€.",
-        "step4": "In Manager go to Settings â†’ Printer Agent setup, click Generate one-time code, and copy the 10-character code.",
-        "step5": "Press the Windows key, search for â€œURS Printer Agent Configuratorâ€, and open the app.",
+        "step2": "Windows may warn that the app is not digitally signed — you can continue the installation.",
+        "step3": "WireGuard is installed automatically. If the WireGuard app opens, activate the “urs-printer-agent” tunnel (it must show as connected / Active), then you may close the window. Without an active tunnel, the agent cannot reach Redis and bill print jobs stay stuck at “Received”.",
+        "step4": "In Manager go to Settings → Printer Agent setup, click Generate one-time code, and copy the 10-character code.",
+        "step5": "Press the Windows key, search for “URS Printer Agent Configurator”, and open the app.",
         "step6": "Paste the enrollment code, confirm you understand the network will be scanned, select the printer IP found on the network, and click Next.",
         "step7": "Name the main printer (for example bill-printer), then Save and close the Configurator.",
         "step8": "Back in Settings under Non-fiscal / kitchen printer, wait up to about 30 seconds for the printer to appear in the list, select it, and click Save."
       },
       "printerAgentReconnectAfterNetwork": {
-        "q": "Bill printing or the Printer Agent stopped working after Wiâ€‘Fi or a hotspot dropped. Do I need to reboot the PC?",
-        "a": "Usually not. First restart the Windows service URS Printer Agent (services.msc) â€” that restarts the agent process and reconnects to the backend and Redis. If the agent uses a WireGuard VPN tunnel, restart the WireGuard tunnel service for your tunnel, wait until it is active, then restart URS Printer Agent again so the tunnel is ready before the agent connects. Reboot the whole PC only if those steps still fail; it resets the entire network stack and all services."
+        "q": "Bill printing or the Printer Agent stopped working after Wi‑Fi or a hotspot dropped. Do I need to reboot the PC?",
+        "a": "Usually not. First restart the Windows service URS Printer Agent (services.msc) — that restarts the agent process and reconnects to the backend and Redis. If the agent uses a WireGuard VPN tunnel, restart the WireGuard tunnel service for your tunnel, wait until it is active, then restart URS Printer Agent again so the tunnel is ready before the agent connects. Reboot the whole PC only if those steps still fail; it resets the entire network stack and all services."
       },
       "fiscalAndEscposPrintRouting": {
         "q": "How are print jobs routed when I have both a fiscal printer and ESC/POS?",
@@ -1304,11 +1303,11 @@
       },
       "byodStaffDevices": {
         "q": "Can restaurant staff use their own phones or tablets?",
-        "a": "Yes. Teams may follow a BYOD (Bring Your Own Device) approach and use personal hardware for staff or manager workflows, alongside your organisationâ€™s own security and acceptable-use policies."
+        "a": "Yes. Teams may follow a BYOD (Bring Your Own Device) approach and use personal hardware for staff or manager workflows, alongside your organisation’s own security and acceptable-use policies."
       },
       "qrSignedSecurity": {
         "q": "How secure are the table QR codes?",
-        "a": "QR payloads are digitally signed so they cannot be impersonated or forged trivially. That still does not eliminate abuseâ€”for example ghost orders or someone photographing a code and ordering remotely (the platform also rate-limits roughly 100 calls per IP). If a QR may have been leaked or abused, regenerate the codes and replace the physical prints on tables."
+        "a": "QR payloads are digitally signed so they cannot be impersonated or forged trivially. That still does not eliminate abuse—for example ghost orders or someone photographing a code and ordering remotely (the platform also rate-limits roughly 100 calls per IP). If a QR may have been leaked or abused, regenerate the codes and replace the physical prints on tables."
       },
       "bookingsSlotDuration": {
         "q": "How long is a reservation, and can bookings overlap?",
@@ -1316,7 +1315,7 @@
       },
       "guestOrderItemList": {
         "q": "Can guests see what has been ordered?",
-        "a": "Yes. On the public menu guests can open â€œMy orderâ€ to see the list of line items for their tableâ€”names, quantities, and pricesâ€”as shown on the guest order screen."
+        "a": "Yes. On the public menu guests can open “My order” to see the list of line items for their table—names, quantities, and prices—as shown on the guest order screen."
       },
       "confirmedOrderAddItems": {
         "q": "After an order is confirmed, can staff still add items?",
@@ -1324,7 +1323,7 @@
       },
       "waiterCallVisual": {
         "q": "Why does a table turn yellow on the staff orders screen?",
-        "a": "When a guest taps â€œCall waiterâ€ on the public menu, the API pushes a real-time event to your restaurant. While that call is active, the table row uses a warning (yellow) style so floor staff can spot it quickly. Snooze or resolve flows update the highlight."
+        "a": "When a guest taps “Call waiter” on the public menu, the API pushes a real-time event to your restaurant. While that call is active, the table row uses a warning (yellow) style so floor staff can spot it quickly. Snooze or resolve flows update the highlight."
       },
       "tableColors": {
         "q": "What do the other table colours mean?",
@@ -1332,18 +1331,18 @@
       },
       "kitchenBarSse": {
         "q": "How does the waiter know when to pick up food from the kitchen or the bar?",
-        "a": "Kitchen and Bar screens share the same live event stream as the orders view. When dishes or drinks are readyâ€”or staff snooze a reminderâ€”waiters see those signals so they know when to collect from the pass or bar station without refreshing the page. On supported devices, the tablet or phone that last updated that table's order also vibrates briefly so the right waiter is alerted."
+        "a": "Kitchen and Bar screens share the same live event stream as the orders view. When dishes or drinks are ready—or staff snooze a reminder—waiters see those signals so they know when to collect from the pass or bar station without refreshing the page. On supported devices, the tablet or phone that last updated that table's order also vibrates briefly so the right waiter is alerted."
       },
       "kitchenBarToastDismiss": {
         "q": "Why must new-order and item-deleted toasts be closed manually on Kitchen and Bar?",
-        "a": "Those toasts stay until someone dismisses them on purpose: we want to be sure staff noticed a brand-new order or that a dish should no longer be prepared. Toasts for quantity up or quantity down clear by themselves after a short timeâ€”they are informational and do not need acknowledgment."
+        "a": "Those toasts stay until someone dismisses them on purpose: we want to be sure staff noticed a brand-new order or that a dish should no longer be prepared. Toasts for quantity up or quantity down clear by themselves after a short time—they are informational and do not need acknowledgment."
       },
       "kitchenBarPickupVibration": {
         "q": "When the kitchen or bar calls a waiter to pick up food or drinks, which devices vibrate?",
-        "a": "Only the phone or tablet that last acted on that table's order (for example adding items or changing quantities). Other staff devices can still see the on-screen alert, but they do not vibrate. When a guest calls the waiter from the QR menu, all staff devices are alertedâ€”including vibration."
+        "a": "Only the phone or tablet that last acted on that table's order (for example adding items or changing quantities). Other staff devices can still see the on-screen alert, but they do not vibrate. When a guest calls the waiter from the QR menu, all staff devices are alerted—including vibration."
       },
       "offlineOrders": {
-        "q": "What happens if Wiâ€‘Fi drops while I am taking an order?",
+        "q": "What happens if Wi‑Fi drops while I am taking an order?",
         "a": "Staff actions can be stored locally in the browser (IndexedDB via Dexie). A background queue replays them when the connection returns, then reconciles with the server snapshot so you do not lose carts or line items mid-service."
       },
       "realtimeSync": {
@@ -1387,69 +1386,7 @@
   "pullToRefresh": {
     "pull": "Pull down to refresh",
     "release": "Release to refresh",
-    "syncing": "Refreshingâ€¦",
+    "syncing": "Refreshing…",
     "offline": "Cannot refresh while offline."
-  },
-  "recipes": {
-    "title": "Recipes & stock",
-    "subtitle": "Define ingredients, recipes per menu item, adjust stock and review consumption.",
-    "tabs": {
-      "ingredients": "Ingredients",
-      "recipes": "Recipes",
-      "consumption": "Consumption"
-    },
-    "ingredientsTitle": "Ingredients",
-    "recipeTitle": "Recipe by menu item",
-    "consumptionTitle": "Ingredient consumption",
-    "addIngredient": "Add ingredient",
-    "editIngredient": "Edit ingredient",
-    "adjustStock": "Adjust stock",
-    "edit": "Edit",
-    "deactivate": "Deactivate",
-    "active": "Active",
-    "inactive": "Inactive",
-    "emptyIngredients": "No ingredients yet.",
-    "emptyConsumption": "No consumption in this range.",
-    "selectMenuItem": "Menu item",
-    "selectPlaceholder": "Select a menu item…",
-    "selectIngredient": "Select ingredient…",
-    "qtyPerPortion": "Qty per portion",
-    "addLine": "Add line",
-    "saveRecipe": "Save recipe",
-    "clearRecipe": "Clear recipe",
-    "portionCost": "Portion cost",
-    "foodCostPercent": "Food cost %",
-    "portionsRemaining": "Portions remaining",
-    "startDate": "Start",
-    "endDate": "End",
-    "loadReport": "Load",
-    "initialStock": "Initial stock",
-    "stockDelta": "Stock change (+/-)",
-    "note": "Note",
-    "recentMovements": "Recent movements",
-    "save": "Save",
-    "cancel": "Cancel",
-    "saved": "Saved",
-    "loadError": "Could not load data.",
-    "saveError": "Could not save.",
-    "uom": {
-      "g": "g",
-      "kg": "kg",
-      "ml": "ml",
-      "l": "l",
-      "pcs": "pcs"
-    },
-    "cols": {
-      "name": "Name",
-      "uom": "Unit",
-      "unitCost": "Unit cost",
-      "stock": "Stock",
-      "status": "Status",
-      "consumed": "Consumed",
-      "estCost": "Est. cost",
-      "when": "When",
-      "delta": "Delta",
-      "after": "After"
-    }
   }
 }
