@@ -1244,15 +1244,20 @@
       "delta": "Delta",
       "after": "After",
       "qtyPerPortion": "Qty / portion",
-      "lineCost": "Line cost"
+      "lineCost": "Line cost",
+      "stockTotal": "Total stock"
     },
-    "ingredientsCatalogHint": "Catalog warehouse: shared across all dishes. Quantity per dish (e.g. 150 g) is set on the Recipes tab.",
+    "ingredientsCatalogHint": "Warehouse catalog shared across dishes. Per-dish qty (e.g. 150 g) is set via Ingredients on the menu tab.",
     "pickMenuItemTitle": "Choose a menu item",
-    "pickMenuItemHint": "Same categories as Manage menu. Click a dish to edit its recipe.",
+    "pickMenuItemHint": "Same categories as Menu. Use Ingredients on each dish to set the recipe (qty per portion = cost of 1 order item).",
     "recipeFor": "Recipe for {{name}}",
     "qtyPerPortionHint": "Enter how much of each ingredient goes into one portion of this dish (e.g. 150 g flour).",
     "changeMenuItem": "Change dish",
     "delete": "Delete",
-    "confirmDeleteIngredient": "Deactivate ingredient \"{{name}}\"? It will no longer appear in new recipes."
+    "confirmDeleteIngredient": "Deactivate ingredient \"{{name}}\"? It will no longer appear in new recipes.",
+    "openIngredients": "Ingredients",
+    "orderItemCostHint": "Portion cost below is the ingredient cost of selling 1 order line of this dish (same as 1 menu item portion).",
+    "oneOrderItemCost": "1 order item",
+    "unitCostHint": "Unit cost is per 1 UoM (e.g. per gram). Recipe quantities × unit cost = cost of 1 sold portion / order item."
   }
 }

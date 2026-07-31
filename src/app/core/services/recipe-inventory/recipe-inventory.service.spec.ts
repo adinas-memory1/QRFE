@@ -36,4 +36,22 @@ describe('RecipeInventoryService', () => {
       { withCredentials: true },
     );
   });
+
+  it('updates ingredient including total stock', () => {
+    http.put.and.returnValue(of({ ingredientId: 'i1' }));
+    service
+      .updateIngredient('r1', 'i1', {
+        name: 'faina',
+        unitOfMeasure: 0,
+        unitCostAmount: 1,
+        currentStockQty: 10000,
+        isActive: true,
+      })
+      .subscribe();
+    expect(http.put).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/ingredients/i1`,
+      jasmine.objectContaining({ currentStockQty: 10000, unitCostAmount: 1 }),
+      { withCredentials: true },
+    );
+  });
 });

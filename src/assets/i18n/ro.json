@@ -1464,15 +1464,20 @@
       "delta": "Delta",
       "after": "După",
       "qtyPerPortion": "Cant. / porție",
-      "lineCost": "Cost linie"
+      "lineCost": "Cost linie",
+      "stockTotal": "Stoc total"
     },
-    "ingredientsCatalogHint": "Catalog de magazie: partajat pe toate produsele. Cantitatea pe produs (ex. 150 g) se setează la tab-ul Rețete.",
+    "ingredientsCatalogHint": "Catalog de magazie partajat pe toate produsele. Cantitatea pe produs (ex. 150 g) se setează din butonul Ingrediente pe tab-ul Rețete.",
     "pickMenuItemTitle": "Alege un produs din meniu",
-    "pickMenuItemHint": "Aceleași categorii ca la Meniu. Click pe un produs ca să-i editezi rețeta.",
+    "pickMenuItemHint": "Aceleași categorii ca la Meniu. Folosește Ingrediente pe fiecare produs ca să setezi rețeta (cant. pe porție = costul unui order item).",
     "recipeFor": "Rețetă pentru {{name}}",
     "qtyPerPortionHint": "Cât ingredient intră într-o porție din acest produs (ex. 150 g făină).",
     "changeMenuItem": "Schimbă produsul",
     "delete": "Șterge",
-    "confirmDeleteIngredient": "Dezactivezi ingredientul \"{{name}}\"? Nu va mai apărea în rețete noi."
+    "confirmDeleteIngredient": "Dezactivezi ingredientul \"{{name}}\"? Nu va mai apărea în rețete noi.",
+    "openIngredients": "Ingrediente",
+    "orderItemCostHint": "Costul pe porție de mai jos este costul de ingrediente pentru 1 linie de comandă din acest produs (aceeași porție ca 1 menu item).",
+    "oneOrderItemCost": "1 order item",
+    "unitCostHint": "Costul unitar e pe 1 UM (ex. pe gram). Cantități rețetă × cost unitar = costul unei porții vândute / order item."
   }
 }

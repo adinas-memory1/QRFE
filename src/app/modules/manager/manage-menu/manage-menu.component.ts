@@ -33,7 +33,6 @@ import { UserContextModel } from '../../../core/models/userContextModel';
 import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { RecipeInventoryService } from '../../../core/services/recipe-inventory/recipe-inventory.service';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-manage-menu',
@@ -54,8 +53,7 @@ import { RouterLink } from '@angular/router';
     ModalBodyComponent,
     ModalFooterComponent
     ,
-    TranslocoPipe,
-    RouterLink
+    TranslocoPipe
   ],
   standalone: true,
   templateUrl: './manage-menu.component.html',

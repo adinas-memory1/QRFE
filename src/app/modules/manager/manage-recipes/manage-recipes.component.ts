@@ -39,7 +39,7 @@ import {
   UNIT_OF_MEASURE_OPTIONS,
 } from '../../../core/models/recipe/recipe.models';
 
-type TabId = 'ingredients' | 'recipes' | 'consumption';
+type TabId = 'menu' | 'catalog' | 'consumption';
 
 @Component({
   selector: 'app-manage-recipes',
@@ -75,7 +75,7 @@ type TabId = 'ingredients' | 'recipes' | 'consumption';
 })
 export class ManageRecipesComponent implements OnInit, OnDestroy {
   readonly uomOptions = UNIT_OF_MEASURE_OPTIONS;
-  activeTab: TabId = 'ingredients';
+  activeTab: TabId = 'menu';
   restaurantId: string | null = null;
   ingredients: IngredientDto[] = [];
   menuItems: MenuItem[] = [];
@@ -85,7 +85,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   recipe: RecipeDto | null = null;
   consumption: IngredientConsumptionRow[] = [];
   stockHistory: StockMovementDto[] = [];
-  loading = false;
 
   ingredientForm: FormGroup;
   stockForm: FormGroup;
@@ -94,6 +93,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   showIngredientModal = false;
   showStockModal = false;
+  showRecipeModal = false;
   editingIngredient: IngredientDto | null = null;
   stockTarget: IngredientDto | null = null;
 
@@ -112,7 +112,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       unitOfMeasure: [4, Validators.required],
       unitCostAmount: [0, [Validators.required, Validators.min(0)]],
       initialStockQty: [0, [Validators.min(0)]],
-      isActive: [true],
+      currentStockQty: [0, [Validators.min(0)]],
     });
     this.stockForm = this.fb.group({
       quantityDelta: [0, Validators.required],
@@ -134,13 +134,9 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     return this.recipeForm.get('lines') as FormArray;
   }
 
-  get selectedMenuItem(): MenuItem | null {
-    return this.menuItems.find((m) => m.menuItemId === this.selectedMenuItemId) ?? null;
-  }
-
   get selectedMenuItemName(): string {
     return this.recipe?.menuItemName
-      ?? this.selectedMenuItem?.menuItemName
+      ?? this.menuItems.find((m) => m.menuItemId === this.selectedMenuItemId)?.menuItemName
       ?? '';
   }
 
@@ -161,26 +157,19 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   setTab(tab: TabId): void {
     this.activeTab = tab;
-    if (tab === 'recipes' && this.selectedMenuItemId) {
-      this.loadRecipe();
-    }
   }
 
   reloadIngredients(): void {
     if (!this.restaurantId) return;
-    this.loading = true;
+    // Active only — deleted (deactivated) ingredients leave the list.
     this.recipesApi
-      .listIngredients(this.restaurantId, true)
+      .listIngredients(this.restaurantId, false)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (rows) => {
           this.ingredients = rows;
-          this.loading = false;
         },
-        error: () => {
-          this.loading = false;
-          this.toast.error(this.transloco.translate('recipes.loadError'));
-        },
+        error: () => this.toast.error(this.transloco.translate('recipes.loadError')),
       });
   }
 
@@ -201,9 +190,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
             .filter((i) => i.category.toLowerCase() !== 'setmenu');
           this.rebuildGroupedMenuItems();
         },
-        error: () => {
-          this.toast.error(this.transloco.translate('recipes.loadError'));
-        },
+        error: () => this.toast.error(this.transloco.translate('recipes.loadError')),
       });
   }
 
@@ -224,6 +211,26 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     );
   }
 
+  openRecipeForMenuItem(item: MenuItem): void {
+    this.selectedMenuItemId = item.menuItemId;
+    this.showRecipeModal = true;
+    this.loadRecipe();
+  }
+
+  onRecipeModalVisible(visible: boolean): void {
+    this.showRecipeModal = visible;
+    if (!visible) {
+      this.selectedMenuItemId = '';
+      this.recipe = null;
+      this.recipeLines.clear();
+    }
+  }
+
+  closeRecipeModal(): void {
+    this.showRecipeModal = false;
+    this.onRecipeModalVisible(false);
+  }
+
   openCreateIngredient(): void {
     this.editingIngredient = null;
     this.ingredientForm.reset({
@@ -231,7 +238,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       unitOfMeasure: 4,
       unitCostAmount: 0,
       initialStockQty: 0,
-      isActive: true,
+      currentStockQty: 0,
     });
     this.showIngredientModal = true;
   }
@@ -243,7 +250,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       unitOfMeasure: normalizeUom(item.unitOfMeasure),
       unitCostAmount: item.unitCostAmount,
       initialStockQty: item.currentStockQty,
-      isActive: item.isActive,
+      currentStockQty: item.currentStockQty,
     });
     this.showIngredientModal = true;
   }
@@ -257,7 +264,8 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
           name: raw.name,
           unitOfMeasure: Number(raw.unitOfMeasure),
           unitCostAmount: Number(raw.unitCostAmount),
-          isActive: !!raw.isActive,
+          currentStockQty: Number(raw.currentStockQty ?? 0),
+          isActive: true,
         })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -340,18 +348,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
         },
         error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
       });
-  }
-
-  onMenuItemSelected(menuItemId: string): void {
-    this.selectedMenuItemId = menuItemId;
-    this.activeTab = 'recipes';
-    this.loadRecipe();
-  }
-
-  clearMenuItemSelection(): void {
-    this.selectedMenuItemId = '';
-    this.recipe = null;
-    this.recipeLines.clear();
   }
 
   loadRecipe(): void {

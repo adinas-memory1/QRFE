@@ -49,6 +49,7 @@ export class RecipeInventoryService {
       name: string;
       unitOfMeasure: UnitOfMeasure | number;
       unitCostAmount: number;
+      currentStockQty: number;
       isActive: boolean;
     },
   ): Observable<IngredientDto> {
