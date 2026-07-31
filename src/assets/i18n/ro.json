@@ -1528,6 +1528,7 @@
     "alertsLoading": "Se încarcă…",
     "daysUntilExpiry": "Zile până la expirare",
     "colStockPercent": "% din baseline",
-    "stockUom": "UM Stoc"
+    "stockUom": "UM Stoc",
+    "vatExclusive": "TVA exclus"
   }
 }

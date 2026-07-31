@@ -16,6 +16,11 @@
   background: var(--cui-body-bg, #fff);
 }
 
+.recipe-line-remove {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
 .recipes-modal-footer {
   display: block;
 }

@@ -161,6 +161,40 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     return suggestedPriceFromMargin(this.portionCostExVat, this.desiredMarginPercent);
   }
 
+  get selectedMenuItemPrice(): number | null {
+    const price = this.recipe?.menuItemPriceAmount ?? this.selectedMenuItem?.menuItemPriceAmount;
+    return price != null && price > 0 ? Number(price) : null;
+  }
+
+  /** Food cost % from live form costs vs menu item sell price. */
+  get liveFoodCostPercent(): number | null {
+    const price = this.selectedMenuItemPrice;
+    if (price == null || price <= 0) return null;
+    return Math.round((this.portionCostExVat / price) * 10000) / 100;
+  }
+
+  /** Min portions remaining from live stock / effective qty per line. */
+  get livePortionsRemaining(): number | null {
+    if (this.recipeLines.length === 0) return null;
+    let min: number | null = null;
+    for (const ctrl of this.recipeLines.controls) {
+      const raw = (ctrl as FormGroup).getRawValue() as LineFormValue;
+      const recipeUom = Number(raw.unitOfMeasure);
+      const stockUom = Number(raw.stockUnitOfMeasure ?? raw.unitOfMeasure);
+      if (!canConvertUom(recipeUom, stockUom)) continue;
+      const effectiveQty = effectiveQtyInStockUom(
+        Number(raw.quantity) || 0,
+        recipeUom,
+        stockUom,
+        raw.yieldPercent,
+      );
+      if (effectiveQty <= 0) continue;
+      const portions = Math.floor((Number(raw.currentStockQty) || 0) / effectiveQty);
+      min = min == null ? portions : Math.min(min, portions);
+    }
+    return min;
+  }
+
   ngOnInit(): void {
     const id = this.auth.getUserRestaurantId();
     this.restaurantId = Array.isArray(id) ? id[0] ?? null : id;
@@ -364,15 +398,24 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   removeSelectedRecipeLine(): void {
     const idx = this.selectedLineIndex ?? this.recipeLines.length - 1;
-    if (idx < 0 || idx >= this.recipeLines.length) {
+    this.removeRecipeLine(idx);
+  }
+
+  removeRecipeLine(index: number): void {
+    if (index < 0 || index >= this.recipeLines.length) {
       return;
     }
-    this.recipeLines.removeAt(idx);
+    this.recipeLines.removeAt(index);
     if (this.recipeLines.length === 0) {
       this.selectedLineIndex = null;
       return;
     }
-    this.selectedLineIndex = Math.min(idx, this.recipeLines.length - 1);
+    this.selectedLineIndex = Math.min(index, this.recipeLines.length - 1);
+  }
+
+  setVatInclusive(index: number, inclusive: boolean): void {
+    const g = this.recipeLines.at(index) as FormGroup | null;
+    g?.get('vatInclusive')?.setValue(inclusive);
   }
 
   lineCostExVat(index: number): number {

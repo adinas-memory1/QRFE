@@ -1515,6 +1515,7 @@
     "alertsLoading": "Loading…",
     "daysUntilExpiry": "Days until expiry",
     "colStockPercent": "% of baseline",
-    "stockUom": "Stock UOM"
+    "stockUom": "Stock UOM",
+    "vatExclusive": "VAT excluded"
   }
 }
