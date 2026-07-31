@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DecimalPipe, DatePipe, NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import {
   AccordionButtonDirective,
   AccordionComponent,
@@ -33,13 +33,12 @@ import {
 } from '../../../core/models/menu/menu-item-categories';
 import {
   IngredientConsumptionRow,
-  IngredientDto,
   RecipeDto,
-  StockMovementDto,
   UNIT_OF_MEASURE_OPTIONS,
+  normalizeIngredientName,
 } from '../../../core/models/recipe/recipe.models';
 
-type TabId = 'menu' | 'catalog' | 'consumption';
+type TabId = 'menu' | 'consumption';
 
 @Component({
   selector: 'app-manage-recipes',
@@ -50,7 +49,6 @@ type TabId = 'menu' | 'catalog' | 'consumption';
     FormsModule,
     ReactiveFormsModule,
     TranslocoPipe,
-    DatePipe,
     DecimalPipe,
     ButtonDirective,
     CardComponent,
@@ -77,25 +75,18 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   readonly uomOptions = UNIT_OF_MEASURE_OPTIONS;
   activeTab: TabId = 'menu';
   restaurantId: string | null = null;
-  ingredients: IngredientDto[] = [];
+  restaurantCurrency = 'RON';
   menuItems: MenuItem[] = [];
   categories: string[] = [];
   groupedMenuItems: { [category: string]: MenuItem[] } = {};
   selectedMenuItemId = '';
   recipe: RecipeDto | null = null;
   consumption: IngredientConsumptionRow[] = [];
-  stockHistory: StockMovementDto[] = [];
 
-  ingredientForm: FormGroup;
-  stockForm: FormGroup;
   recipeForm: FormGroup;
   consumptionForm: FormGroup;
 
-  showIngredientModal = false;
-  showStockModal = false;
   showRecipeModal = false;
-  editingIngredient: IngredientDto | null = null;
-  stockTarget: IngredientDto | null = null;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -107,17 +98,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     private readonly toast: AppToastService,
     private readonly transloco: TranslocoService,
   ) {
-    this.ingredientForm = this.fb.group({
-      name: ['', Validators.required],
-      unitOfMeasure: [4, Validators.required],
-      unitCostAmount: [0, [Validators.required, Validators.min(0)]],
-      initialStockQty: [0, [Validators.min(0)]],
-      currentStockQty: [0, [Validators.min(0)]],
-    });
-    this.stockForm = this.fb.group({
-      quantityDelta: [0, Validators.required],
-      note: [''],
-    });
     this.recipeForm = this.fb.group({
       lines: this.fb.array([]),
     });
@@ -134,10 +114,19 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     return this.recipeForm.get('lines') as FormArray;
   }
 
+  get selectedMenuItem(): MenuItem | undefined {
+    return this.menuItems.find((m) => m.menuItemId === this.selectedMenuItemId);
+  }
+
   get selectedMenuItemName(): string {
-    return this.recipe?.menuItemName
-      ?? this.menuItems.find((m) => m.menuItemId === this.selectedMenuItemId)?.menuItemName
-      ?? '';
+    return this.recipe?.menuItemName ?? this.selectedMenuItem?.menuItemName ?? '';
+  }
+
+  /** VAT % taken from the menu item (not edited on the recipe line). */
+  get selectedMenuItemVatPercent(): number {
+    return this.recipe?.menuItemVatPercent
+      ?? this.selectedMenuItem?.menuItemVatPercent
+      ?? 19;
   }
 
   ngOnInit(): void {
@@ -146,7 +135,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     if (!this.restaurantId) {
       return;
     }
-    this.reloadIngredients();
     this.reloadMenuItems();
   }
 
@@ -157,20 +145,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   setTab(tab: TabId): void {
     this.activeTab = tab;
-  }
-
-  reloadIngredients(): void {
-    if (!this.restaurantId) return;
-    // Active only — deleted (deactivated) ingredients leave the list.
-    this.recipesApi
-      .listIngredients(this.restaurantId, false)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (rows) => {
-          this.ingredients = rows;
-        },
-        error: () => this.toast.error(this.transloco.translate('recipes.loadError')),
-      });
   }
 
   reloadMenuItems(): void {
@@ -188,6 +162,9 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
               category: canonicalMenuItemCategory(item.category),
             }))
             .filter((i) => i.category.toLowerCase() !== 'setmenu');
+          if (this.menuItems[0]?.menuItemPriceCurrency) {
+            this.restaurantCurrency = String(this.menuItems[0].menuItemPriceCurrency);
+          }
           this.rebuildGroupedMenuItems();
         },
         error: () => this.toast.error(this.transloco.translate('recipes.loadError')),
@@ -231,125 +208,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     this.onRecipeModalVisible(false);
   }
 
-  openCreateIngredient(): void {
-    this.editingIngredient = null;
-    this.ingredientForm.reset({
-      name: '',
-      unitOfMeasure: 4,
-      unitCostAmount: 0,
-      initialStockQty: 0,
-      currentStockQty: 0,
-    });
-    this.showIngredientModal = true;
-  }
-
-  openEditIngredient(item: IngredientDto): void {
-    this.editingIngredient = item;
-    this.ingredientForm.reset({
-      name: item.name,
-      unitOfMeasure: normalizeUom(item.unitOfMeasure),
-      unitCostAmount: item.unitCostAmount,
-      initialStockQty: item.currentStockQty,
-      currentStockQty: item.currentStockQty,
-    });
-    this.showIngredientModal = true;
-  }
-
-  saveIngredient(): void {
-    if (!this.restaurantId || this.ingredientForm.invalid) return;
-    const raw = this.ingredientForm.getRawValue();
-    if (this.editingIngredient) {
-      this.recipesApi
-        .updateIngredient(this.restaurantId, this.editingIngredient.ingredientId, {
-          name: raw.name,
-          unitOfMeasure: Number(raw.unitOfMeasure),
-          unitCostAmount: Number(raw.unitCostAmount),
-          currentStockQty: Number(raw.currentStockQty ?? 0),
-          isActive: true,
-        })
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.showIngredientModal = false;
-            this.reloadIngredients();
-            this.toast.success(this.transloco.translate('recipes.saved'));
-          },
-          error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
-        });
-      return;
-    }
-
-    this.recipesApi
-      .createIngredient(this.restaurantId, {
-        name: raw.name,
-        unitOfMeasure: Number(raw.unitOfMeasure),
-        unitCostAmount: Number(raw.unitCostAmount),
-        initialStockQty: Number(raw.initialStockQty ?? 0),
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.showIngredientModal = false;
-          this.reloadIngredients();
-          this.toast.success(this.transloco.translate('recipes.saved'));
-        },
-        error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
-      });
-  }
-
-  deleteIngredient(item: IngredientDto): void {
-    if (!this.restaurantId) return;
-    const ok = confirm(
-      this.transloco.translate('recipes.confirmDeleteIngredient', { name: item.name }),
-    );
-    if (!ok) return;
-    this.recipesApi
-      .deactivateIngredient(this.restaurantId, item.ingredientId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.reloadIngredients();
-          this.toast.success(this.transloco.translate('recipes.saved'));
-        },
-        error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
-      });
-  }
-
-  openStockAdjust(item: IngredientDto): void {
-    this.stockTarget = item;
-    this.stockForm.reset({ quantityDelta: 0, note: '' });
-    this.stockHistory = [];
-    this.showStockModal = true;
-    if (!this.restaurantId) return;
-    this.recipesApi
-      .listStockMovements(this.restaurantId, item.ingredientId, 20)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (rows) => (this.stockHistory = rows),
-      });
-  }
-
-  saveStockAdjust(): void {
-    if (!this.restaurantId || !this.stockTarget || this.stockForm.invalid) return;
-    const raw = this.stockForm.getRawValue();
-    const delta = Number(raw.quantityDelta);
-    if (!delta) return;
-    this.recipesApi
-      .adjustStock(this.restaurantId, this.stockTarget.ingredientId, {
-        quantityDelta: delta,
-        note: raw.note || undefined,
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.showStockModal = false;
-          this.reloadIngredients();
-          this.toast.success(this.transloco.translate('recipes.saved'));
-        },
-        error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
-      });
-  }
-
   loadRecipe(): void {
     if (!this.restaurantId || !this.selectedMenuItemId) {
       this.recipe = null;
@@ -361,14 +219,19 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (recipe) => {
           this.recipe = recipe;
+          if (recipe.menuItemPriceCurrency != null) {
+            this.restaurantCurrency = this.currencyCode(recipe.menuItemPriceCurrency);
+          }
           this.recipeLines.clear();
           for (const line of recipe.lines ?? []) {
-            this.recipeLines.push(
-              this.fb.group({
-                ingredientId: [line.ingredientId, Validators.required],
-                quantity: [line.quantity, [Validators.required, Validators.min(0.0001)]],
-              }),
-            );
+            this.recipeLines.push(this.createLineGroup({
+              ingredientId: line.ingredientId,
+              name: line.ingredientName,
+              unitOfMeasure: normalizeUom(line.unitOfMeasure),
+              quantity: line.quantity,
+              unitCostAmount: line.unitCostAmount,
+              currentStockQty: line.currentStockQty,
+            }));
           }
           if (this.recipeLines.length === 0) {
             this.addRecipeLine();
@@ -378,36 +241,77 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       });
   }
 
+  private createLineGroup(values?: {
+    ingredientId?: string | null;
+    name?: string;
+    unitOfMeasure?: number;
+    quantity?: number;
+    unitCostAmount?: number;
+    currentStockQty?: number;
+  }): FormGroup {
+    return this.fb.group({
+      ingredientId: [values?.ingredientId ?? null],
+      name: [values?.name ?? '', Validators.required],
+      unitOfMeasure: [values?.unitOfMeasure ?? 4, Validators.required],
+      quantity: [values?.quantity ?? 1, [Validators.required, Validators.min(0.0001)]],
+      unitCostAmount: [values?.unitCostAmount ?? 0, [Validators.required, Validators.min(0)]],
+      currentStockQty: [values?.currentStockQty ?? 0, [Validators.required, Validators.min(0)]],
+    });
+  }
+
   addRecipeLine(): void {
-    this.recipeLines.push(
-      this.fb.group({
-        ingredientId: ['', Validators.required],
-        quantity: [1, [Validators.required, Validators.min(0.0001)]],
-      }),
-    );
+    this.recipeLines.push(this.createLineGroup());
   }
 
   removeRecipeLine(index: number): void {
     this.recipeLines.removeAt(index);
   }
 
-  ingredientUomForLine(ingredientId: string): string {
-    const ing = this.ingredients.find((i) => i.ingredientId === ingredientId);
-    return ing ? this.uomLabel(ing.unitOfMeasure) : '';
-  }
-
   saveRecipe(): void {
     if (!this.restaurantId || !this.selectedMenuItemId || this.recipeForm.invalid) return;
-    const lines = this.recipeLines.getRawValue().map((l: { ingredientId: string; quantity: number }) => ({
-      ingredientId: l.ingredientId,
-      quantity: Number(l.quantity),
-    }));
+    const lines = this.recipeLines.getRawValue().map(
+      (l: {
+        ingredientId: string | null;
+        name: string;
+        unitOfMeasure: number;
+        quantity: number;
+        unitCostAmount: number;
+        currentStockQty: number;
+      }) => ({
+        ingredientId: l.ingredientId || undefined,
+        name: normalizeIngredientName(l.name),
+        unitOfMeasure: Number(l.unitOfMeasure),
+        quantity: Number(l.quantity),
+        unitCostAmount: Number(l.unitCostAmount),
+        currentStockQty: Number(l.currentStockQty),
+      }),
+    );
+
+    if (lines.some((l) => !l.name)) {
+      this.toast.error(this.transloco.translate('recipes.saveError'));
+      return;
+    }
+
     this.recipesApi
       .upsertRecipe(this.restaurantId, this.selectedMenuItemId, lines)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (recipe) => {
           this.recipe = recipe;
+          this.recipeLines.clear();
+          for (const line of recipe.lines ?? []) {
+            this.recipeLines.push(this.createLineGroup({
+              ingredientId: line.ingredientId,
+              name: line.ingredientName,
+              unitOfMeasure: normalizeUom(line.unitOfMeasure),
+              quantity: line.quantity,
+              unitCostAmount: line.unitCostAmount,
+              currentStockQty: line.currentStockQty,
+            }));
+          }
+          if (this.recipeLines.length === 0) {
+            this.addRecipeLine();
+          }
           this.toast.success(this.transloco.translate('recipes.saved'));
         },
         error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
@@ -449,10 +353,10 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   }
 
   currencyCode(value: string | number | null | undefined): string {
-    if (value == null) return 'RON';
+    if (value == null) return this.restaurantCurrency || 'RON';
     if (typeof value === 'string') return value;
     const map = ['USD', 'EUR', 'RON', 'GBP', 'SEK', 'NOK', 'DKK', 'JPY', 'CHF', 'AUD', 'CAD', 'CNY', 'INR', 'BRL'];
-    return map[value] ?? 'RON';
+    return map[value] ?? (this.restaurantCurrency || 'RON');
   }
 }
 

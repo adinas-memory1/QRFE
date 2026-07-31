@@ -26,6 +26,7 @@ export interface RecipeDto {
   menuItemName?: string | null;
   menuItemPriceAmount?: number | null;
   menuItemPriceCurrency?: string | number | null;
+  menuItemVatPercent?: number | null;
   recipeId?: string | null;
   lines: RecipeLineDto[];
   portionCostAmount: number;
@@ -34,8 +35,12 @@ export interface RecipeDto {
 }
 
 export interface RecipeLineInput {
-  ingredientId: string;
+  ingredientId?: string | null;
+  name: string;
+  unitOfMeasure: UnitOfMeasure | number;
   quantity: number;
+  unitCostAmount: number;
+  currentStockQty: number;
 }
 
 export interface StockMovementDto {
@@ -70,3 +75,8 @@ export const UNIT_OF_MEASURE_OPTIONS: { value: number; labelKey: string }[] = [
   { value: 3, labelKey: 'recipes.uom.l' },
   { value: 4, labelKey: 'recipes.uom.pcs' },
 ];
+
+/** Collapse whitespace / trim for display & API. */
+export function normalizeIngredientName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ');
+}

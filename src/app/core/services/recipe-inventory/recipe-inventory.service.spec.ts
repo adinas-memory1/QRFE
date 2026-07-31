@@ -29,10 +29,30 @@ describe('RecipeInventoryService', () => {
 
   it('upserts recipe lines', () => {
     http.put.and.returnValue(of({ menuItemId: 'm1', lines: [], portionCostAmount: 0 }));
-    service.upsertRecipe('r1', 'm1', [{ ingredientId: 'i1', quantity: 2 }]).subscribe();
+    service
+      .upsertRecipe('r1', 'm1', [
+        {
+          name: 'Faina',
+          unitOfMeasure: 0,
+          quantity: 150,
+          unitCostAmount: 0.01,
+          currentStockQty: 10000,
+        },
+      ])
+      .subscribe();
     expect(http.put).toHaveBeenCalledWith(
       `${environment.apiUrl}/api/restaurants/r1/admin/recipes/m1`,
-      { lines: [{ ingredientId: 'i1', quantity: 2 }] },
+      {
+        lines: [
+          {
+            name: 'Faina',
+            unitOfMeasure: 0,
+            quantity: 150,
+            unitCostAmount: 0.01,
+            currentStockQty: 10000,
+          },
+        ],
+      },
       { withCredentials: true },
     );
   });

@@ -6,9 +6,6 @@
     <button type="button" class="btn" [class.btn-primary]="activeTab === 'menu'" [class.btn-outline-primary]="activeTab !== 'menu'" (click)="setTab('menu')">
       {{ 'recipes.tabs.recipes' | transloco }}
     </button>
-    <button type="button" class="btn" [class.btn-primary]="activeTab === 'catalog'" [class.btn-outline-primary]="activeTab !== 'catalog'" (click)="setTab('catalog')">
-      {{ 'recipes.tabs.ingredients' | transloco }}
-    </button>
     <button type="button" class="btn" [class.btn-primary]="activeTab === 'consumption'" [class.btn-outline-primary]="activeTab !== 'consumption'" (click)="setTab('consumption')">
       {{ 'recipes.tabs.consumption' | transloco }}
     </button>
@@ -50,6 +47,7 @@
                       </span>
                       <div class="text-body-secondary small">
                         {{ item.menuItemPriceAmount | number:'1.2-2' }} {{ currencyCode(item.menuItemPriceCurrency) }}
+                        · {{ 'recipes.vatFromMenuItem' | transloco }}: {{ item.menuItemVatPercent ?? 19 }}%
                       </div>
                     </div>
                     <button
@@ -68,60 +66,6 @@
             </ng-template>
           </c-accordion-item>
         </c-accordion>
-      </c-card-body>
-    </c-card>
-  }
-
-  @if (activeTab === 'catalog') {
-    <c-card>
-      <c-card-header class="d-flex justify-content-between align-items-center">
-        <div>
-          <div>{{ 'recipes.ingredientsTitle' | transloco }}</div>
-          <small class="text-body-secondary">{{ 'recipes.ingredientsCatalogHint' | transloco }}</small>
-        </div>
-        <button cButton color="primary" size="sm" type="button" (click)="openCreateIngredient()">
-          {{ 'recipes.addIngredient' | transloco }}
-        </button>
-      </c-card-header>
-      <c-card-body>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle">
-            <thead>
-              <tr>
-                <th>{{ 'recipes.cols.name' | transloco }}</th>
-                <th>{{ 'recipes.cols.uom' | transloco }}</th>
-                <th>{{ 'recipes.cols.unitCost' | transloco }}</th>
-                <th>{{ 'recipes.cols.stock' | transloco }}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of ingredients; track item.ingredientId) {
-                <tr>
-                  <td>{{ item.name }}</td>
-                  <td>{{ uomLabel(item.unitOfMeasure) }}</td>
-                  <td>{{ item.unitCostAmount | number:'1.2-4' }} {{ currencyCode(item.unitCostCurrency) }}</td>
-                  <td [class.text-danger]="item.currentStockQty < 0">{{ item.currentStockQty | number:'1.2-4' }}</td>
-                  <td class="text-end text-nowrap">
-                    <button cButton color="secondary" variant="outline" size="sm" class="me-1" type="button" (click)="openStockAdjust(item)">
-                      {{ 'recipes.adjustStock' | transloco }}
-                    </button>
-                    <button cButton color="primary" variant="outline" size="sm" class="me-1" type="button" (click)="openEditIngredient(item)">
-                      {{ 'recipes.edit' | transloco }}
-                    </button>
-                    <button cButton color="danger" variant="outline" size="sm" type="button" (click)="deleteIngredient(item)">
-                      {{ 'recipes.delete' | transloco }}
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="5" class="text-body-secondary">{{ 'recipes.emptyIngredients' | transloco }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
       </c-card-body>
     </c-card>
   }
@@ -174,8 +118,7 @@
   }
 </div>
 
-<!-- Recipe (BOM) modal for one menu item -->
-<c-modal [visible]="showRecipeModal" (visibleChange)="onRecipeModalVisible($event)" alignment="center" size="lg">
+<c-modal [visible]="showRecipeModal" (visibleChange)="onRecipeModalVisible($event)" alignment="center" size="xl">
   <c-modal-header>
     <h5 cModalTitle>{{ 'recipes.recipeFor' | transloco: { name: selectedMenuItemName } }}</h5>
     <button cButtonClose (click)="closeRecipeModal()"></button>
@@ -184,39 +127,49 @@
     <p class="text-body-secondary small">{{ 'recipes.qtyPerPortionHint' | transloco }}</p>
     <p class="text-body-secondary small mb-3">{{ 'recipes.orderItemCostHint' | transloco }}</p>
 
-    @if (recipe) {
-      <div class="mb-3 recipes-cost-summary">
+    <div class="mb-3 recipes-cost-summary">
+      <div>{{ 'recipes.vatFromMenuItem' | transloco }}:
+        <strong>{{ selectedMenuItemVatPercent }}%</strong>
+        <span class="text-body-secondary small"> ({{ 'recipes.vatFromMenuItemHint' | transloco }})</span>
+      </div>
+      @if (recipe) {
         <div>{{ 'recipes.portionCost' | transloco }} (= {{ 'recipes.oneOrderItemCost' | transloco }}):
           <strong>{{ recipe.portionCostAmount | number:'1.2-4' }} {{ currencyCode(recipe.menuItemPriceCurrency) }}</strong>
         </div>
         <div>{{ 'recipes.foodCostPercent' | transloco }}: <strong>{{ recipe.foodCostPercent ?? '—' }}%</strong></div>
         <div>{{ 'recipes.portionsRemaining' | transloco }}: <strong>{{ recipe.portionsRemaining ?? '—' }}</strong></div>
-      </div>
-    }
+      }
+    </div>
 
     <form [formGroup]="recipeForm">
       <div formArrayName="lines">
         @for (line of recipeLines.controls; track $index; let i = $index) {
-          <div class="row g-2 mb-2 align-items-end" [formGroupName]="i">
-            <div class="col-md-6">
-              <label cLabel>{{ 'recipes.selectIngredient' | transloco }}</label>
-              <select cSelect class="form-select" formControlName="ingredientId">
-                <option value="">{{ 'recipes.selectIngredient' | transloco }}</option>
-                @for (ing of ingredients; track ing.ingredientId) {
-                  <option [value]="ing.ingredientId">{{ ing.name }} ({{ uomLabel(ing.unitOfMeasure) }})</option>
+          <div class="row g-2 mb-3 align-items-end border-bottom pb-3" [formGroupName]="i">
+            <div class="col-md-3">
+              <label cLabel>{{ 'recipes.ingredientName' | transloco }}</label>
+              <input cFormControl type="text" formControlName="name" maxlength="120" autocomplete="off" />
+            </div>
+            <div class="col-md-2">
+              <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
+              <select cSelect class="form-select" formControlName="unitOfMeasure">
+                @for (opt of uomOptions; track opt.value) {
+                  <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
                 }
               </select>
             </div>
-            <div class="col-md-4">
-              <label cLabel>
-                {{ 'recipes.qtyPerPortion' | transloco }}
-                @if (line.get('ingredientId')?.value) {
-                  <span>({{ ingredientUomForLine(line.get('ingredientId')?.value) }})</span>
-                }
-              </label>
+            <div class="col-md-2">
+              <label cLabel>{{ 'recipes.qtyPerPortion' | transloco }}</label>
               <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" />
             </div>
             <div class="col-md-2">
+              <label cLabel>{{ 'recipes.cols.stock' | transloco }}</label>
+              <input cFormControl type="number" step="0.01" min="0" formControlName="currentStockQty" />
+            </div>
+            <div class="col-md-2">
+              <label cLabel>{{ 'recipes.stockPrice' | transloco }} ({{ restaurantCurrency }})</label>
+              <input cFormControl type="number" step="0.01" min="0" formControlName="unitCostAmount" />
+            </div>
+            <div class="col-md-1">
               <button cButton color="danger" variant="outline" type="button" (click)="removeRecipeLine(i)">×</button>
             </div>
           </div>
@@ -229,97 +182,5 @@
     <button cButton color="danger" variant="outline" type="button" (click)="clearRecipe()">{{ 'recipes.clearRecipe' | transloco }}</button>
     <button cButton color="secondary" variant="outline" type="button" (click)="closeRecipeModal()">{{ 'recipes.cancel' | transloco }}</button>
     <button cButton color="primary" type="button" (click)="saveRecipe()">{{ 'recipes.saveRecipe' | transloco }}</button>
-  </c-modal-footer>
-</c-modal>
-
-<!-- Catalog: create/edit ingredient -->
-<c-modal [visible]="showIngredientModal" (visibleChange)="showIngredientModal = $event" alignment="center">
-  <c-modal-header>
-    <h5 cModalTitle>{{ (editingIngredient ? 'recipes.editIngredient' : 'recipes.addIngredient') | transloco }}</h5>
-    <button cButtonClose (click)="showIngredientModal = false"></button>
-  </c-modal-header>
-  <c-modal-body>
-    <p class="text-body-secondary small mb-3">{{ 'recipes.unitCostHint' | transloco }}</p>
-    <form [formGroup]="ingredientForm">
-      <div class="mb-2">
-        <label cLabel>{{ 'recipes.cols.name' | transloco }}</label>
-        <input cFormControl formControlName="name" />
-      </div>
-      <div class="mb-2">
-        <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
-        <select cSelect class="form-select" formControlName="unitOfMeasure">
-          @for (opt of uomOptions; track opt.value) {
-            <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
-          }
-        </select>
-      </div>
-      <div class="mb-2">
-        <label cLabel>{{ 'recipes.cols.unitCost' | transloco }}</label>
-        <input cFormControl type="number" step="0.01" min="0" formControlName="unitCostAmount" />
-      </div>
-      @if (!editingIngredient) {
-        <div class="mb-2">
-          <label cLabel>{{ 'recipes.initialStock' | transloco }}</label>
-          <input cFormControl type="number" step="0.01" min="0" formControlName="initialStockQty" />
-        </div>
-      } @else {
-        <div class="mb-2">
-          <label cLabel>{{ 'recipes.cols.stockTotal' | transloco }}</label>
-          <input cFormControl type="number" step="0.01" min="0" formControlName="currentStockQty" />
-        </div>
-      }
-    </form>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" variant="outline" type="button" (click)="showIngredientModal = false">{{ 'recipes.cancel' | transloco }}</button>
-    <button cButton color="primary" type="button" (click)="saveIngredient()">{{ 'recipes.save' | transloco }}</button>
-  </c-modal-footer>
-</c-modal>
-
-<c-modal [visible]="showStockModal" (visibleChange)="showStockModal = $event" alignment="center" size="lg">
-  <c-modal-header>
-    <h5 cModalTitle>{{ 'recipes.adjustStock' | transloco }} — {{ stockTarget?.name }}</h5>
-    <button cButtonClose (click)="showStockModal = false"></button>
-  </c-modal-header>
-  <c-modal-body>
-    <form [formGroup]="stockForm" class="mb-3">
-      <div class="mb-2">
-        <label cLabel>{{ 'recipes.stockDelta' | transloco }}</label>
-        <input cFormControl type="number" step="0.01" formControlName="quantityDelta" />
-      </div>
-      <div class="mb-2">
-        <label cLabel>{{ 'recipes.note' | transloco }}</label>
-        <input cFormControl formControlName="note" />
-      </div>
-    </form>
-    <h6>{{ 'recipes.recentMovements' | transloco }}</h6>
-    <div class="table-responsive">
-      <table class="table table-sm">
-        <thead>
-          <tr>
-            <th>{{ 'recipes.cols.when' | transloco }}</th>
-            <th>{{ 'recipes.cols.delta' | transloco }}</th>
-            <th>{{ 'recipes.cols.after' | transloco }}</th>
-            <th>{{ 'recipes.note' | transloco }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (m of stockHistory; track m.stockMovementId) {
-            <tr>
-              <td>{{ m.createdAt | date:'short' }}</td>
-              <td>{{ m.quantityDelta | number:'1.2-4' }}</td>
-              <td>{{ m.stockAfter | number:'1.2-4' }}</td>
-              <td>{{ m.note }}</td>
-            </tr>
-          } @empty {
-            <tr><td colspan="4" class="text-body-secondary">—</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" variant="outline" type="button" (click)="showStockModal = false">{{ 'recipes.cancel' | transloco }}</button>
-    <button cButton color="primary" type="button" (click)="saveStockAdjust()">{{ 'recipes.save' | transloco }}</button>
   </c-modal-footer>
 </c-modal>

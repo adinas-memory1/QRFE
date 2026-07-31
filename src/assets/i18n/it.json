@@ -1298,7 +1298,7 @@
   },
   "recipes": {
     "title": "Recipes & stock",
-    "subtitle": "Define ingredients, recipes per menu item, adjust stock and review consumption.",
+    "subtitle": "Define recipes per dish, stock and unit cost on each ingredient line, then review consumption.",
     "tabs": {
       "ingredients": "Ingredients",
       "recipes": "Recipes",
@@ -1362,7 +1362,7 @@
     },
     "ingredientsCatalogHint": "Warehouse catalog shared across dishes. Per-dish qty (e.g. 150 g) is set via Ingredients on the menu tab.",
     "pickMenuItemTitle": "Choose a menu item",
-    "pickMenuItemHint": "Same categories as Menu. Use Ingredients on each dish to set the recipe (qty per portion = cost of 1 order item).",
+    "pickMenuItemHint": "Same categories as Menu. Use Ingredients on each dish to set the recipe (qty × unit price = cost of 1 order item). VAT comes from the menu item.",
     "recipeFor": "Recipe for {{name}}",
     "qtyPerPortionHint": "Enter how much of each ingredient goes into one portion of this dish (e.g. 150 g flour).",
     "changeMenuItem": "Change dish",
@@ -1371,6 +1371,10 @@
     "openIngredients": "Ingredients",
     "orderItemCostHint": "Portion cost below is the ingredient cost of selling 1 order line of this dish (same as 1 menu item portion).",
     "oneOrderItemCost": "1 order item",
-    "unitCostHint": "Unit cost is per 1 UoM (e.g. per gram). Recipe quantities × unit cost = cost of 1 sold portion / order item."
+    "unitCostHint": "Unit cost is per 1 UoM (e.g. per gram). Recipe quantities × unit cost = cost of 1 sold portion / order item.",
+    "ingredientName": "Ingredient",
+    "stockPrice": "Stock unit price",
+    "vatFromMenuItem": "VAT",
+    "vatFromMenuItemHint": "from menu item"
   }
 }
