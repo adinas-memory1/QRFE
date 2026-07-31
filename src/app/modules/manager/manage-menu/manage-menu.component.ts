@@ -32,6 +32,8 @@ import { NgFor, NgIf, CurrencyPipe, SlicePipe } from '@angular/common';
 import { UserContextModel } from '../../../core/models/userContextModel';
 import { AppToastService } from '../../../core/services/toast-service/toast-service.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { RecipeInventoryService } from '../../../core/services/recipe-inventory/recipe-inventory.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-manage-menu',
@@ -52,7 +54,8 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     ModalBodyComponent,
     ModalFooterComponent
     ,
-    TranslocoPipe
+    TranslocoPipe,
+    RouterLink
   ],
   standalone: true,
   templateUrl: './manage-menu.component.html',
@@ -68,6 +71,8 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = [];
   /** Built from `menuItems` after each load (public for strict template checking). */
   groupedMenuItems: { [category: string]: MenuItem[] } = {};
+  /** menuItemId -> portions remaining from recipe stock (null/undefined = no recipe). */
+  portionsByMenuItemId: Record<string, number | null | undefined> = {};
   categories: string[] = [];
   selectedItem: MenuItem | null = null;
   menuItemsForm: FormGroup;
@@ -88,7 +93,8 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
   constructor(private menuItemService: MenuItemServiceService,
     private fb: FormBuilder, private authService: AuthService,
     private appToast: AppToastService,
-    private transloco: TranslocoService) {
+    private transloco: TranslocoService,
+    private recipeInventory: RecipeInventoryService) {
     this.presentationForm = this.fb.group({
       menuPresentationMode: ['fixed'],
     });
@@ -295,8 +301,32 @@ export class ManageMenuComponent implements OnInit, OnDestroy {
             this.restaurantCurrency = this.menuItems[0].menuItemPriceCurrency!;
           }
           this.rebuildGroupedMenuItems();
+          this.loadPortionsRemaining();
         },
         error: err => console.error('[ManageMenuComponent] Error loading menu items', err)
+      });
+  }
+
+  loadPortionsRemaining(): void {
+    if (!this.restaurantId || this.menuItems.length === 0) {
+      this.portionsByMenuItemId = {};
+      return;
+    }
+    const ids = this.menuItems.map((m) => m.menuItemId).filter(Boolean);
+    this.recipeInventory
+      .getPortionsRemaining(this.restaurantId, ids)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          const map: Record<string, number | null | undefined> = {};
+          for (const row of rows) {
+            map[row.menuItemId] = row.portionsRemaining;
+          }
+          this.portionsByMenuItemId = map;
+        },
+        error: () => {
+          this.portionsByMenuItemId = {};
+        },
       });
   }
 

@@ -5,34 +5,34 @@
     "perMonth": "/mes",
     "nav": {
       "features": "Funciones",
-      "how": "Cómo funciona",
+      "how": "CÃ³mo funciona",
       "pricing": "Precios",
       "contact": "Contacto",
-      "signin": "Iniciar sesión",
+      "signin": "Iniciar sesiÃ³n",
       "getstarted": "Empezar",
-      "partner": "Conviértase en socio / revendedor"
+      "partner": "ConviÃ©rtase en socio / revendedor"
     },
     "hero": {
-      "badge": "Funciona totalmente sin conexión",
+      "badge": "Funciona totalmente sin conexiÃ³n",
       "title_pre": "El TPV que mantiene tu ",
       "title_accent": "restaurante en marcha",
-      "title_post": " — con o sin internet.",
-      "lead": "Universal Restaurant Systems es un punto de venta sin conexión para cafeterías, bares y restaurantes. Toma pedidos en cualquier dispositivo, imprime tickets y sincroniza las ventas en la nube en cuanto vuelves a conectarte.",
+      "title_post": " â€” con o sin internet.",
+      "lead": "Universal Restaurant Systems es un punto de venta sin conexiÃ³n para cafeterÃ­as, bares y restaurantes. Toma pedidos en cualquier dispositivo, imprime tickets y sincroniza las ventas en la nube en cuanto vuelves a conectarte.",
       "cta_primary": "Prueba gratis",
-      "cta_secondary": "Ver cómo funciona",
-      "note": "Configuración en minutos · Cancela cuando quieras",
-      "offlineDisclaimer": "El modo sin conexión está limitado intencionalmente al pedido ya abierto en el dispositivo. En un restaurante con varios dispositivos activos, un offline-first completo crearía riesgos de consistencia (por ejemplo, dos dispositivos podrían abrir o editar la misma mesa en paralelo). Por eso, el offline-first se aplica solo al pedido actual, donde no hay colisiones."
+      "cta_secondary": "Ver cÃ³mo funciona",
+      "note": "ConfiguraciÃ³n en minutos Â· Cancela cuando quieras",
+      "offlineDisclaimer": "El modo sin conexiÃ³n estÃ¡ limitado intencionalmente al pedido ya abierto en el dispositivo. En un restaurante con varios dispositivos activos, un offline-first completo crearÃ­a riesgos de consistencia (por ejemplo, dos dispositivos podrÃ­an abrir o editar la misma mesa en paralelo). Por eso, el offline-first se aplica solo al pedido actual, donde no hay colisiones."
     },
     "mock": {
       "synced": "Sincronizado",
       "receipt": "Ticket impreso",
       "today": "+18% hoy",
-      "order": "Mesa 7 · Pedido #1042",
+      "order": "Mesa 7 Â· Pedido #1042",
       "open": "Abierta",
       "total": "Total"
     },
     "stat": {
-      "uptime": "Disponibilidad, incluso sin conexión",
+      "uptime": "Disponibilidad, incluso sin conexiÃ³n",
       "order": "Tiempo medio por pedido",
       "venues": "Locales atendidos",
       "support": "Soporte humano"
@@ -40,48 +40,48 @@
     "features": {
       "eyebrow": "Todo lo que necesitas",
       "title": "Un solo sistema para toda la sala",
-      "lead": "Desde el primer toque hasta el informe de cierre — creado para el ritmo de una cocina real."
+      "lead": "Desde el primer toque hasta el informe de cierre â€” creado para el ritmo de una cocina real."
     },
     "feat": {
       "offline": {
-        "t": "Sin conexión primero",
-        "d": "Puedes seguir vendiendo aunque se caiga internet. El pedido actual sigue completamente funcional: se guarda en local, puedes modificarlo sin restricciones y la sincronización con el servidor se hace automáticamente en cuanto vuelves a estar en línea."
+        "t": "Sin conexiÃ³n primero",
+        "d": "Puedes seguir vendiendo aunque se caiga internet. El pedido actual sigue completamente funcional: se guarda en local, puedes modificarlo sin restricciones y la sincronizaciÃ³n con el servidor se hace automÃ¡ticamente en cuanto vuelves a estar en lÃ­nea."
       },
       "mobile": {
-        "t": "Terminal móvil",
-        "d": "Convierte cualquier móvil o tablet en un TPV. Toma pedidos en la mesa y envíalos directo a cocina y barra."
+        "t": "Terminal mÃ³vil",
+        "d": "Convierte cualquier mÃ³vil o tablet en un TPV. Toma pedidos en la mesa y envÃ­alos directo a cocina y barra."
       },
       "print": {
-        "t": "Impresión de tickets",
-        "d": "Integración nativa con impresoras térmicas y de cocina. Tickets limpios, siempre, sin controladores extra."
+        "t": "ImpresiÃ³n de tickets",
+        "d": "IntegraciÃ³n nativa con impresoras tÃ©rmicas y de cocina. Tickets limpios, siempre, sin controladores extra."
       },
       "cloud": {
-        "t": "Sincronización en la nube",
-        "d": "Tu carta, tu equipo y tus ventas viven en la nube — accesibles desde cualquier dispositivo, con copia en tiempo real."
+        "t": "SincronizaciÃ³n en la nube",
+        "d": "Tu carta, tu equipo y tus ventas viven en la nube â€” accesibles desde cualquier dispositivo, con copia en tiempo real."
       },
       "sales": {
-        "t": "Gestión de ventas",
-        "d": "Paneles en vivo, informes diarios y estadísticas de producto para saber siempre qué se vende y qué no."
+        "t": "GestiÃ³n de ventas",
+        "d": "Paneles en vivo, informes diarios y estadÃ­sticas de producto para saber siempre quÃ© se vende y quÃ© no."
       },
       "staff": {
         "t": "Personal y mesas",
-        "d": "Gestiona roles, turnos y distribución de mesas. Cada camarero ve justo lo que necesita."
+        "d": "Gestiona roles, turnos y distribuciÃ³n de mesas. Cada camarero ve justo lo que necesita."
       }
     },
     "how": {
-      "eyebrow": "Cómo funciona",
-      "title": "En marcha antes del próximo servicio",
+      "eyebrow": "CÃ³mo funciona",
+      "title": "En marcha antes del prÃ³ximo servicio",
       "s1": {
         "t": "Crea tu carta",
-        "d": "Añade productos, categorías y precios en minutos — o impórtalos desde una hoja de cálculo."
+        "d": "AÃ±ade productos, categorÃ­as y precios en minutos â€” o impÃ³rtalos desde una hoja de cÃ¡lculo."
       },
       "s2": {
         "t": "Abre en cualquier dispositivo",
-        "d": "Instálalo en tablets, móviles o una caja de escritorio. Sin hardware especial."
+        "d": "InstÃ¡lalo en tablets, mÃ³viles o una caja de escritorio. Sin hardware especial."
       },
       "s3": {
         "t": "Vende y sincroniza",
-        "d": "Toma pedidos, imprime tickets y mira cómo las ventas llegan a tu panel en la nube."
+        "d": "Toma pedidos, imprime tickets y mira cÃ³mo las ventas llegan a tu panel en la nube."
       },
       "cta": "Empezar",
       "panel": "Ventas de hoy",
@@ -96,23 +96,23 @@
       "lead": "Empieza gratis. Mejora cuando crezcas. Sin contratos largos."
     },
     "price": {
-      "popular": "Más popular",
+      "popular": "MÃ¡s popular",
       "starter": {
         "n": "Starter",
         "d": "Para una sola caja o food truck.",
         "f1": "1 dispositivo",
-        "f2": "Pedidos sin conexión",
-        "f3": "Impresión de tickets",
-        "f4": "Informes básicos",
+        "f2": "Pedidos sin conexiÃ³n",
+        "f3": "ImpresiÃ³n de tickets",
+        "f4": "Informes bÃ¡sicos",
         "cta": "Empezar gratis"
       },
       "pro": {
         "n": "Pro",
         "d": "Para restaurantes y bares con mucho movimiento.",
         "f1": "Hasta 8 dispositivos",
-        "f2": "Sincronización y copia en la nube",
-        "f3": "Gestión de personal y mesas",
-        "f4": "Analíticas avanzadas",
+        "f2": "SincronizaciÃ³n y copia en la nube",
+        "f3": "GestiÃ³n de personal y mesas",
+        "f4": "AnalÃ­ticas avanzadas",
         "cta": "Prueba gratis"
       },
       "ent": {
@@ -127,20 +127,20 @@
       }
     },
     "cta": {
-      "title": "¿Listo para modernizar tu mostrador?",
+      "title": "Â¿Listo para modernizar tu mostrador?",
       "lead": "Configura hoy, vende esta noche con Universal Restaurant Systems.",
       "primary": "Prueba gratis",
       "secondary": "Hablar con ventas"
     },
     "footer": {
-      "tagline": "TPV para restaurantes sin conexión, terminal móvil y gestión de ventas en la nube — creado para pequeños negocios.",
+      "tagline": "TPV para restaurantes sin conexiÃ³n, terminal mÃ³vil y gestiÃ³n de ventas en la nube â€” creado para pequeÃ±os negocios.",
       "product": "Producto",
       "company": "Empresa",
-      "about": "Quiénes somos",
+      "about": "QuiÃ©nes somos",
       "blog": "Blog",
-      "newsletter": "Mantente al día",
+      "newsletter": "Mantente al dÃ­a",
       "email": "tu@restaurante.es",
-      "rights": "© 2026 Universal Restaurant Systems. Todos los derechos reservados."
+      "rights": "Â© 2026 Universal Restaurant Systems. Todos los derechos reservados."
     }
   },
   "partners": {
@@ -152,16 +152,16 @@
     "benefits": {
       "title": "Lo que gana como socio",
       "margins": {
-        "title": "Márgenes Recurrentes Elevados",
-        "text": "Reciba hasta un 40 % de descuento sobre el valor de la suscripción cloud por cada cliente que traiga, mes a mes."
+        "title": "MÃ¡rgenes Recurrentes Elevados",
+        "text": "Reciba hasta un 40 % de descuento sobre el valor de la suscripciÃ³n cloud por cada cliente que traiga, mes a mes."
       },
       "network": {
         "title": "Cero Problemas de Red (VPN Nativo)",
-        "text": "Nuestro software incluye un bridge de Windows que elimina la necesidad de configurar routers (sin port forwarding, sin IP pública estática obligatoria)."
+        "text": "Nuestro software incluye un bridge de Windows que elimina la necesidad de configurar routers (sin port forwarding, sin IP pÃºblica estÃ¡tica obligatoria)."
       },
       "support": {
         "title": "Soporte B2B Dedicado",
-        "text": "Usted gestiona la relación directa y la instalación de hardware con el restaurante; nosotros garantizamos que el servidor Cloud funcione impecablemente 24/7."
+        "text": "Usted gestiona la relaciÃ³n directa y la instalaciÃ³n de hardware con el restaurante; nosotros garantizamos que el servidor Cloud funcione impecablemente 24/7."
       }
     },
     "form": {
@@ -169,101 +169,101 @@
       "companyName": "Nombre de la empresa",
       "companyNamePlaceholder": "ej: Rossi Sistemi SRL",
       "email": "Email de contacto",
-      "cityRegion": "Ciudad / Región",
-      "cityRegionPlaceholder": "ej: Milán / Lombardía",
-      "portfolioSize": "Número de restaurantes gestionados actualmente",
+      "cityRegion": "Ciudad / RegiÃ³n",
+      "cityRegionPlaceholder": "ej: MilÃ¡n / LombardÃ­a",
+      "portfolioSize": "NÃºmero de restaurantes gestionados actualmente",
       "portfolio": {
         "zeroToFifty": "0-50",
         "fiftyToTwoHundred": "50-200",
-        "overTwoHundred": "más de 200"
+        "overTwoHundred": "mÃ¡s de 200"
       },
       "message": "Mensaje / Preguntas",
       "submit": "Enviar solicitud",
-      "submitting": "Enviando…",
-      "success": "Hemos recibido su solicitud. Un ingeniero de soluciones le contactará en un máximo de 48 horas.",
-      "error": "No pudimos enviar la solicitud. Inténtelo de nuevo o contáctenos directamente.",
+      "submitting": "Enviandoâ€¦",
+      "success": "Hemos recibido su solicitud. Un ingeniero de soluciones le contactarÃ¡ en un mÃ¡ximo de 48 horas.",
+      "error": "No pudimos enviar la solicitud. IntÃ©ntelo de nuevo o contÃ¡ctenos directamente.",
       "required": "Este campo es obligatorio",
-      "invalidEmail": "Introduzca una dirección de email válida"
+      "invalidEmail": "Introduzca una direcciÃ³n de email vÃ¡lida"
     }
   },
   "seo": {
-    "landingTitle": "U.R.S. | Sistema POS para Restaurantes — Software POS en la Nube",
-    "landingDescription": "Universal Restaurant Systems: sistema POS offline-first para restaurantes, POS móvil, terminal de pago, impresora de recibos, gestión de inventario, informes de ventas y POS en la nube para pequeños negocios.",
+    "landingTitle": "U.R.S. | Sistema POS para Restaurantes â€” Software POS en la Nube",
+    "landingDescription": "Universal Restaurant Systems: sistema POS offline-first para restaurantes, POS mÃ³vil, terminal de pago, impresora de recibos, gestiÃ³n de inventario, informes de ventas y POS en la nube para pequeÃ±os negocios.",
     "faqTitle": "U.R.S. FAQ | Sistema POS & Software para Restaurantes",
-    "faqDescription": "Preguntas frecuentes sobre el POS U.R.S.: POS para restaurantes, Printer Agent, pedidos offline, menú QR, pagos Stripe y flujos de staff.",
-    "partnersTitle": "Programa de Socios U.R.S. | Conviértase en revendedor POS restaurante",
-    "partnersDescription": "Únase al programa de socios Universal Restaurant Systems: márgenes recurrentes, VPN nativo sin configuración de router y soporte B2B dedicado para distribuidores HoReCa.",
+    "faqDescription": "Preguntas frecuentes sobre el POS U.R.S.: POS para restaurantes, Printer Agent, pedidos offline, menÃº QR, pagos Stripe y flujos de staff.",
+    "partnersTitle": "Programa de Socios U.R.S. | ConviÃ©rtase en revendedor POS restaurante",
+    "partnersDescription": "Ãšnase al programa de socios Universal Restaurant Systems: mÃ¡rgenes recurrentes, VPN nativo sin configuraciÃ³n de router y soporte B2B dedicado para distribuidores HoReCa.",
     "contactTitle": "Contacto U.R.S. | Universal Restaurant Systems",
     "contactDescription": "Contacte con Universal Restaurant Systems para ventas, soporte y alianzas sobre nuestra plataforma POS para restaurantes offline-first.",
-    "privacyTitle": "Política de privacidad | Universal Restaurant Systems",
-    "privacyDescription": "Política de privacidad de Universal Restaurant Systems (U.R.S.) para software POS restaurante: datos recopilados y derechos GDPR.",
-    "termsTitle": "Términos y condiciones | Universal Restaurant Systems",
-    "termsDescription": "Términos y condiciones para usar suscripciones y servicios Universal Restaurant Systems (U.R.S.) POS restaurante.",
-    "keywords": "mejor sistema POS, POS para pequeños negocios, POS para restaurantes, POS móvil, POS en la nube, POS barato, terminal POS, sistema POS, caja registradora, software POS, terminal de pago, lector de tarjetas, impresora de recibos, POS retail, gestión de inventario, gestión de ventas, POS online, informes de ventas, integración ERP"
+    "privacyTitle": "PolÃ­tica de privacidad | Universal Restaurant Systems",
+    "privacyDescription": "PolÃ­tica de privacidad de Universal Restaurant Systems (U.R.S.) para software POS restaurante: datos recopilados y derechos GDPR.",
+    "termsTitle": "TÃ©rminos y condiciones | Universal Restaurant Systems",
+    "termsDescription": "TÃ©rminos y condiciones para usar suscripciones y servicios Universal Restaurant Systems (U.R.S.) POS restaurante.",
+    "keywords": "mejor sistema POS, POS para pequeÃ±os negocios, POS para restaurantes, POS mÃ³vil, POS en la nube, POS barato, terminal POS, sistema POS, caja registradora, software POS, terminal de pago, lector de tarjetas, impresora de recibos, POS retail, gestiÃ³n de inventario, gestiÃ³n de ventas, POS online, informes de ventas, integraciÃ³n ERP"
   },
   "legal": {
     "contact": {
-      "pageTitle": "Contáctenos",
-      "intro": "Contacte con el equipo de Universal Restaurant Systems para ventas, onboarding o soporte técnico.",
-      "p1": "Ayudamos a restaurantes, bares y cafeterías a empezar con POS offline-first, menús QR, flujos de cocina e integración de impresoras.",
-      "p2": "Para consultas generales y ventas, escríbanos por email. Para soporte técnico, llámenos o escríbanos por WhatsApp en horario laboral."
+      "pageTitle": "ContÃ¡ctenos",
+      "intro": "Contacte con el equipo de Universal Restaurant Systems para ventas, onboarding o soporte tÃ©cnico.",
+      "p1": "Ayudamos a restaurantes, bares y cafeterÃ­as a empezar con POS offline-first, menÃºs QR, flujos de cocina e integraciÃ³n de impresoras.",
+      "p2": "Para consultas generales y ventas, escrÃ­banos por email. Para soporte tÃ©cnico, llÃ¡menos o escrÃ­banos por WhatsApp en horario laboral."
     },
     "privacy": {
       "nav": "Privacidad",
-      "pageTitle": "Política de privacidad",
-      "intro": "Esta política describe cómo Universal Restaurant Systems trata los datos personales cuando usa nuestro sitio web y plataforma POS.",
+      "pageTitle": "PolÃ­tica de privacidad",
+      "intro": "Esta polÃ­tica describe cÃ³mo Universal Restaurant Systems trata los datos personales cuando usa nuestro sitio web y plataforma POS.",
       "p1": "Recopilamos datos de cuenta, restaurante y uso necesarios para el servicio U.R.S., suscripciones Stripe y soporte al staff.",
       "p2": "No vendemos datos personales. Los proveedores (hosting, email, pagos) acceden a los datos solo para prestar el servicio.",
-      "p3": "Los operadores de restaurante son responsables de los datos de clientes recopilados mediante menús QR y pedidos, según la ley aplicable.",
-      "p4": "Puede solicitar acceso, rectificación o eliminación de sus datos personales en ciao@universalrestaurant.systems.",
-      "p5": "Podemos actualizar esta política. Los cambios importantes se reflejarán en esta página."
+      "p3": "Los operadores de restaurante son responsables de los datos de clientes recopilados mediante menÃºs QR y pedidos, segÃºn la ley aplicable.",
+      "p4": "Puede solicitar acceso, rectificaciÃ³n o eliminaciÃ³n de sus datos personales en ciao@universalrestaurant.systems.",
+      "p5": "Podemos actualizar esta polÃ­tica. Los cambios importantes se reflejarÃ¡n en esta pÃ¡gina."
     },
     "terms": {
-      "nav": "Términos",
-      "pageTitle": "Términos y condiciones",
-      "intro": "Estos términos rigen el uso del software y servicios de suscripción de Universal Restaurant Systems.",
-      "p1": "Al crear una cuenta o suscribirse, acepta usar U.R.S. conforme a la ley y solo para operaciones legítimas de restaurante.",
-      "p2": "Las suscripciones se facturan a través de Stripe según el plan seleccionado. Tarifas, renovación y cancelación siguen los términos del checkout.",
-      "p3": "El servicio se proporciona «tal cual». Las funciones offline y online dependen de sus dispositivos y conectividad.",
-      "p4": "Es responsable de las credenciales del staff, la configuración de impresoras y la exactitud del menú, precios e impuestos.",
-      "p5": "Preguntas sobre estos términos: ciao@universalrestaurant.systems."
+      "nav": "TÃ©rminos",
+      "pageTitle": "TÃ©rminos y condiciones",
+      "intro": "Estos tÃ©rminos rigen el uso del software y servicios de suscripciÃ³n de Universal Restaurant Systems.",
+      "p1": "Al crear una cuenta o suscribirse, acepta usar U.R.S. conforme a la ley y solo para operaciones legÃ­timas de restaurante.",
+      "p2": "Las suscripciones se facturan a travÃ©s de Stripe segÃºn el plan seleccionado. Tarifas, renovaciÃ³n y cancelaciÃ³n siguen los tÃ©rminos del checkout.",
+      "p3": "El servicio se proporciona Â«tal cualÂ». Las funciones offline y online dependen de sus dispositivos y conectividad.",
+      "p4": "Es responsable de las credenciales del staff, la configuraciÃ³n de impresoras y la exactitud del menÃº, precios e impuestos.",
+      "p5": "Preguntas sobre estos tÃ©rminos: ciao@universalrestaurant.systems."
     }
   },
   "footer": {
-    "copyright": "© Universal Restaurant Systems",
+    "copyright": "Â© Universal Restaurant Systems",
     "poweredBy": "Powered by",
-    "piva": "P.IVA: 03084340995 (registrada en Italia — Génova)",
+    "piva": "P.IVA: 03084340995 (registrada en Italia â€” GÃ©nova)",
     "phoneWhatsapp": "+39 353 213 26 36",
-    "whatsappAria": "Contáctanos por WhatsApp",
-    "whatsappSupportAria": "Contactar soporte técnico por WhatsApp",
-    "emailAria": "Contáctanos por correo electrónico",
+    "whatsappAria": "ContÃ¡ctanos por WhatsApp",
+    "whatsappSupportAria": "Contactar soporte tÃ©cnico por WhatsApp",
+    "emailAria": "ContÃ¡ctanos por correo electrÃ³nico",
     "emailSalesAria": "Email para consultas generales y ventas",
     "emailPurpose": "Consultas generales y ventas",
-    "whatsappPurpose": "Solo soporte técnico",
+    "whatsappPurpose": "Solo soporte tÃ©cnico",
     "contact": "Contacto"
   },
   "dashboard": {
     "kpiUsers": "Usuarios",
     "kpiIncome": "Ingresos",
-    "kpiConversion": "Tasa de conversión",
+    "kpiConversion": "Tasa de conversiÃ³n",
     "kpiSessions": "Sesiones",
-    "kpiFootnote": "Ventana de 30 días vs 30 días UTC anteriores. Usuarios: personal distinto con inicio de sesión. Ingresos: pedidos cerrados en la moneda del restaurante. Conversión: pedidos vs inicios de sesión (máx. 100%). Sesiones: inicios de sesión correctos.",
-    "trafficTitle": "Tráfico",
-    "trafficHint": "Pedidos cerrados por día o mes UTC.",
-    "trafficDay": "Día",
+    "kpiFootnote": "Ventana de 30 dÃ­as vs 30 dÃ­as UTC anteriores. Usuarios: personal distinto con inicio de sesiÃ³n. Ingresos: pedidos cerrados en la moneda del restaurante. ConversiÃ³n: pedidos vs inicios de sesiÃ³n (mÃ¡x. 100%). Sesiones: inicios de sesiÃ³n correctos.",
+    "trafficTitle": "TrÃ¡fico",
+    "trafficHint": "Pedidos cerrados por dÃ­a o mes UTC.",
+    "trafficDay": "DÃ­a",
     "trafficMonth": "Mes",
-    "trafficYear": "Año",
+    "trafficYear": "AÃ±o",
     "trafficSeriesOrders": "Pedidos cerrados",
     "trafficFooterOrders": "Pedidos cerrados (periodo)",
     "trafficFooterRevenue": "Ingresos (periodo)",
-    "trafficFooterLogins": "Inicios de sesión (periodo)",
-    "noRestaurant": "La cuenta no está vinculada a un restaurante.",
-    "loadFailed": "No se pudieron cargar las métricas del panel."
+    "trafficFooterLogins": "Inicios de sesiÃ³n (periodo)",
+    "noRestaurant": "La cuenta no estÃ¡ vinculada a un restaurante.",
+    "loadFailed": "No se pudieron cargar las mÃ©tricas del panel."
   },
   "payment": {
     "success": {
       "title": "Pago confirmado",
-      "body": "Gracias. Serás redirigido al login en unos segundos.",
+      "body": "Gracias. SerÃ¡s redirigido al login en unos segundos.",
       "orderBody": "Gracias. Tu pago ha sido confirmado.",
       "cta": "Ir al login",
       "orderCta": "Volver al pedido",
@@ -271,7 +271,7 @@
     },
     "failure": {
       "title": "Pago fallido",
-      "body": "No pudimos confirmar el pago. Inténtalo de nuevo o contacta soporte.",
+      "body": "No pudimos confirmar el pago. IntÃ©ntalo de nuevo o contacta soporte.",
       "cta": "Volver"
     }
   },
@@ -279,46 +279,46 @@
     "availability": {
       "unavailableBadge": "No disponible temporalmente",
       "staff": {
-        "unavailableToast": "Este producto no está disponible temporalmente."
+        "unavailableToast": "Este producto no estÃ¡ disponible temporalmente."
       },
       "manager": {
         "markUnavailable": "Marcar como no disponible",
         "markAvailable": "Marcar como disponible",
         "toastAvailable": "Producto marcado como disponible.",
         "toastUnavailable": "Producto marcado como no disponible.",
-        "toastError": "No se pudo actualizar la disponibilidad. Inténtalo de nuevo."
+        "toastError": "No se pudo actualizar la disponibilidad. IntÃ©ntalo de nuevo."
       }
     },
     "manageMenu": {
-      "presentationTitle": "Cómo ven los clientes el menú",
-      "modeLabel": "Modo de visualización",
-      "presentationHelp": "Elija qué editar: platos a la carta (siempre en el menú público) o el menú del día para cada día de la semana.",
-      "modeNormal": "Menú a la carta",
-      "savePresentation": "Guardar modo del menú",
-      "toastPresentationSaved": "Ajustes de visualización guardados.",
-      "toastPresentationError": "No se pudieron guardar los ajustes de visualización.",
+      "presentationTitle": "CÃ³mo ven los clientes el menÃº",
+      "modeLabel": "Modo de visualizaciÃ³n",
+      "presentationHelp": "Elija quÃ© editar: platos a la carta (siempre en el menÃº pÃºblico) o el menÃº del dÃ­a para cada dÃ­a de la semana.",
+      "modeNormal": "MenÃº a la carta",
+      "savePresentation": "Guardar modo del menÃº",
+      "toastPresentationSaved": "Ajustes de visualizaciÃ³n guardados.",
+      "toastPresentationError": "No se pudieron guardar los ajustes de visualizaciÃ³n.",
       "scheduleTitle": "When to show this dish",
       "schedulePermanent": "Always on the menu",
       "scheduleDated": "Only on a specific date",
-      "scheduleWeekday": "Every week on…",
+      "scheduleWeekday": "Every week onâ€¦",
       "scheduledDate": "Date",
       "scheduledWeekday": "Weekday",
       "scheduleHint": "Choose how this row appears to guests according to your restaurant display mode.",
       "badgeDated": "Dated",
       "badgeWeekday": "Weekly",
-      "weeklyDayPicker": "Día de la semana",
-      "scheduleWeekdaySelectedHint": "Los platos nuevos se añaden para",
+      "weeklyDayPicker": "DÃ­a de la semana",
+      "scheduleWeekdaySelectedHint": "Los platos nuevos se aÃ±aden para",
       "weekdays": {
         "0": "Domingo",
         "1": "Lunes",
         "2": "Martes",
-        "3": "Miércoles",
+        "3": "MiÃ©rcoles",
         "4": "Jueves",
         "5": "Viernes",
-        "6": "Sábado"
+        "6": "SÃ¡bado"
       },
-      "modeSetMenu": "Menú del día",
-      "addMenuItem": "Añadir plato",
+      "modeSetMenu": "MenÃº del dÃ­a",
+      "addMenuItem": "AÃ±adir plato",
       "hideAddItem": "Ocultar formulario",
       "iconRequired": "Seleccione una imagen para el plato.",
       "formInvalid": "Complete todos los campos obligatorios.",
@@ -326,35 +326,35 @@
       "vatLabel": "IVA (%)",
       "vatPlaceholder": "19",
       "vatShort": "IVA {{value}}%",
-      "weeklySetMenuListTitle": "Menús del día configurados",
-      "weeklySetMenuEmpty": "Aún no hay menús del día guardados para esta semana.",
-      "saveSetMenuDay": "Guardar día",
-      "setMenuTitleLabel": "Título",
+      "weeklySetMenuListTitle": "MenÃºs del dÃ­a configurados",
+      "weeklySetMenuEmpty": "AÃºn no hay menÃºs del dÃ­a guardados para esta semana.",
+      "saveSetMenuDay": "Guardar dÃ­a",
+      "setMenuTitleLabel": "TÃ­tulo",
       "setMenuPriceLabel": "Precio",
-      "setMenuPriceRequired": "Precio obligatorio (mínimo 0,01).",
+      "setMenuPriceRequired": "Precio obligatorio (mÃ­nimo 0,01).",
       "setMenuAvailableLabel": "Disponible",
-      "setMenuLinesLabel": "Líneas del menú",
-      "addSetMenuLine": "+ Línea",
-      "setMenuLinePlaceholder": "Línea {{n}}",
-      "removeSetMenuLineAria": "Eliminar línea {{n}}"
+      "setMenuLinesLabel": "LÃ­neas del menÃº",
+      "addSetMenuLine": "+ LÃ­nea",
+      "setMenuLinePlaceholder": "LÃ­nea {{n}}",
+      "removeSetMenuLineAria": "Eliminar lÃ­nea {{n}}"
     },
     "guest": {
       "emptyNoItemsForToday": "No hay platos programados para hoy.",
-      "emptyNoItemsForWeekday": "No hay platos programados para este día de la semana.",
+      "emptyNoItemsForWeekday": "No hay platos programados para este dÃ­a de la semana.",
       "emptyNoMenuItems": "No hay platos disponibles en este momento.",
-      "setMenuToday": "Menú del día",
-      "todaysMenuHint": "Selección del día",
-      "dailyMenuButton": "Menú del día",
-      "weeklyMenuButton": "Menú semanal",
-      "backToMainMenu": "Volver al menú"
+      "setMenuToday": "MenÃº del dÃ­a",
+      "todaysMenuHint": "SelecciÃ³n del dÃ­a",
+      "dailyMenuButton": "MenÃº del dÃ­a",
+      "weeklyMenuButton": "MenÃº semanal",
+      "backToMainMenu": "Volver al menÃº"
     }
   },
   "pricing": {
-    "maxTables": "Máx. mesas",
+    "maxTables": "MÃ¡x. mesas",
     "features": {
       "cardPayments": "Pagos con tarjeta (clientes)",
-      "qrMenu": "Menú por QR (clientes)",
-      "callWaiter": "Botón «Llamar al camarero»",
+      "qrMenu": "MenÃº por QR (clientes)",
+      "callWaiter": "BotÃ³n Â«Llamar al camareroÂ»",
       "reports": "Informes del manager",
       "bookings": "Reservas",
       "realtimeUpdates": "Actualizaciones en tiempo real (SSE)",
@@ -362,26 +362,26 @@
       "kitchenBarScreens": "Pantallas de Cocina y Bar",
       "paymentLock": "Bloqueo de cambios durante el pago",
       "menuUnavailable": "Marcar productos no disponibles",
-      "multilanguageUI": "Interfaz multilingüe",
-      "menuDescriptionTranslation": "Traducción automática de descripciones del menú",
+      "multilanguageUI": "Interfaz multilingÃ¼e",
+      "menuDescriptionTranslation": "TraducciÃ³n automÃ¡tica de descripciones del menÃº",
       "sseTablesLive": "Actualizaciones en vivo de mesas y pedidos (SSE)",
       "ecoBon": "ECO BON (recibo digital PDF)",
-      "fiscalNetIntegration": "Integración FiscalNet / otra impresora fiscal",
+      "fiscalNetIntegration": "IntegraciÃ³n FiscalNet / otra impresora fiscal",
       "unlimitedDevicesPerRestaurant": "Dispositivos ilimitados por restaurante"
     }
   },
   "client": {
     "callWaiter": "Llamar al camarero",
-    "callWaiterConfirm": "¿Llamar al camarero a tu mesa?",
+    "callWaiterConfirm": "Â¿Llamar al camarero a tu mesa?",
     "called": "Se ha llamado al camarero.",
     "close": "Cerrar",
     "myOrder": "Mi pedido",
-    "backToMenu": "Volver al menú",
+    "backToMenu": "Volver al menÃº",
     "noOrder": "No hay pedido activo en esta mesa.",
-    "noItems": "Tu pedido está vacío.",
-    "orderError": "No se pudo cargar el pedido. Inténtalo de nuevo.",
+    "noItems": "Tu pedido estÃ¡ vacÃ­o.",
+    "orderError": "No se pudo cargar el pedido. IntÃ©ntalo de nuevo.",
     "retry": "Reintentar",
-    "items": "Artículos",
+    "items": "ArtÃ­culos",
     "subtotal": "Subtotal",
     "theme": "Tema",
     "light": "Claro",
@@ -391,52 +391,52 @@
     "ecoBonShare": "Compartir",
     "ecoBonDownload": "Descargar PDF",
     "ecoBonCopyLink": "Copiar enlace",
-    "ecoBonError": "No se pudo generar el ECO BON. Inténtalo de nuevo.",
+    "ecoBonError": "No se pudo generar el ECO BON. IntÃ©ntalo de nuevo.",
     "ecoBonShareCopied": "Enlace ECO BON copiado.",
-    "ecoBonRateLimited": "Demasiadas solicitudes ECO BON. Espera e inténtalo de nuevo."
+    "ecoBonRateLimited": "Demasiadas solicitudes ECO BON. Espera e intÃ©ntalo de nuevo."
   },
   "forgotPassword": {
-    "title": "Restablecer contraseña",
-    "subtitle": "Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.",
-    "emailPlaceholder": "Correo electrónico",
+    "title": "Restablecer contraseÃ±a",
+    "subtitle": "Introduce tu email y te enviaremos un enlace para restablecer tu contraseÃ±a.",
+    "emailPlaceholder": "Correo electrÃ³nico",
     "submit": "Enviar enlace",
-    "backToLogin": "Volver al inicio de sesión",
-    "successTitle": "¡Email enviado!",
-    "successMessage": "Si existe una cuenta con ese correo, recibirás un enlace de restablecimiento en breve.",
-    "error": "Algo salió mal. Inténtalo de nuevo.",
-    "linkText": "¿Olvidaste tu contraseña?"
+    "backToLogin": "Volver al inicio de sesiÃ³n",
+    "successTitle": "Â¡Email enviado!",
+    "successMessage": "Si existe una cuenta con ese correo, recibirÃ¡s un enlace de restablecimiento en breve.",
+    "error": "Algo saliÃ³ mal. IntÃ©ntalo de nuevo.",
+    "linkText": "Â¿Olvidaste tu contraseÃ±a?"
   },
   "verifyEmail": {
-    "title": "Verificación de email",
-    "verifying": "Verificando tu dirección de correo…",
-    "successTitle": "¡Email verificado!",
-    "successMessage": "Tu dirección de correo ha sido confirmada. Ahora puedes usar todas las funciones.",
-    "invalidToken": "Este enlace de verificación no es válido o ha expirado.",
-    "error": "La verificación falló. Inténtalo de nuevo o solicita un nuevo enlace.",
-    "backToLogin": "Volver al inicio de sesión"
+    "title": "VerificaciÃ³n de email",
+    "verifying": "Verificando tu direcciÃ³n de correoâ€¦",
+    "successTitle": "Â¡Email verificado!",
+    "successMessage": "Tu direcciÃ³n de correo ha sido confirmada. Ahora puedes usar todas las funciones.",
+    "invalidToken": "Este enlace de verificaciÃ³n no es vÃ¡lido o ha expirado.",
+    "error": "La verificaciÃ³n fallÃ³. IntÃ©ntalo de nuevo o solicita un nuevo enlace.",
+    "backToLogin": "Volver al inicio de sesiÃ³n"
   },
   "resetPassword": {
-    "title": "Establecer nueva contraseña",
-    "subtitle": "Elige una nueva contraseña para tu cuenta.",
-    "passwordPlaceholder": "Nueva contraseña",
-    "confirmPlaceholder": "Confirmar contraseña",
-    "submit": "Restablecer contraseña",
-    "backToLogin": "Volver al inicio de sesión",
-    "successTitle": "¡Contraseña cambiada!",
-    "successMessage": "Tu contraseña ha sido actualizada. Ahora puedes iniciar sesión con tu nueva contraseña.",
-    "invalidToken": "Este enlace de restablecimiento no es válido o ha expirado.",
-    "mismatch": "Las contraseñas no coinciden.",
-    "error": "Algo salió mal. Inténtalo de nuevo."
+    "title": "Establecer nueva contraseÃ±a",
+    "subtitle": "Elige una nueva contraseÃ±a para tu cuenta.",
+    "passwordPlaceholder": "Nueva contraseÃ±a",
+    "confirmPlaceholder": "Confirmar contraseÃ±a",
+    "submit": "Restablecer contraseÃ±a",
+    "backToLogin": "Volver al inicio de sesiÃ³n",
+    "successTitle": "Â¡ContraseÃ±a cambiada!",
+    "successMessage": "Tu contraseÃ±a ha sido actualizada. Ahora puedes iniciar sesiÃ³n con tu nueva contraseÃ±a.",
+    "invalidToken": "Este enlace de restablecimiento no es vÃ¡lido o ha expirado.",
+    "mismatch": "Las contraseÃ±as no coinciden.",
+    "error": "Algo saliÃ³ mal. IntÃ©ntalo de nuevo."
   },
   "staff": {
     "confirm": "Confirmar",
     "reset": "Reset",
-    "resetConfirm": "¿Resetear el carrito local (Dexie) y el estado del formulario para la mesa actual?",
+    "resetConfirm": "Â¿Resetear el carrito local (Dexie) y el estado del formulario para la mesa actual?",
     "moveTo": "Mover a",
     "snoozeWaiter": "Resuelto"
   },
   "sidebar": {
-    "manage": "Gestión",
+    "manage": "GestiÃ³n",
     "reports": "Informes",
     "loginLogoutReport": "Sign-in / sign-out",
     "salesReports": "Sales & accounting"
@@ -448,7 +448,7 @@
     "startDate": "From",
     "endDate": "To",
     "load": "Load report",
-    "loading": "Loading…",
+    "loading": "Loadingâ€¦",
     "empty": "No events in this date range.",
     "error": "Could not load the report.",
     "noRestaurant": "Restaurant context is missing; sign in again as a manager.",
@@ -471,7 +471,7 @@
     "endDate": "To",
     "topN": "Top (max 100)",
     "load": "Load reports",
-    "loading": "Loading…",
+    "loading": "Loadingâ€¦",
     "empty": "No data loaded yet.",
     "emptySales": "No closed orders in this date range.",
     "emptyTop": "No product lines in this date range.",
@@ -479,7 +479,7 @@
     "invalidRange": "The start date must be on or before the end date.",
     "error": "Could not load the reports.",
     "downloadError": "Could not download the file.",
-    "downloading": "Downloading…",
+    "downloading": "Downloadingâ€¦",
     "salesSummaryTitle": "Sales summary",
     "closedOrderCount": "Closed orders:",
     "colCurrency": "Currency",
@@ -501,10 +501,10 @@
     "startDate": "Desde",
     "endDate": "Hasta",
     "load": "Cargar informe",
-    "loading": "Cargando…",
+    "loading": "Cargandoâ€¦",
     "empty": "No hay pedidos en este rango.",
     "emptyTotal": "No hay pedidos en este periodo.",
-    "noRestaurant": "Falta el contexto del restaurante; inicia sesión de nuevo.",
+    "noRestaurant": "Falta el contexto del restaurante; inicia sesiÃ³n de nuevo.",
     "invalidRange": "La fecha de inicio debe ser anterior o igual a la de fin.",
     "error": "No se pudieron cargar los pedidos.",
     "notLoaded": "Elige un rango y carga el informe.",
@@ -513,39 +513,39 @@
     "colTable": "Mesa",
     "colCreated": "Creado",
     "colStatus": "Estado",
-    "colItems": "Artículos",
+    "colItems": "ArtÃ­culos",
     "colTotal": "Total",
     "colOrderTotal": "Total pedido",
     "colOrders": "Pedidos",
     "colCurrency": "Moneda",
-    "colStaff": "Último staff",
+    "colStaff": "Ãšltimo staff",
     "statusOpen": "Abierto",
     "statusClosed": "Cerrado",
-    "showItems": "Artículos",
+    "showItems": "ArtÃ­culos",
     "hideItems": "Ocultar",
-    "noItems": "Sin líneas en este pedido."
+    "noItems": "Sin lÃ­neas en este pedido."
   },
   "manageStaff": {
-    "title": "Añadir cuenta de personal",
-    "subtitle": "Crea credenciales de acceso para un empleado. Puede usar la app inmediatamente; las cuentas de personal no requieren verificación de email.",
+    "title": "AÃ±adir cuenta de personal",
+    "subtitle": "Crea credenciales de acceso para un empleado. Puede usar la app inmediatamente; las cuentas de personal no requieren verificaciÃ³n de email.",
     "name": "Nombre",
     "surname": "Apellidos",
     "email": "Email",
-    "phone": "Teléfono (opcional)",
-    "password": "Contraseña",
-    "confirmPassword": "Confirmar contraseña",
+    "phone": "TelÃ©fono (opcional)",
+    "password": "ContraseÃ±a",
+    "confirmPassword": "Confirmar contraseÃ±a",
     "submit": "Crear usuario de personal",
     "required": "Este campo es obligatorio.",
-    "emailInvalid": "Introduce una dirección de email válida.",
-    "passwordRules": "Usa al menos 8 caracteres con mayúsculas y minúsculas, un número y uno de: @$!%*?&",
-    "passwordMismatch": "Las contraseñas no coinciden.",
+    "emailInvalid": "Introduce una direcciÃ³n de email vÃ¡lida.",
+    "passwordRules": "Usa al menos 8 caracteres con mayÃºsculas y minÃºsculas, un nÃºmero y uno de: @$!%*?&",
+    "passwordMismatch": "Las contraseÃ±as no coinciden.",
     "successTitle": "Personal creado",
-    "successBody": "El nuevo empleado puede iniciar sesión con el email y la contraseña que configuraste.",
-    "errorGeneric": "No se pudo crear el usuario de personal. Revisa los datos o inténtalo de nuevo.",
+    "successBody": "El nuevo empleado puede iniciar sesiÃ³n con el email y la contraseÃ±a que configuraste.",
+    "errorGeneric": "No se pudo crear el usuario de personal. Revisa los datos o intÃ©ntalo de nuevo.",
     "listTitle": "Cuentas de personal",
-    "listSubtitle": "Desactiva el acceso para bloquear el inicio de sesión sin eliminar la cuenta.",
-    "listLoading": "Cargando personal…",
-    "listEmpty": "Aún no hay cuentas de personal.",
+    "listSubtitle": "Desactiva el acceso para bloquear el inicio de sesiÃ³n sin eliminar la cuenta.",
+    "listLoading": "Cargando personalâ€¦",
+    "listEmpty": "AÃºn no hay cuentas de personal.",
     "listLoadError": "No se pudo cargar la lista de personal.",
     "refresh": "Actualizar",
     "colName": "Nombre",
@@ -558,26 +558,26 @@
     "disable": "Desactivar acceso",
     "enable": "Reactivar acceso",
     "disableSuccessTitle": "Acceso desactivado",
-    "disableSuccessBody": "Este empleado ya no puede iniciar sesión.",
+    "disableSuccessBody": "Este empleado ya no puede iniciar sesiÃ³n.",
     "disableError": "No se pudo desactivar el acceso.",
     "enableSuccessTitle": "Acceso restaurado",
-    "enableSuccessBody": "Este empleado puede iniciar sesión de nuevo.",
+    "enableSuccessBody": "Este empleado puede iniciar sesiÃ³n de nuevo.",
     "enableError": "No se pudo reactivar el acceso."
   },
   "resellerDashboard": {
     "title": "Sus restaurantes",
     "subtitle": "Restaurantes que ha provisionado para sus clientes.",
-    "addRestaurant": "Añadir restaurante",
-    "loading": "Cargando…",
-    "empty": "Aún no hay restaurantes. Use Añadir restaurante para el primero.",
+    "addRestaurant": "AÃ±adir restaurante",
+    "loading": "Cargandoâ€¦",
+    "empty": "AÃºn no hay restaurantes. Use AÃ±adir restaurante para el primero.",
     "colName": "Restaurante",
     "colType": "Tipo",
     "colTables": "Mesas",
     "colManager": "Manager",
     "settings": "Ajustes",
-    "yes": "Sí",
+    "yes": "SÃ­",
     "no": "No",
-    "pageSize": "Por página",
+    "pageSize": "Por pÃ¡gina",
     "prev": "Anterior",
     "next": "Siguiente",
     "total": "en total",
@@ -593,26 +593,26 @@
     "selectType": "Seleccionar tipo",
     "currency": "Moneda",
     "city": "Ciudad",
-    "country": "País",
-    "address": "Dirección",
-    "registrationNumber": "Número de registro",
-    "zip": "Código postal",
+    "country": "PaÃ­s",
+    "address": "DirecciÃ³n",
+    "registrationNumber": "NÃºmero de registro",
+    "zip": "CÃ³digo postal",
     "name": "Nombre",
     "surname": "Apellido",
     "email": "Email",
-    "password": "Contraseña",
-    "phone": "Teléfono",
+    "password": "ContraseÃ±a",
+    "phone": "TelÃ©fono",
     "submit": "Crear restaurante",
     "successTitle": "Restaurante creado",
-    "errorGeneric": "No se pudo provisionar el restaurante. Revise los datos o inténtelo de nuevo."
+    "errorGeneric": "No se pudo provisionar el restaurante. Revise los datos o intÃ©ntelo de nuevo."
   },
   "reservations": {
     "title": "Reservas",
     "listTitle": "Lista de reservas",
     "refresh": "Actualizar",
-    "loading": "Cargando…",
-    "empty": "Aún no hay reservas.",
-    "colWhen": "Cuándo",
+    "loading": "Cargandoâ€¦",
+    "empty": "AÃºn no hay reservas.",
+    "colWhen": "CuÃ¡ndo",
     "colTable": "Mesa",
     "colName": "Cliente",
     "colParty": "Pers.",
@@ -622,38 +622,38 @@
     "delete": "Eliminar",
     "table": "Mesa",
     "tablePlaceholder": "Elige una mesa",
-    "emptyTables": "No hay mesas configuradas para este restaurante. Añade mesas primero.",
-    "loadingTables": "Cargando mesas…",
+    "emptyTables": "No hay mesas configuradas para este restaurante. AÃ±ade mesas primero.",
+    "loadingTables": "Cargando mesasâ€¦",
     "editTitle": "Editar reserva",
     "save": "Guardar cambios",
-    "cancelEdit": "Cancelar edición",
+    "cancelEdit": "Cancelar ediciÃ³n",
     "name": "Nombre",
-    "phone": "Teléfono",
+    "phone": "TelÃ©fono",
     "partySize": "Comensales",
     "dateTime": "Fecha y hora",
     "submit": "Enviar reserva",
-    "submitting": "Enviando…",
+    "submitting": "Enviandoâ€¦",
     "success": "Reserva guardada.",
     "eventIdLabel": "ID del evento:",
     "missingRestaurant": "No hay restaurante vinculado a esta cuenta.",
-    "invalidDate": "Fecha u hora no válida.",
-    "errorGeneric": "No se pudo enviar. Inténtalo de nuevo."
+    "invalidDate": "Fecha u hora no vÃ¡lida.",
+    "errorGeneric": "No se pudo enviar. IntÃ©ntalo de nuevo."
   },
   "gadminDashboard": {
     "title": "Resumen de la plataforma",
-    "subtitle": "Estadísticas de todos los restaurantes de la plataforma.",
+    "subtitle": "EstadÃ­sticas de todos los restaurantes de la plataforma.",
     "kpiRestaurants": "Restaurantes",
     "kpiTables": "Mesas",
     "kpiBars": "Bares",
     "kpiTypes": "Por tipo",
     "recentRestaurants": "Restaurantes",
     "viewAll": "Gestionar todos",
-    "loading": "Cargando…",
-    "empty": "Aún no hay restaurantes."
+    "loading": "Cargandoâ€¦",
+    "empty": "AÃºn no hay restaurantes."
   },
   "manageRestaurants": {
     "tabList": "Lista",
-    "tabAdd": "Añadir restaurante",
+    "tabAdd": "AÃ±adir restaurante",
     "colName": "Nombre",
     "colType": "Tipo",
     "colTables": "Mesas",
@@ -663,8 +663,8 @@
     "fieldType": "Tipo de restaurante",
     "fieldCurrency": "Moneda",
     "fieldHasBar": "Tiene bar",
-    "fieldMenu": "Menú",
-    "selectType": "Seleccionar tipo…",
+    "fieldMenu": "MenÃº",
+    "selectType": "Seleccionar tipoâ€¦",
     "tablesShort": "mesas",
     "barsShort": "bares",
     "create": "Crear",
@@ -677,14 +677,14 @@
     "refresh": "Actualizar",
     "prev": "Anterior",
     "next": "Siguiente",
-    "pageLabel": "Página {{page}} de {{total}}",
-    "loading": "Cargando…",
+    "pageLabel": "PÃ¡gina {{page}} de {{total}}",
+    "loading": "Cargandoâ€¦",
     "empty": "No se encontraron restaurantes.",
-    "yes": "Sí",
+    "yes": "SÃ­",
     "no": "No",
     "editTitle": "Editar restaurante",
     "deleteTitle": "Eliminar restaurante",
-    "deleteConfirm": "¿Eliminar «{{name}}»? Esta acción no se puede deshacer.",
+    "deleteConfirm": "Â¿Eliminar Â«{{name}}Â»? Esta acciÃ³n no se puede deshacer.",
     "detailsTitle": "Detalles del restaurante",
     "errorTitle": "Error",
     "loadError": "No se pudieron cargar los restaurantes.",
@@ -704,84 +704,85 @@
     "orderHistory": "Historial de pedidos",
     "bookings": "Bookings",
     "tables": "Mesas",
-    "menu": "Menú",
+    "menu": "MenÃº",
     "staff": "Personal",
-    "qrCodes": "Códigos QR",
+    "qrCodes": "CÃ³digos QR",
     "restaurants": "Restaurantes",
-    "subscriptionProducts": "Productos de suscripción",
+    "subscriptionProducts": "Productos de suscripciÃ³n",
     "resellers": "Revendedores",
-    "addRestaurant": "Añadir restaurante"
+    "addRestaurant": "AÃ±adir restaurante",
+    "recipes": "Recetas"
   },
   "header": {
     "settings": "Ajustes",
     "payments": "Pagos",
     "account": "Cuenta",
-    "logout": "Cerrar sesión",
+    "logout": "Cerrar sesiÃ³n",
     "toggleSidebar": "Mostrar/ocultar barra lateral",
-    "openUserMenu": "Abrir menú de usuario",
+    "openUserMenu": "Abrir menÃº de usuario",
     "openLanguagePicker": "Abrir selector de idioma",
     "openThemePicker": "Abrir selector de tema",
     "sendFeedback": "Enviar comentarios",
     "userAvatarAlt": "Avatar de usuario",
     "themeLight": "Claro",
     "themeDark": "Oscuro",
-    "themeAuto": "Automático"
+    "themeAuto": "AutomÃ¡tico"
   },
   "common": {
     "error": "Error",
-    "requestFailed": "La solicitud falló",
-    "loginFailed": "Error al iniciar sesión",
+    "requestFailed": "La solicitud fallÃ³",
+    "loginFailed": "Error al iniciar sesiÃ³n",
     "registrationFailed": "Error al registrarse",
-    "emailRequired": "El correo electrónico es obligatorio.",
-    "emailInvalid": "Introduce un correo electrónico válido."
+    "emailRequired": "El correo electrÃ³nico es obligatorio.",
+    "emailInvalid": "Introduce un correo electrÃ³nico vÃ¡lido."
   },
   "offline": {
-    "bannerPrimary": "OFFLINE — full POS mode (syncs when you reconnect)",
-    "bannerLimited": "OFFLINE! Cambia al dispositivo configurado para trabajo sin conexión."
+    "bannerPrimary": "OFFLINE â€” full POS mode (syncs when you reconnect)",
+    "bannerLimited": "OFFLINE! Cambia al dispositivo configurado para trabajo sin conexiÃ³n."
   },
   "pwa": {
-    "updateTitle": "Actualización disponible",
-    "updateBody": "Hay una nueva versión de la aplicación lista. Cierra todos los pedidos abiertos antes de actualizar y pulsa Actualizar ahora. La página se recargará.",
-    "updateBlockedOpenOrders": "Actualización bloqueada: aún hay pedidos abiertos. Ciérralos primero e inténtalo de nuevo.",
+    "updateTitle": "ActualizaciÃ³n disponible",
+    "updateBody": "Hay una nueva versiÃ³n de la aplicaciÃ³n lista. Cierra todos los pedidos abiertos antes de actualizar y pulsa Actualizar ahora. La pÃ¡gina se recargarÃ¡.",
+    "updateBlockedOpenOrders": "ActualizaciÃ³n bloqueada: aÃºn hay pedidos abiertos. CiÃ©rralos primero e intÃ©ntalo de nuevo.",
     "updateNow": "Actualizar ahora",
-    "later": "Más tarde",
-    "updating": "Actualizando…"
+    "later": "MÃ¡s tarde",
+    "updating": "Actualizandoâ€¦"
   },
   "kitchen": {
     "title": "Cocina",
     "enableSound": "Activar sonido",
     "soundOff": "Sonido: APAGADO",
     "soundOn": "Sonido: ENCENDIDO",
-    "empty": "Aún no hay pedidos de comida activos.",
+    "empty": "AÃºn no hay pedidos de comida activos.",
     "colTable": "Mesa",
-    "colItems": "Artículos",
-    "itemsCount": "{{count}} artículos",
-    "lastUpdate": "Última actualización",
+    "colItems": "ArtÃ­culos",
+    "itemsCount": "{{count}} artÃ­culos",
+    "lastUpdate": "Ãšltima actualizaciÃ³n",
     "callWaiter": "Llamar al camarero",
-    "colItem": "Artículo",
+    "colItem": "ArtÃ­culo",
     "colQty": "Cant.",
-    "colCategory": "Categoría",
-    "setMenuName": "Menú del día",
+    "colCategory": "CategorÃ­a",
+    "setMenuName": "MenÃº del dÃ­a",
     "toastWaiterOk": "Se ha llamado al camarero para recoger.",
     "toastWaiterFail": "No se pudo llamar al camarero.",
     "toastNewOrderTitle": "Nuevo pedido",
     "toastNewOrderBody": "Nuevo pedido en la mesa {{table}}.",
-    "toastNewItemTitle": "Artículo nuevo",
-    "toastNewItemBody": "+ {{name}} ×{{qty}} (mesa {{table}})",
+    "toastNewItemTitle": "ArtÃ­culo nuevo",
+    "toastNewItemBody": "+ {{name}} Ã—{{qty}} (mesa {{table}})",
     "toastQtyUpTitle": "Cantidad aumentada",
-    "toastQtyUpBody": "↑ {{name}}: {{prev}} → {{next}} (mesa {{table}})",
+    "toastQtyUpBody": "â†‘ {{name}}: {{prev}} â†’ {{next}} (mesa {{table}})",
     "toastQtyDownTitle": "Cantidad reducida",
-    "toastQtyDownBody": "↓ {{name}}: {{prev}} → {{next}} (mesa {{table}})",
-    "toastItemDeletedTitle": "Artículo eliminado",
-    "toastItemDeletedBody": "− {{name}} (mesa {{table}})"
+    "toastQtyDownBody": "â†“ {{name}}: {{prev}} â†’ {{next}} (mesa {{table}})",
+    "toastItemDeletedTitle": "ArtÃ­culo eliminado",
+    "toastItemDeletedBody": "âˆ’ {{name}} (mesa {{table}})"
   },
   "push": {
     "kitchenTitle": "Cocina",
     "barTitle": "Bar",
     "tableTitle": "Mesa",
-    "defaultTitle": "Notificación",
+    "defaultTitle": "NotificaciÃ³n",
     "pickupReady": "Pedido listo para recoger",
-    "pickupReadyTable": "Pedido listo para recoger — {{table}}",
+    "pickupReadyTable": "Pedido listo para recoger â€” {{table}}",
     "guestWaiterCall": "El cliente llama al camarero",
     "defaultBody": "Nuevo evento"
   },
@@ -790,46 +791,46 @@
     "enableSound": "Activar sonido",
     "soundOff": "Sonido: APAGADO",
     "soundOn": "Sonido: ENCENDIDO",
-    "empty": "Aún no hay pedidos de bebidas activos.",
+    "empty": "AÃºn no hay pedidos de bebidas activos.",
     "colTable": "Mesa",
-    "colItems": "Artículos",
-    "itemsCount": "{{count}} artículos",
-    "lastUpdate": "Última actualización",
+    "colItems": "ArtÃ­culos",
+    "itemsCount": "{{count}} artÃ­culos",
+    "lastUpdate": "Ãšltima actualizaciÃ³n",
     "callWaiter": "Llamar al camarero",
-    "colItem": "Artículo",
+    "colItem": "ArtÃ­culo",
     "colQty": "Cant.",
-    "colCategory": "Categoría",
+    "colCategory": "CategorÃ­a",
     "toastWaiterOk": "Se ha llamado al camarero para recogida en bar.",
     "toastWaiterFail": "No se pudo llamar al camarero.",
     "toastNewOrderTitle": "Nuevo pedido",
     "toastNewOrderBody": "Nuevo pedido en la mesa {{table}}.",
-    "toastNewItemTitle": "Artículo nuevo",
-    "toastNewItemBody": "+ {{name}} ×{{qty}} (mesa {{table}})",
+    "toastNewItemTitle": "ArtÃ­culo nuevo",
+    "toastNewItemBody": "+ {{name}} Ã—{{qty}} (mesa {{table}})",
     "toastQtyUpTitle": "Cantidad aumentada",
-    "toastQtyUpBody": "↑ {{name}}: {{prev}} → {{next}} (mesa {{table}})",
+    "toastQtyUpBody": "â†‘ {{name}}: {{prev}} â†’ {{next}} (mesa {{table}})",
     "toastQtyDownTitle": "Cantidad reducida",
-    "toastQtyDownBody": "↓ {{name}}: {{prev}} → {{next}} (mesa {{table}})",
-    "toastItemDeletedTitle": "Artículo eliminado",
-    "toastItemDeletedBody": "− {{name}} (mesa {{table}})"
+    "toastQtyDownBody": "â†“ {{name}}: {{prev}} â†’ {{next}} (mesa {{table}})",
+    "toastItemDeletedTitle": "ArtÃ­culo eliminado",
+    "toastItemDeletedBody": "âˆ’ {{name}} (mesa {{table}})"
   },
   "restaurantSettings": {
     "title": "Ajustes del restaurante",
-    "currencyHint": "Moneda operativa para menú y pedidos. La suscripción puede usar otra moneda (Stripe).",
+    "currencyHint": "Moneda operativa para menÃº y pedidos. La suscripciÃ³n puede usar otra moneda (Stripe).",
     "noRestaurant": "No hay restaurante vinculado a esta cuenta; no se puede guardar la moneda.",
     "currency": "Moneda",
-    "saving": "Guardando…",
+    "saving": "Guardandoâ€¦",
     "saveCurrency": "Guardar moneda",
     "paymentsTitle": "Pagos",
-    "paymentsBody": "Los cargos de suscripción se procesan con Stripe. Facturas y recibos en Stripe y por correo.",
+    "paymentsBody": "Los cargos de suscripciÃ³n se procesan con Stripe. Facturas y recibos en Stripe y por correo.",
     "paymentsConnectStripe": "Conectar Stripe",
     "paymentsRefreshStatus": "Actualizar estado",
-    "paymentsLoading": "Cargando estado de pagos…",
+    "paymentsLoading": "Cargando estado de pagosâ€¦",
     "paymentsStripeStatus": "Estado de Stripe Connect",
     "paymentsStripeAccount": "Cuenta conectada",
     "paymentsStripeFlags": "Indicadores de la cuenta",
     "paymentsStripeConnectErrorTitle": "No se pudo cargar el estado de Stripe",
     "paymentsOnboardingPending": "Onboarding pendiente",
-    "paymentsCardAfterOnboarding": "Los pagos con tarjeta estarán disponibles cuando se complete el onboarding de Stripe.",
+    "paymentsCardAfterOnboarding": "Los pagos con tarjeta estarÃ¡n disponibles cuando se complete el onboarding de Stripe.",
     "paymentsFlagChargesEnabled": "Cobros activados",
     "paymentsFlagChargesDisabled": "Cobros desactivados",
     "paymentsFlagPayoutsEnabled": "Pagos activados",
@@ -839,98 +840,98 @@
     "paymentsStatusNotConnected": "No conectado",
     "paymentsStatusConnected": "Conectado",
     "paymentsStatusPending": "Pendiente",
-    "subscriptionTitle": "Suscripción",
-    "subscriptionCancelHint": "Cancela la suscripción de Stripe. Se cerrará la sesión tras el éxito.",
-    "canceling": "Procesando…",
-    "cancelSubscription": "Cancelar suscripción",
-    "toastSavedBody": "Moneda operativa y de precios del menú actualizada.",
+    "subscriptionTitle": "SuscripciÃ³n",
+    "subscriptionCancelHint": "Cancela la suscripciÃ³n de Stripe. Se cerrarÃ¡ la sesiÃ³n tras el Ã©xito.",
+    "canceling": "Procesandoâ€¦",
+    "cancelSubscription": "Cancelar suscripciÃ³n",
+    "toastSavedBody": "Moneda operativa y de precios del menÃº actualizada.",
     "toastSavedTitle": "Ajustes guardados",
     "toastCurrencyErrorTitle": "No se pudo actualizar la moneda",
-    "confirmCancelSubscription": "¿Seguro que quieres cancelar la suscripción? Perderás funciones de gestor al final del periodo (Stripe).",
-    "loadingSubscriptionStatus": "Cargando estado de la suscripción…",
-    "subscriptionEndsOn": "Tu suscripción finaliza el {{date}}.",
+    "confirmCancelSubscription": "Â¿Seguro que quieres cancelar la suscripciÃ³n? PerderÃ¡s funciones de gestor al final del periodo (Stripe).",
+    "loadingSubscriptionStatus": "Cargando estado de la suscripciÃ³nâ€¦",
+    "subscriptionEndsOn": "Tu suscripciÃ³n finaliza el {{date}}.",
     "subscriptionEndsOnHint": "Puedes usar las funciones de gestor hasta esa fecha. En Stripe puede seguir apareciendo como activa hasta entonces.",
-    "cancelSubscriptionSuccessTitle": "Cancelación programada",
-    "cancelSubscriptionSuccessBody": "Tu suscripción finaliza el {{date}}. Se cerrará la sesión ahora; puedes seguir usando la cuenta hasta esa fecha.",
-    "cancelSubscriptionErrorTitle": "No se pudo cancelar la suscripción",
+    "cancelSubscriptionSuccessTitle": "CancelaciÃ³n programada",
+    "cancelSubscriptionSuccessBody": "Tu suscripciÃ³n finaliza el {{date}}. Se cerrarÃ¡ la sesiÃ³n ahora; puedes seguir usando la cuenta hasta esa fecha.",
+    "cancelSubscriptionErrorTitle": "No se pudo cancelar la suscripciÃ³n",
     "printerAgentEnrollment": {
-      "title": "Configuración del Printer Agent",
-      "hint": "Genera un código de 10 caracteres para el Printer Agent en el primer arranque. Cada código puede usarse un número limitado de veces hasta que caduque.",
+      "title": "ConfiguraciÃ³n del Printer Agent",
+      "hint": "Genera un cÃ³digo de 10 caracteres para el Printer Agent en el primer arranque. Cada cÃ³digo puede usarse un nÃºmero limitado de veces hasta que caduque.",
       "downloadLatest": "Descargar instalador URS Printer Agent (Windows x64)",
-      "generate": "Generar nuevo código",
-      "generating": "Generando…",
-      "loading": "Cargando códigos…",
-      "lastCodeLabel": "Nuevo código (cópialo ahora — no se volverá a mostrar):",
-      "copyHint": "Guarda el código de forma segura. Cualquiera con él puede registrar un agent para tu restaurante.",
+      "generate": "Generar nuevo cÃ³digo",
+      "generating": "Generandoâ€¦",
+      "loading": "Cargando cÃ³digosâ€¦",
+      "lastCodeLabel": "Nuevo cÃ³digo (cÃ³pialo ahora â€” no se volverÃ¡ a mostrar):",
+      "copyHint": "Guarda el cÃ³digo de forma segura. Cualquiera con Ã©l puede registrar un agent para tu restaurante.",
       "tableCreated": "Creado",
       "tableExpires": "Caduca",
       "tableUses": "Usos restantes",
       "tableRevoked": "Revocado",
       "revoke": "Revocar",
-      "loadError": "No se pudieron cargar los códigos",
-      "generateError": "No se pudo generar el código",
-      "revokeError": "No se pudo revocar el código",
-      "deleteConfirm": "¿Eliminar este código? No elimina los PC ya registrados — usa «Agents registrados» más abajo.",
+      "loadError": "No se pudieron cargar los cÃ³digos",
+      "generateError": "No se pudo generar el cÃ³digo",
+      "revokeError": "No se pudo revocar el cÃ³digo",
+      "deleteConfirm": "Â¿Eliminar este cÃ³digo? No elimina los PC ya registrados â€” usa Â«Agents registradosÂ» mÃ¡s abajo.",
       "installationsTitle": "Agents registrados (PC)",
-      "installationsHint": "Cada instalación o nuevo registro crea un agent distinto. Elimina aquí los agents antiguos para limpiar la base de datos y la VPN.",
-      "installationsLoading": "Cargando agents…",
-      "installationsEmpty": "Ningún agent registrado.",
+      "installationsHint": "Cada instalaciÃ³n o nuevo registro crea un agent distinto. Elimina aquÃ­ los agents antiguos para limpiar la base de datos y la VPN.",
+      "installationsLoading": "Cargando agentsâ€¦",
+      "installationsEmpty": "NingÃºn agent registrado.",
       "installationsAgentId": "ID del agent",
       "installationsEnrolled": "Registrado",
-      "installationsHeartbeat": "Último heartbeat",
+      "installationsHeartbeat": "Ãšltimo heartbeat",
       "installationsPrinters": "Impresoras reportadas",
-      "installationsVpn": "Dirección VPN",
+      "installationsVpn": "DirecciÃ³n VPN",
       "installationsRemove": "Eliminar agent",
-      "installationsRemoveConfirm": "¿Eliminar este agent del restaurante? Se borran el registro, el heartbeat y el peer WireGuard. La impresora predeterminada se actualiza si hace falta.",
+      "installationsRemoveConfirm": "Â¿Eliminar este agent del restaurante? Se borran el registro, el heartbeat y el peer WireGuard. La impresora predeterminada se actualiza si hace falta.",
       "installationsRemoveError": "No se pudo eliminar el agent",
       "installationsRemovedTitle": "Agent eliminado",
-      "installationsRemovedBody": "El agent se eliminó de la base de datos.",
+      "installationsRemovedBody": "El agent se eliminÃ³ de la base de datos.",
       "installationsLoadError": "No se pudieron cargar los agents registrados",
-      "deleteError": "No se pudo eliminar el código",
-      "toastDeletedTitle": "Código eliminado",
-      "toastDeletedBody": "Código de registro eliminado.",
-      "yes": "Sí",
-      "revokeConfirm": "¿Revocar este código? Los agents ya registrados siguen funcionando.",
-      "noCodes": "Aún no hay códigos de registro.",
-      "toastGeneratedTitle": "Código creado",
-      "toastGeneratedBody": "Copia el código ahora; no podrá recuperarse después.",
+      "deleteError": "No se pudo eliminar el cÃ³digo",
+      "toastDeletedTitle": "CÃ³digo eliminado",
+      "toastDeletedBody": "CÃ³digo de registro eliminado.",
+      "yes": "SÃ­",
+      "revokeConfirm": "Â¿Revocar este cÃ³digo? Los agents ya registrados siguen funcionando.",
+      "noCodes": "AÃºn no hay cÃ³digos de registro.",
+      "toastGeneratedTitle": "CÃ³digo creado",
+      "toastGeneratedBody": "Copia el cÃ³digo ahora; no podrÃ¡ recuperarse despuÃ©s.",
       "copy": "Copiar",
       "copied": "Copiado",
-      "toastCopiedTitle": "Código copiado",
-      "toastCopiedBody": "Código de registro copiado al portapapeles.",
+      "toastCopiedTitle": "CÃ³digo copiado",
+      "toastCopiedBody": "CÃ³digo de registro copiado al portapapeles.",
       "toastCopyFailedTitle": "Error al copiar",
-      "toastCopyFailedBody": "No se pudo copiar el código. Selecciónalo y cópialo manualmente."
+      "toastCopyFailedBody": "No se pudo copiar el cÃ³digo. SelecciÃ³nalo y cÃ³pialo manualmente."
     },
     "billPrinter": {
       "title": "Impresora no fiscal / cocina",
       "hint": "Elige la impresora ESC/POS para pedidos de cocina (no fiscal). Las impresoras las informa el Printer Agent mediante heartbeat.",
-      "loading": "Cargando impresoras…",
+      "loading": "Cargando impresorasâ€¦",
       "noPrinters": "No hay impresoras informadas. Inicia el Printer Agent y verifica el heartbeat.",
       "label": "Impresora",
       "save": "Guardar",
-      "saving": "Guardando…",
+      "saving": "Guardandoâ€¦",
       "toastSavedTitle": "Ajustes guardados",
       "toastSavedBody": "Impresora no fiscal / cocina actualizada.",
       "toastErrorTitle": "No se pudo guardar la impresora",
-      "toastErrorBody": "Inténtalo de nuevo.",
+      "toastErrorBody": "IntÃ©ntalo de nuevo.",
       "pendingPrinterName": "Impresora guardada (pendiente de heartbeat del agent)",
-      "autoRefreshHint": "La lista se actualiza automáticamente cada 30 segundos.",
-      "autoRefreshFastHint": "Comprobación cada 10 segundos hasta que el agent informe una impresora o se resuelva la discrepancia de id.",
-      "mismatchWarning": "La impresora guardada ({{id}}) no está informada por el Printer Agent. Las cuentas no se imprimirán hasta que selecciones una impresora de la lista y pulses Guardar.",
+      "autoRefreshHint": "La lista se actualiza automÃ¡ticamente cada 30 segundos.",
+      "autoRefreshFastHint": "ComprobaciÃ³n cada 10 segundos hasta que el agent informe una impresora o se resuelva la discrepancia de id.",
+      "mismatchWarning": "La impresora guardada ({{id}}) no estÃ¡ informada por el Printer Agent. Las cuentas no se imprimirÃ¡n hasta que selecciones una impresora de la lista y pulses Guardar.",
       "refresh": "Actualizar lista"
     },
     "offlinePrimaryStaff": {
       "title": "Offline POS staff",
       "hint": "Choose one staff member (by email) who may use full offline mode on a single registered device.",
       "disclaimer": "Best for total internet outages on one dedicated tablet. If other devices stay online, table conflicts are possible.",
-      "loading": "Loading staff…",
+      "loading": "Loading staffâ€¦",
       "staffLabel": "Staff member",
-      "noneOption": "— None —",
+      "noneOption": "â€” None â€”",
       "deviceStatus": "Device",
       "deviceBound": "Registered",
-      "deviceNotBound": "Not registered — staff must open Manage orders while online",
+      "deviceNotBound": "Not registered â€” staff must open Manage orders while online",
       "save": "Save",
-      "saving": "Saving…",
+      "saving": "Savingâ€¦",
       "loadError": "Could not load offline POS settings",
       "saveError": "Could not save offline POS settings",
       "toastSavedTitle": "Offline POS saved",
@@ -941,17 +942,17 @@
   "feedbackModal": {
     "title": "Enviar comentarios",
     "closeAria": "Cerrar",
-    "intro": "Informa de un error o sugiere una mejora (máx. 1000 caracteres). Se incluye la página actual.",
+    "intro": "Informa de un error o sugiere una mejora (mÃ¡x. 1000 caracteres). Se incluye la pÃ¡gina actual.",
     "type": "Tipo",
     "bug": "Error",
     "improvement": "Mejora",
     "message": "Mensaje",
-    "placeholder": "Describe qué pasó o qué te gustaría…",
+    "placeholder": "Describe quÃ© pasÃ³ o quÃ© te gustarÃ­aâ€¦",
     "charsLeft": "Quedan {{count}}",
     "cancel": "Cancelar",
-    "sending": "Enviando…",
+    "sending": "Enviandoâ€¦",
     "send": "Enviar",
-    "toastThanksBody": "Gracias — el ticket #{{ticketId}} se ha enviado.",
+    "toastThanksBody": "Gracias â€” el ticket #{{ticketId}} se ha enviado.",
     "toastThanksTitle": "Comentarios",
     "toastErrorTitle": "No se pudo enviar el comentario"
   },
@@ -960,8 +961,8 @@
     "tabFree": "Mesas libres",
     "tabOccupied": "Mesas ocupadas",
     "total": "Total:",
-    "itemsLabel": "Artículos:",
-    "lastLabel": "Último:",
+    "itemsLabel": "ArtÃ­culos:",
+    "lastLabel": "Ãšltimo:",
     "updated": "Actualizado:",
     "by": "por",
     "kitchenPickup": "Recogida cocina",
@@ -969,36 +970,36 @@
     "pickedUp": "Recogido",
     "seeOrder": "Ver pedido",
     "openTable": "Abrir mesa",
-    "closeOrderConfirm": "¿Seguro que quieres cerrar este pedido?",
+    "closeOrderConfirm": "Â¿Seguro que quieres cerrar este pedido?",
     "cancel": "Cancelar",
     "closeOrder": "Cerrar pedido",
     "print": "Imprimir",
     "fiscalPrint": "Ticket fiscal",
     "fiscalPrintCard": "Ticket tarjeta",
     "fiscalPrintQueuedTitle": "Ticket fiscal",
-    "fiscalPrintQueuedBody": "El ticket fiscal se envió a la impresora.",
+    "fiscalPrintQueuedBody": "El ticket fiscal se enviÃ³ a la impresora.",
     "fiscalPrintNoPrinterTitle": "Ticket fiscal",
     "fiscalPrintNoPrinterBody": "No hay impresora fiscal configurada.",
     "fiscalPrintErrorTitle": "Ticket fiscal",
     "fiscalPrintErrorBody": "No se pudo enviar el ticket fiscal a la impresora.",
-    "openCashDrawer": "Abrir cajón",
-    "openCashDrawerQueuedTitle": "Cajón",
-    "openCashDrawerQueuedBody": "Comando de apertura del cajón enviado.",
-    "openCashDrawerErrorTitle": "Cajón",
-    "openCashDrawerErrorBody": "No se pudo abrir el cajón.",
+    "openCashDrawer": "Abrir cajÃ³n",
+    "openCashDrawerQueuedTitle": "CajÃ³n",
+    "openCashDrawerQueuedBody": "Comando de apertura del cajÃ³n enviado.",
+    "openCashDrawerErrorTitle": "CajÃ³n",
+    "openCashDrawerErrorBody": "No se pudo abrir el cajÃ³n.",
     "bookingsToday": "Reservas de hoy",
-    "bindOfflinePrimaryCta": "Registrar este dispositivo como TPV sin conexión",
-    "bindOfflinePrimaryBinding": "Registrando…",
-    "bindOfflinePrimaryHint": "Estás designado para el modo sin conexión completo. Registra este dispositivo para poder abrir mesas y confirmar pedidos sin internet.",
+    "bindOfflinePrimaryCta": "Registrar este dispositivo como TPV sin conexiÃ³n",
+    "bindOfflinePrimaryBinding": "Registrandoâ€¦",
+    "bindOfflinePrimaryHint": "EstÃ¡s designado para el modo sin conexiÃ³n completo. Registra este dispositivo para poder abrir mesas y confirmar pedidos sin internet.",
     "bindOfflinePrimarySuccessTitle": "Dispositivo registrado",
-    "bindOfflinePrimarySuccessBody": "Este dispositivo es ahora el TPV sin conexión. Los cambios se sincronizan al reconectarse.",
+    "bindOfflinePrimarySuccessBody": "Este dispositivo es ahora el TPV sin conexiÃ³n. Los cambios se sincronizan al reconectarse.",
     "bindOfflinePrimaryErrorTitle": "No se pudo registrar el dispositivo",
-    "offlinePrimaryDeviceActiveHint": "Este dispositivo está registrado para el modo sin conexión completo. Puedes abrir mesas y confirmar pedidos sin internet.",
-    "offlineSyncModalTitle": "Sincronización de pedidos sin conexión",
-    "offlineSyncCountdown": "La sincronización comienza en {{seconds}} segundos. Espera y no cierres la aplicación.",
-    "offlineSyncInProgress": "Sincronizando pedidos sin conexión con el servidor. Espera…",
-    "offlineSyncReconciling": "Actualizando el estado de las mesas desde el servidor. Espera…",
-    "nonPrimaryOfflineHint": "Sin conexión: solo puedes editar el pedido abierto en este dispositivo.",
+    "offlinePrimaryDeviceActiveHint": "Este dispositivo estÃ¡ registrado para el modo sin conexiÃ³n completo. Puedes abrir mesas y confirmar pedidos sin internet.",
+    "offlineSyncModalTitle": "SincronizaciÃ³n de pedidos sin conexiÃ³n",
+    "offlineSyncCountdown": "La sincronizaciÃ³n comienza en {{seconds}} segundos. Espera y no cierres la aplicaciÃ³n.",
+    "offlineSyncInProgress": "Sincronizando pedidos sin conexiÃ³n con el servidor. Esperaâ€¦",
+    "offlineSyncReconciling": "Actualizando el estado de las mesas desde el servidor. Esperaâ€¦",
+    "nonPrimaryOfflineHint": "Sin conexiÃ³n: solo puedes editar el pedido abierto en este dispositivo.",
     "printKitchen": "Imprimir cocina",
     "printKitchenQueuedTitle": "Cocina",
     "printKitchenQueuedBody": "Pedido enviado a la impresora de cocina.",
@@ -1008,56 +1009,56 @@
   "faq": {
     "navLink": "FAQ",
     "backHome": "Volver al inicio",
-    "sectionTitle": "Cómo funciona",
-    "sectionSubtitle": "Comportamiento real: plano de sala, modo sin conexión y flujo de invitados.",
+    "sectionTitle": "CÃ³mo funciona",
+    "sectionSubtitle": "Comportamiento real: plano de sala, modo sin conexiÃ³n y flujo de invitados.",
     "viewFull": "Ver todas las preguntas",
     "pageTitle": "Preguntas frecuentes",
-    "pageIntro": "Las respuestas reflejan cómo está construido U.R.S.: SSE en vivo, cola offline Dexie, roles JWT y menú público para invitados.",
+    "pageIntro": "Las respuestas reflejan cÃ³mo estÃ¡ construido U.R.S.: SSE en vivo, cola offline Dexie, roles JWT y menÃº pÃºblico para invitados.",
     "items": {
       "posApkDownload": {
-        "q": "¿Dónde descargo la app POS Android (APK)?",
-        "a": "Descarga la última APK de producción desde GitHub Releases. Instálala en la tableta con orígenes desconocidos activados; el build no está firmado. Cada push a production publica una nueva APK latest.",
-        "aIntro": "Las tabletas del personal pueden ejecutar la APK Capacitor POS en lugar de (o junto a) la PWA del navegador. El enlace de abajo apunta siempre a la última build de producción en GitHub Releases.",
-        "linkLabel": "Descargar la última APK URS-POS (Android)",
-        "linkUnset": "La URL de descarga no está configurada para este entorno — abre la página QRFE GitHub Releases y descarga URS-POS-prod.apk."
+        "q": "Â¿DÃ³nde descargo la app POS Android (APK)?",
+        "a": "Descarga la Ãºltima APK de producciÃ³n desde GitHub Releases. InstÃ¡lala en la tableta con orÃ­genes desconocidos activados; el build no estÃ¡ firmado. Cada push a production publica una nueva APK latest.",
+        "aIntro": "Las tabletas del personal pueden ejecutar la APK Capacitor POS en lugar de (o junto a) la PWA del navegador. El enlace de abajo apunta siempre a la Ãºltima build de producciÃ³n en GitHub Releases.",
+        "linkLabel": "Descargar la Ãºltima APK URS-POS (Android)",
+        "linkUnset": "La URL de descarga no estÃ¡ configurada para este entorno â€” abre la pÃ¡gina QRFE GitHub Releases y descarga URS-POS-prod.apk."
       },
       "pwaSupportedBrowsers": {
-        "q": "¿Qué navegadores funcionan mejor con U.R.S.?",
-        "a": "El producto es una PWA (Progressive Web App) y es más fiable en Google Chrome y Microsoft Edge. Firefox no está soportado. Safari no se ha probado. Algunas funciones dependen de capacidades del navegador que solo están disponibles de forma consistente en Chrome y Edge."
+        "q": "Â¿QuÃ© navegadores funcionan mejor con U.R.S.?",
+        "a": "El producto es una PWA (Progressive Web App) y es mÃ¡s fiable en Google Chrome y Microsoft Edge. Firefox no estÃ¡ soportado. Safari no se ha probado. Algunas funciones dependen de capacidades del navegador que solo estÃ¡n disponibles de forma consistente en Chrome y Edge."
       },
       "settingsCurrencyBeforeUse": {
-        "q": "¿Qué debo configurar antes de usar la app en servicio real?",
-        "a": "Antes del servicio en vivo, abre Ajustes y elige la moneda del restaurante para menús y pedidos. No puedes cambiar la moneda si alguna mesa tiene un pedido abierto—cierra primero esos pedidos."
+        "q": "Â¿QuÃ© debo configurar antes de usar la app en servicio real?",
+        "a": "Antes del servicio en vivo, abre Ajustes y elige la moneda del restaurante para menÃºs y pedidos. No puedes cambiar la moneda si alguna mesa tiene un pedido abiertoâ€”cierra primero esos pedidos."
       },
       "printerAgentDownload": {
-        "q": "¿Dónde descargo Printer Agent para Windows?",
-        "aIntro": "Printer Agent se ejecuta en un PC Windows x64 del restaurante, se conecta al backend e informa las impresoras mediante heartbeat. Tras instalarlo, genera un código de registro en Manager → Ajustes (sección Printer agent) y completa la configuración en ese equipo.",
+        "q": "Â¿DÃ³nde descargo Printer Agent para Windows?",
+        "aIntro": "Printer Agent se ejecuta en un PC Windows x64 del restaurante, se conecta al backend e informa las impresoras mediante heartbeat. Tras instalarlo, genera un cÃ³digo de registro en Manager â†’ Ajustes (secciÃ³n Printer agent) y completa la configuraciÃ³n en ese equipo.",
         "linkLabel": "Descargar URSPrinterAgentSetup.exe (Windows x64)",
-        "linkUnset": "La URL de descarga no está configurada — abre https://github.com/adrian-badulescu/Printer-Agent/releases y descarga URSPrinterAgentSetup.exe."
+        "linkUnset": "La URL de descarga no estÃ¡ configurada â€” abre https://github.com/adrian-badulescu/Printer-Agent/releases y descarga URSPrinterAgentSetup.exe."
       },
       "printerAgentInstall": {
-        "q": "¿Cómo instalo la impresora para la cuenta?",
-        "aIntro": "Estos pasos suponen un PC Windows x64 en el restaurante en la misma red que la impresora (Wi‑Fi o cable).",
+        "q": "Â¿CÃ³mo instalo la impresora para la cuenta?",
+        "aIntro": "Estos pasos suponen un PC Windows x64 en el restaurante en la misma red que la impresora (Wiâ€‘Fi o cable).",
         "step1": "Descarga el paquete oficial (enlace de arriba) y ejecuta el instalador.",
-        "step2": "Windows puede avisar de que la app no está firmada digitalmente — puedes continuar la instalación.",
-        "step3": "WireGuard se instala automáticamente. Si se abre una ventana de WireGuard, ciérrala; el servicio de túnel sigue configurado en segundo plano.",
-        "step4": "En Manager: Ajustes → Configuración Printer Agent, genera código de un solo uso y copia el código de 10 caracteres.",
-        "step5": "Pulsa la tecla Windows, busca « URS Printer Agent Configurator » y abre la aplicación.",
-        "step6": "Pega el código, confirma que se escaneará la red, selecciona la IP de la impresora encontrada y pulsa Siguiente.",
+        "step2": "Windows puede avisar de que la app no estÃ¡ firmada digitalmente â€” puedes continuar la instalaciÃ³n.",
+        "step3": "WireGuard se instala automÃ¡ticamente. Si se abre una ventana de WireGuard, ciÃ©rrala; el servicio de tÃºnel sigue configurado en segundo plano.",
+        "step4": "En Manager: Ajustes â†’ ConfiguraciÃ³n Printer Agent, genera cÃ³digo de un solo uso y copia el cÃ³digo de 10 caracteres.",
+        "step5": "Pulsa la tecla Windows, busca Â« URS Printer Agent Configurator Â» y abre la aplicaciÃ³n.",
+        "step6": "Pega el cÃ³digo, confirma que se escanearÃ¡ la red, selecciona la IP de la impresora encontrada y pulsa Siguiente.",
         "step7": "Nombra la impresora principal (p. ej. bill-printer), guarda y cierra el Configurator.",
-        "step8": "Vuelve a Ajustes, sección Cuenta (no fiscal) — impresora predeterminada: espera hasta unos 30 segundos a que aparezca en la lista, selecciónala y Guardar."
+        "step8": "Vuelve a Ajustes, secciÃ³n Cuenta (no fiscal) â€” impresora predeterminada: espera hasta unos 30 segundos a que aparezca en la lista, selecciÃ³nala y Guardar."
       },
       "printerAgentReconnectAfterNetwork": {
-        "q": "La impresión de la cuenta o Printer Agent dejó de funcionar tras un corte de Wi‑Fi o del hotspot. ¿Tengo que reiniciar el PC?",
-        "a": "Normalmente no. Primero reinicia el servicio de Windows URS Printer Agent (services.msc): reinicia el proceso del agente y vuelve a conectar con el backend y Redis. Si el agente usa un túnel VPN WireGuard, reinicia el servicio de túnel WireGuard de tu túnel, espera a que esté activo y luego reinicia de nuevo URS Printer Agent para que el túnel esté listo antes de la conexión. Reinicia el PC entero solo si esos pasos siguen fallando: restablece toda la pila de red y los servicios."
+        "q": "La impresiÃ³n de la cuenta o Printer Agent dejÃ³ de funcionar tras un corte de Wiâ€‘Fi o del hotspot. Â¿Tengo que reiniciar el PC?",
+        "a": "Normalmente no. Primero reinicia el servicio de Windows URS Printer Agent (services.msc): reinicia el proceso del agente y vuelve a conectar con el backend y Redis. Si el agente usa un tÃºnel VPN WireGuard, reinicia el servicio de tÃºnel WireGuard de tu tÃºnel, espera a que estÃ© activo y luego reinicia de nuevo URS Printer Agent para que el tÃºnel estÃ© listo antes de la conexiÃ³n. Reinicia el PC entero solo si esos pasos siguen fallando: restablece toda la pila de red y los servicios."
       },
       "fiscalAndEscposPrintRouting": {
-        "q": "¿Cómo se reparten las impresiones cuando tengo impresora fiscal y ESC/POS?",
+        "q": "Â¿CÃ³mo se reparten las impresiones cuando tengo impresora fiscal y ESC/POS?",
         "a": "Con fiscal activo y dos impresoras: Confirmar imprime solo cocina en ESC/POS; Imprimir imprime todo el carrito en la fiscal; Recibo fiscal imprime todo el carrito con IVA en la fiscal.",
-        "aIntro": "Cuando la impresión fiscal está activa (FiscalNet u otra impresora fiscal conectada vía Printer Agent) y también hay una impresora ESC/POS separada para la cuenta, los botones envían trabajos distintos:",
-        "tableAction": "Acción",
+        "aIntro": "Cuando la impresiÃ³n fiscal estÃ¡ activa (FiscalNet u otra impresora fiscal conectada vÃ­a Printer Agent) y tambiÃ©n hay una impresora ESC/POS separada para la cuenta, los botones envÃ­an trabajos distintos:",
+        "tableAction": "AcciÃ³n",
         "tablePrinter": "Impresora",
-        "tablePrints": "Qué se imprime",
+        "tablePrints": "QuÃ© se imprime",
         "rows": {
           "confirm": {
             "action": "Confirmar",
@@ -1077,109 +1078,171 @@
         }
       },
       "epsonFiscalPrinterInstall": {
-        "q": "¿Cómo instalo una impresora fiscal Epson?",
-        "a": "Guía en vídeo paso a paso para conectar y configurar una impresora fiscal Epson con U.R.S.",
-        "aIntro": "Mira el tutorial de abajo para la instalación y configuración completas.",
-        "linkLabel": "Vídeo: instalar impresora fiscal Epson"
+        "q": "Â¿CÃ³mo instalo una impresora fiscal Epson?",
+        "a": "GuÃ­a en vÃ­deo paso a paso para conectar y configurar una impresora fiscal Epson con U.R.S.",
+        "aIntro": "Mira el tutorial de abajo para la instalaciÃ³n y configuraciÃ³n completas.",
+        "linkLabel": "VÃ­deo: instalar impresora fiscal Epson"
       },
       "managerTablesQrCodes": {
-        "q": "¿Cómo creo mesas y códigos QR como manager del restaurante?",
-        "a": "Guía en vídeo para managers: mesas en el plano de sala y códigos QR imprimibles para clientes.",
-        "aIntro": "El vídeo muestra cómo añadir mesas en Manager y exportar códigos QR para tu restaurante.",
-        "linkLabel": "Vídeo: crear mesas y códigos QR"
+        "q": "Â¿CÃ³mo creo mesas y cÃ³digos QR como manager del restaurante?",
+        "a": "GuÃ­a en vÃ­deo para managers: mesas en el plano de sala y cÃ³digos QR imprimibles para clientes.",
+        "aIntro": "El vÃ­deo muestra cÃ³mo aÃ±adir mesas en Manager y exportar cÃ³digos QR para tu restaurante.",
+        "linkLabel": "VÃ­deo: crear mesas y cÃ³digos QR"
       },
       "resellerCreateRestaurant": {
-        "q": "¿Cómo crea un restaurante un reseller?",
-        "a": "Tutorial en vídeo para resellers al dar de alta un nuevo restaurante en U.R.S.",
-        "aIntro": "Sigue los pasos del vídeo para crear una cuenta de restaurante como reseller.",
-        "linkLabel": "Vídeo: alta de restaurante (reseller)"
+        "q": "Â¿CÃ³mo crea un restaurante un reseller?",
+        "a": "Tutorial en vÃ­deo para resellers al dar de alta un nuevo restaurante en U.R.S.",
+        "aIntro": "Sigue los pasos del vÃ­deo para crear una cuenta de restaurante como reseller.",
+        "linkLabel": "VÃ­deo: alta de restaurante (reseller)"
       },
       "byodStaffDevices": {
-        "q": "¿El personal puede usar sus propios teléfonos o tabletas?",
-        "a": "Sí. Los equipos pueden adoptar BYOD (Bring Your Own Device) y usar hardware personal para flujos de staff o manager, según las políticas de seguridad y uso de tu organización."
+        "q": "Â¿El personal puede usar sus propios telÃ©fonos o tabletas?",
+        "a": "SÃ­. Los equipos pueden adoptar BYOD (Bring Your Own Device) y usar hardware personal para flujos de staff o manager, segÃºn las polÃ­ticas de seguridad y uso de tu organizaciÃ³n."
       },
       "qrSignedSecurity": {
-        "q": "¿Qué tan seguros son los códigos QR de las mesas?",
-        "a": "Las cargas útiles QR están firmadas digitalmente y no pueden suplantarse fácilmente. Eso no elimina abusos—por ejemplo pedidos fantasma o alguien que fotografíe el código y pida a distancia (la plataforma también limita a unas 100 llamadas por IP). Si un QR pudo verse comprometido, regenera los códigos y sustituye las impresiones físicas en las mesas."
+        "q": "Â¿QuÃ© tan seguros son los cÃ³digos QR de las mesas?",
+        "a": "Las cargas Ãºtiles QR estÃ¡n firmadas digitalmente y no pueden suplantarse fÃ¡cilmente. Eso no elimina abusosâ€”por ejemplo pedidos fantasma o alguien que fotografÃ­e el cÃ³digo y pida a distancia (la plataforma tambiÃ©n limita a unas 100 llamadas por IP). Si un QR pudo verse comprometido, regenera los cÃ³digos y sustituye las impresiones fÃ­sicas en las mesas."
       },
       "bookingsSlotDuration": {
-        "q": "¿Cuánto dura una reserva y pueden solaparse?",
+        "q": "Â¿CuÃ¡nto dura una reserva y pueden solaparse?",
         "a": "Por defecto cada reserva usa un intervalo de 90 minutos. Estamos trabajando en duraciones configurables por restaurante. La misma mesa no puede tener reservas solapadas en el mismo intervalo."
       },
       "guestOrderItemList": {
-        "q": "¿Los comensales pueden ver lo que se ha pedido?",
-        "a": "Sí. Desde el menú público pueden abrir «Mi pedido» y ver la lista de líneas de su mesa—nombres, cantidades y precios—como en la pantalla de pedido del invitado."
+        "q": "Â¿Los comensales pueden ver lo que se ha pedido?",
+        "a": "SÃ­. Desde el menÃº pÃºblico pueden abrir Â«Mi pedidoÂ» y ver la lista de lÃ­neas de su mesaâ€”nombres, cantidades y preciosâ€”como en la pantalla de pedido del invitado."
       },
       "confirmedOrderAddItems": {
-        "q": "Después de confirmar un pedido, ¿se pueden seguir añadiendo productos?",
-        "a": "Sí. Incluso tras confirmar el pedido, el personal puede seguir añadiendo o actualizando productos (en línea o en cola offline)."
+        "q": "DespuÃ©s de confirmar un pedido, Â¿se pueden seguir aÃ±adiendo productos?",
+        "a": "SÃ­. Incluso tras confirmar el pedido, el personal puede seguir aÃ±adiendo o actualizando productos (en lÃ­nea o en cola offline)."
       },
       "waiterCallVisual": {
-        "q": "¿Por qué una mesa se muestra en amarillo en el panel de pedidos?",
-        "a": "Cuando un invitado pulsa «Llamar al camarero» en el menú público, la API envía un evento en tiempo real. Mientras la llamada esté activa, la fila usa el estilo de aviso (amarillo). Posponer o resolver actualiza el resaltado."
+        "q": "Â¿Por quÃ© una mesa se muestra en amarillo en el panel de pedidos?",
+        "a": "Cuando un invitado pulsa Â«Llamar al camareroÂ» en el menÃº pÃºblico, la API envÃ­a un evento en tiempo real. Mientras la llamada estÃ© activa, la fila usa el estilo de aviso (amarillo). Posponer o resolver actualiza el resaltado."
       },
       "tableColors": {
-        "q": "¿Qué significan los demás colores de mesa?",
-        "a": "Verde: mesa abierta sin llamada activa al camarero. Roja: cerrada u ocupada según el modelo actual. Amarilla: llamada al camarero activa."
+        "q": "Â¿QuÃ© significan los demÃ¡s colores de mesa?",
+        "a": "Verde: mesa abierta sin llamada activa al camarero. Roja: cerrada u ocupada segÃºn el modelo actual. Amarilla: llamada al camarero activa."
       },
       "kitchenBarSse": {
-        "q": "¿Cómo sabe el camarero cuándo recoger platos en cocina o en bar?",
-        "a": "Las pantallas de cocina y bar comparten el mismo flujo en vivo que los pedidos. Cuando los platos o bebidas están listos o el personal pospone un aviso, el camarero ve la señal y sabe cuándo recoger en paso de cocina o en bar sin recargar la página."
+        "q": "Â¿CÃ³mo sabe el camarero cuÃ¡ndo recoger platos en cocina o en bar?",
+        "a": "Las pantallas de cocina y bar comparten el mismo flujo en vivo que los pedidos. Cuando los platos o bebidas estÃ¡n listos o el personal pospone un aviso, el camarero ve la seÃ±al y sabe cuÃ¡ndo recoger en paso de cocina o en bar sin recargar la pÃ¡gina."
       },
       "kitchenBarToastDismiss": {
-        "q": "¿Por qué los avisos de pedido nuevo o producto eliminado hay que cerrarlos a mano en cocina y bar?",
-        "a": "Esas notificaciones permanecen hasta que alguien las cierra: está pensado así para asegurar que el equipo vio el pedido nuevo o que un plato ya no debe prepararse. Los avisos de subir o bajar cantidad desaparecen solos al cabo de un momento — son informativos."
+        "q": "Â¿Por quÃ© los avisos de pedido nuevo o producto eliminado hay que cerrarlos a mano en cocina y bar?",
+        "a": "Esas notificaciones permanecen hasta que alguien las cierra: estÃ¡ pensado asÃ­ para asegurar que el equipo vio el pedido nuevo o que un plato ya no debe prepararse. Los avisos de subir o bajar cantidad desaparecen solos al cabo de un momento â€” son informativos."
       },
       "kitchenBarPickupVibration": {
-        "q": "Cuando cocina o bar llaman al camarero para recoger comida o bebida, ¿qué dispositivos vibran?",
-        "a": "Solo el teléfono o la tablet que actuó por última vez en el pedido de esa mesa (por ejemplo, añadir productos o cambiar cantidades). Los demás dispositivos del personal pueden ver la alerta en pantalla, pero no vibran. Cuando un cliente llama al camarero desde el menú QR, todos los dispositivos del personal reciben la alerta, incluida la vibración."
+        "q": "Cuando cocina o bar llaman al camarero para recoger comida o bebida, Â¿quÃ© dispositivos vibran?",
+        "a": "Solo el telÃ©fono o la tablet que actuÃ³ por Ãºltima vez en el pedido de esa mesa (por ejemplo, aÃ±adir productos o cambiar cantidades). Los demÃ¡s dispositivos del personal pueden ver la alerta en pantalla, pero no vibran. Cuando un cliente llama al camarero desde el menÃº QR, todos los dispositivos del personal reciben la alerta, incluida la vibraciÃ³n."
       },
       "offlineOrders": {
-        "q": "¿Qué pasa si falla el Wi‑Fi mientras tomo un pedido?",
-        "a": "Las acciones pueden guardarse localmente (IndexedDB). Una cola las reproduce al volver la conexión y reconcilia con el servidor."
+        "q": "Â¿QuÃ© pasa si falla el Wiâ€‘Fi mientras tomo un pedido?",
+        "a": "Las acciones pueden guardarse localmente (IndexedDB). Una cola las reproduce al volver la conexiÃ³n y reconcilia con el servidor."
       },
       "realtimeSync": {
-        "q": "¿Cómo se mantienen sincronizados los dispositivos?",
-        "a": "Cada sesión abre un canal server-sent events por restaurante. Tras reconectar, un endpoint de sincronización reaplica el estado autoritativo y fusiona trabajo offline pendiente."
+        "q": "Â¿CÃ³mo se mantienen sincronizados los dispositivos?",
+        "a": "Cada sesiÃ³n abre un canal server-sent events por restaurante. Tras reconectar, un endpoint de sincronizaciÃ³n reaplica el estado autoritativo y fusiona trabajo offline pendiente."
       },
       "rolesAccess": {
-        "q": "¿Quién ve qué?",
-        "a": "Staff: operación de sala. Manager: además configuración, QR e informes. Admin global: herramientas multi-restaurante (p. ej. productos de suscripción). Los roles JWT protegen cada llamada API."
+        "q": "Â¿QuiÃ©n ve quÃ©?",
+        "a": "Staff: operaciÃ³n de sala. Manager: ademÃ¡s configuraciÃ³n, QR e informes. Admin global: herramientas multi-restaurante (p. ej. productos de suscripciÃ³n). Los roles JWT protegen cada llamada API."
       },
       "guestQrMenu": {
-        "q": "¿Cómo abre un invitado el menú sin cuenta?",
-        "a": "El QR codifica restaurante y mesa. El menú público se abre en el navegador; llamar al camarero no requiere contraseña de invitado. El personal sigue autenticado en su área."
+        "q": "Â¿CÃ³mo abre un invitado el menÃº sin cuenta?",
+        "a": "El QR codifica restaurante y mesa. El menÃº pÃºblico se abre en el navegador; llamar al camarero no requiere contraseÃ±a de invitado. El personal sigue autenticado en su Ã¡rea."
       },
       "moveOrderConstraints": {
-        "q": "¿Cuándo se puede mover un pedido a otra mesa?",
-        "a": "Un pedido solo se puede mover cuando ya está confirmado y únicamente a una mesa de destino que esté libre (sin pedido abierto)."
+        "q": "Â¿CuÃ¡ndo se puede mover un pedido a otra mesa?",
+        "a": "Un pedido solo se puede mover cuando ya estÃ¡ confirmado y Ãºnicamente a una mesa de destino que estÃ© libre (sin pedido abierto)."
       },
       "dashboardReporting": {
-        "q": "¿Qué muestran los paneles del manager?",
-        "a": "KPI y gráficos agregan ingresos de pedidos cerrados, inicios de sesión y tráfico en ventanas UTC móviles (p. ej. 30 días vs 30 anteriores), en la moneda del restaurante."
+        "q": "Â¿QuÃ© muestran los paneles del manager?",
+        "a": "KPI y grÃ¡ficos agregan ingresos de pedidos cerrados, inicios de sesiÃ³n y trÃ¡fico en ventanas UTC mÃ³viles (p. ej. 30 dÃ­as vs 30 anteriores), en la moneda del restaurante."
       },
       "bookings": {
-        "q": "¿Hay reservas de mesa?",
-        "a": "Sí: flujos de staff/manager para listar, editar o cancelar usando las mismas API autenticadas."
+        "q": "Â¿Hay reservas de mesa?",
+        "a": "SÃ­: flujos de staff/manager para listar, editar o cancelar usando las mismas API autenticadas."
       },
       "languages": {
-        "q": "¿Hay varios idiomas en la interfaz?",
-        "a": "Sí: elige el idioma en la cabecera; las traducciones van en el bundle. Las páginas públicas y la UI de staff respetan el idioma activo."
+        "q": "Â¿Hay varios idiomas en la interfaz?",
+        "a": "SÃ­: elige el idioma en la cabecera; las traducciones van en el bundle. Las pÃ¡ginas pÃºblicas y la UI de staff respetan el idioma activo."
       },
       "orderEditsBlockedDuringPayment": {
-        "q": "¿Por qué no se pueden añadir o modificar items mientras el cliente paga con tarjeta?",
-        "a": "Cuando el cliente inicia el checkout con tarjeta, el pedido se bloquea para evitar totales inconsistentes. El staff no puede añadir items ni cambiar cantidades hasta que el pago termine o se cancele el checkout."
+        "q": "Â¿Por quÃ© no se pueden aÃ±adir o modificar items mientras el cliente paga con tarjeta?",
+        "a": "Cuando el cliente inicia el checkout con tarjeta, el pedido se bloquea para evitar totales inconsistentes. El staff no puede aÃ±adir items ni cambiar cantidades hasta que el pago termine o se cancele el checkout."
       },
       "subscriptionStripe": {
-        "q": "¿Cómo funcionan los planes y el cobro?",
-        "a": "Los niveles definen límites (mesas, bares, plazas). El pago y la renovación pasan por Stripe; tras un pago correcto sigue el onboarding del restaurante; los managers gestionan facturación en ajustes."
+        "q": "Â¿CÃ³mo funcionan los planes y el cobro?",
+        "a": "Los niveles definen lÃ­mites (mesas, bares, plazas). El pago y la renovaciÃ³n pasan por Stripe; tras un pago correcto sigue el onboarding del restaurante; los managers gestionan facturaciÃ³n en ajustes."
       }
     }
   },
   "pullToRefresh": {
     "pull": "Desliza hacia abajo para actualizar",
     "release": "Suelta para actualizar",
-    "syncing": "Actualizando…",
-    "offline": "No se puede actualizar sin conexión."
+    "syncing": "Actualizandoâ€¦",
+    "offline": "No se puede actualizar sin conexiÃ³n."
+  },
+  "recipes": {
+    "title": "Recipes & stock",
+    "subtitle": "Define ingredients, recipes per menu item, adjust stock and review consumption.",
+    "tabs": {
+      "ingredients": "Ingredients",
+      "recipes": "Recipes",
+      "consumption": "Consumption"
+    },
+    "ingredientsTitle": "Ingredients",
+    "recipeTitle": "Recipe by menu item",
+    "consumptionTitle": "Ingredient consumption",
+    "addIngredient": "Add ingredient",
+    "editIngredient": "Edit ingredient",
+    "adjustStock": "Adjust stock",
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "active": "Active",
+    "inactive": "Inactive",
+    "emptyIngredients": "No ingredients yet.",
+    "emptyConsumption": "No consumption in this range.",
+    "selectMenuItem": "Menu item",
+    "selectPlaceholder": "Select a menu item…",
+    "selectIngredient": "Select ingredient…",
+    "qtyPerPortion": "Qty per portion",
+    "addLine": "Add line",
+    "saveRecipe": "Save recipe",
+    "clearRecipe": "Clear recipe",
+    "portionCost": "Portion cost",
+    "foodCostPercent": "Food cost %",
+    "portionsRemaining": "Portions remaining",
+    "startDate": "Start",
+    "endDate": "End",
+    "loadReport": "Load",
+    "initialStock": "Initial stock",
+    "stockDelta": "Stock change (+/-)",
+    "note": "Note",
+    "recentMovements": "Recent movements",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved",
+    "loadError": "Could not load data.",
+    "saveError": "Could not save.",
+    "uom": {
+      "g": "g",
+      "kg": "kg",
+      "ml": "ml",
+      "l": "l",
+      "pcs": "pcs"
+    },
+    "cols": {
+      "name": "Name",
+      "uom": "Unit",
+      "unitCost": "Unit cost",
+      "stock": "Stock",
+      "status": "Status",
+      "consumed": "Consumed",
+      "estCost": "Est. cost",
+      "when": "When",
+      "delta": "Delta",
+      "after": "After"
+    }
   }
 }

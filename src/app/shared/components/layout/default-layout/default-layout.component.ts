@@ -202,6 +202,11 @@ export class DefaultLayoutComponent implements OnInit {
             iconComponent: { name: 'cil-restaurant' }
           },
           {
+            name: this.transloco.translate('nav.recipes'),
+            url: '/manager/recipes',
+            iconComponent: { name: 'cil-list' }
+          },
+          {
             name: this.transloco.translate('nav.staff'),
             url: '/manager/manage-staff',
             iconComponent: { name: 'cil-people' }

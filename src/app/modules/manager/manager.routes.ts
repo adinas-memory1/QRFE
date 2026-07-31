@@ -49,6 +49,12 @@ export const routes: Routes = [
         data: { title: 'Menu' }
       },
       {
+        path: 'recipes',
+        loadComponent: () =>
+          import('./manage-recipes/manage-recipes.component').then(m => m.ManageRecipesComponent),
+        data: { title: 'Recipes' }
+      },
+      {
         path: 'manage-bars',
         redirectTo: '/staff/bar',
         pathMatch: 'full'
