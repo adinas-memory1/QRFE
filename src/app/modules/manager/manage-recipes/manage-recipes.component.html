@@ -323,8 +323,16 @@
                 </select>
               </div>
               <div class="col-12 col-sm-4">
-                <label cLabel>{{ 'recipes.stockPrice' | transloco }} ({{ restaurantCurrency }})</label>
-                <input cFormControl type="number" step="0.01" min="0" formControlName="unitCostAmount" />
+                <label cLabel>{{ 'recipes.stockPurchaseTotal' | transloco }} ({{ restaurantCurrency }})</label>
+                <input cFormControl type="number" step="0.01" min="0" formControlName="stockPurchaseTotal" />
+                <div class="form-text">
+                  {{ 'recipes.stockPurchaseTotalHint' | transloco }}
+                  @if (lineUnitCost(i) > 0) {
+                    <span class="d-block">
+                      ⇒ {{ lineUnitCost(i) | number:'1.2-4' }} {{ restaurantCurrency }} / {{ uomLabel(line.get('stockUnitOfMeasure')?.value) }}
+                    </span>
+                  }
+                </div>
               </div>
             </div>
 

@@ -44,7 +44,9 @@ import {
   normalizeIngredientName,
   normalizeUom,
   splitVat,
+  stockPurchaseTotalFromUnitCost,
   suggestedPriceFromMargin,
+  unitCostFromStockPurchaseTotal,
 } from '../../../core/models/recipe/recipe.models';
 
 type TabId = 'menu' | 'consumption' | 'stockAlerts' | 'expiryAlerts';
@@ -395,7 +397,10 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
               unitOfMeasure: normalizeUom(line.unitOfMeasure),
               stockUnitOfMeasure: normalizeUom(line.stockUnitOfMeasure ?? line.unitOfMeasure),
               quantity: line.quantity,
-              unitCostAmount: line.unitCostAmount,
+              stockPurchaseTotal: stockPurchaseTotalFromUnitCost(
+                Number(line.unitCostAmount) || 0,
+                Number(line.currentStockQty) || 0,
+              ),
               currentStockQty: line.currentStockQty,
               vatPercent: line.vatPercent ?? 19,
               vatInclusive: line.vatInclusive ?? false,
@@ -425,7 +430,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       unitOfMeasure: [recipeUom, Validators.required],
       stockUnitOfMeasure: [values?.stockUnitOfMeasure ?? recipeUom, Validators.required],
       quantity: [values?.quantity ?? 1, [Validators.required, Validators.min(0.0001)]],
-      unitCostAmount: [values?.unitCostAmount ?? 0, [Validators.required, Validators.min(0)]],
+      stockPurchaseTotal: [values?.stockPurchaseTotal ?? 0, [Validators.required, Validators.min(0)]],
       currentStockQty: [values?.currentStockQty ?? 0, [Validators.required, Validators.min(0)]],
       vatPercent: [values?.vatPercent ?? 19, [Validators.required, Validators.min(0), Validators.max(100)]],
       vatInclusive: [values?.vatInclusive ?? false],
@@ -486,7 +491,11 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     if (!canConvertUom(recipeUom, stockUom)) {
       return 0;
     }
-    const split = splitVat(Number(raw.unitCostAmount) || 0, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
+    const unitCost = unitCostFromStockPurchaseTotal(
+      Number(raw.stockPurchaseTotal) || 0,
+      Number(raw.currentStockQty) || 0,
+    );
+    const split = splitVat(unitCost, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
     const unit = mode === 'exVat' ? split.exVat : split.incVat;
     const qty = effectiveQtyInStockUom(
       Number(raw.quantity) || 0,
@@ -495,6 +504,17 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       raw.yieldPercent,
     );
     return unit * qty;
+  }
+
+  /** Derived lei / stock UOM for display under the purchase-total field. */
+  lineUnitCost(index: number): number {
+    const g = this.recipeLines.at(index) as FormGroup | null;
+    if (!g) return 0;
+    const raw = g.getRawValue() as LineFormValue;
+    return unitCostFromStockPurchaseTotal(
+      Number(raw.stockPurchaseTotal) || 0,
+      Number(raw.currentStockQty) || 0,
+    );
   }
 
   isLineExpired(index: number): boolean {
@@ -522,27 +542,31 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   saveRecipe(): void {
     if (!this.restaurantId || !this.selectedMenuItemId || this.recipeForm.invalid) return;
-    const lines = this.recipeLines.getRawValue().map((l: LineFormValue) => ({
-      ingredientId: l.ingredientId || undefined,
-      name: normalizeIngredientName(l.name),
-      unitOfMeasure: Number(l.unitOfMeasure),
-      stockUnitOfMeasure: Number(l.stockUnitOfMeasure ?? l.unitOfMeasure),
-      quantity: Number(l.quantity),
-      unitCostAmount: Number(l.unitCostAmount),
-      currentStockQty: Number(l.currentStockQty),
-      vatPercent: Number(l.vatPercent),
-      vatInclusive: !!l.vatInclusive,
-      allergens: (l.allergens ?? []) as string[],
-      yieldPercent: l.yieldPercent == null || l.yieldPercent === ('' as unknown) ? null : Number(l.yieldPercent),
-      lotNumber: l.lotNumber?.trim() || null,
-      expiryDate: l.expiryDate || null,
-      purchaseDate: l.purchaseDate || null,
-      supplier: l.supplier?.trim() || null,
-      lowStockAlertPercent:
-        l.lowStockAlertPercent == null || l.lowStockAlertPercent === ('' as unknown)
-          ? null
-          : Number(l.lowStockAlertPercent),
-    }));
+    const lines = this.recipeLines.getRawValue().map((l: LineFormValue) => {
+      const stockQty = Number(l.currentStockQty) || 0;
+      const purchaseTotal = Number(l.stockPurchaseTotal) || 0;
+      return {
+        ingredientId: l.ingredientId || undefined,
+        name: normalizeIngredientName(l.name),
+        unitOfMeasure: Number(l.unitOfMeasure),
+        stockUnitOfMeasure: Number(l.stockUnitOfMeasure ?? l.unitOfMeasure),
+        quantity: Number(l.quantity),
+        unitCostAmount: unitCostFromStockPurchaseTotal(purchaseTotal, stockQty),
+        currentStockQty: stockQty,
+        vatPercent: Number(l.vatPercent),
+        vatInclusive: !!l.vatInclusive,
+        allergens: (l.allergens ?? []) as string[],
+        yieldPercent: l.yieldPercent == null || l.yieldPercent === ('' as unknown) ? null : Number(l.yieldPercent),
+        lotNumber: l.lotNumber?.trim() || null,
+        expiryDate: l.expiryDate || null,
+        purchaseDate: l.purchaseDate || null,
+        supplier: l.supplier?.trim() || null,
+        lowStockAlertPercent:
+          l.lowStockAlertPercent == null || l.lowStockAlertPercent === ('' as unknown)
+            ? null
+            : Number(l.lowStockAlertPercent),
+      };
+    });
 
     if (lines.some((l) => !l.name || !canConvertUom(l.unitOfMeasure, l.stockUnitOfMeasure))) {
       this.toast.error(this.transloco.translate('recipes.saveError'));
@@ -622,7 +646,8 @@ interface LineFormValue {
   unitOfMeasure: number;
   stockUnitOfMeasure: number;
   quantity: number;
-  unitCostAmount: number;
+  /** Total paid for currentStockQty (UI). Persisted as unitCost = total / stock. */
+  stockPurchaseTotal: number;
   currentStockQty: number;
   vatPercent: number;
   vatInclusive: boolean;

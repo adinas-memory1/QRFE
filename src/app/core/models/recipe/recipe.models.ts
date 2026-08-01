@@ -205,6 +205,28 @@ export function effectiveQtyInStockUom(
   return effectiveQtyForYield(qtyInStock, yieldPercent);
 }
 
+/**
+ * Unit price from purchase total for the stock quantity.
+ * Ex: 20 lei for 10 kg → 2 lei/kg.
+ */
+export function unitCostFromStockPurchaseTotal(
+  stockPurchaseTotal: number,
+  currentStockQty: number,
+): number {
+  if (currentStockQty <= 0) {
+    return 0;
+  }
+  return stockPurchaseTotal / currentStockQty;
+}
+
+/** Purchase total implied by stored unit cost × stock qty. */
+export function stockPurchaseTotalFromUnitCost(
+  unitCostAmount: number,
+  currentStockQty: number,
+): number {
+  return unitCostAmount * Math.max(0, currentStockQty);
+}
+
 /** Collapse whitespace / trim for display & API. */
 export function normalizeIngredientName(name: string): string {
   return name.trim().replace(/\s+/g, ' ');

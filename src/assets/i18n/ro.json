@@ -1529,6 +1529,8 @@
     "daysUntilExpiry": "Zile până la expirare",
     "colStockPercent": "% din baseline",
     "stockUom": "UM Stoc",
-    "vatExclusive": "TVA exclus"
+    "vatExclusive": "TVA exclus",
+    "stockPurchaseTotal": "Preț total stoc",
+    "stockPurchaseTotalHint": "Suma plătită pentru cantitatea din Stoc (ex. 20 lei pentru 10 kg → 100 g costă 0,20 lei)."
   }
 }
