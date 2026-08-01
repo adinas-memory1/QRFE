@@ -1531,6 +1531,7 @@
     "stockUom": "UM Stoc",
     "vatExclusive": "TVA exclus",
     "stockPurchaseTotal": "Preț total stoc",
-    "stockPurchaseTotalHint": "Suma plătită pentru cantitatea din Stoc (ex. 20 lei pentru 10 kg → 100 g costă 0,20 lei)."
+    "stockPurchaseTotalHint": "Suma plătită pentru cantitatea din Stoc (ex. 20 lei pentru 10 kg → 100 g costă 0,20 lei).",
+    "desiredMarginHint": "Adaos pe Cost Total (cu TVA): preț = Cost Total × (1 + %/100). Ex: 0,20 + 10% → 0,22; 0,238 + 10% → 0,262."
   }
 }

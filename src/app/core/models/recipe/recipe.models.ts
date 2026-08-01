@@ -252,13 +252,12 @@ export function effectiveQtyForYield(quantity: number, yieldPercent: number | nu
   return quantity / (yieldPercent / 100);
 }
 
-/** Suggested sell price from portion cost and desired margin % on cost. */
-export function suggestedPriceFromMargin(portionCostExVat: number, marginPercent: number): number {
-  if (marginPercent < 0 || marginPercent >= 100) {
-    return portionCostExVat;
+/** Suggested sell price: markup on cost → price = cost × (1 + margin/100). */
+export function suggestedPriceFromMargin(portionCost: number, marginPercent: number): number {
+  if (marginPercent < 0) {
+    return portionCost;
   }
-  // price = cost / (1 - margin/100)  → margin is gross margin on sell price
-  return round4(portionCostExVat / (1 - marginPercent / 100));
+  return round4(portionCost * (1 + marginPercent / 100));
 }
 
 function round4(n: number): number {

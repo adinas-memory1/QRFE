@@ -251,11 +251,12 @@
             cFormControl
             type="number"
             min="0"
-            max="99.99"
+            max="1000"
             step="0.1"
             [(ngModel)]="desiredMarginPercent"
             [ngModelOptions]="{ standalone: true }"
           />
+          <div class="form-text">{{ 'recipes.desiredMarginHint' | transloco }}</div>
         </div>
         @if (suggestedSellPrice != null) {
           <div class="col-sm-8">

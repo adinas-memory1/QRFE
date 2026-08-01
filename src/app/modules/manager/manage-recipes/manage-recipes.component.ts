@@ -159,11 +159,21 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+  /** Sum of line costs with VAT (Cost Total) — basis for suggested menu price markup. */
+  get portionCostIncVat(): number {
+    return this.recipeLines.controls.reduce((sum, ctrl) => {
+      const g = ctrl as FormGroup;
+      const raw = g.getRawValue() as LineFormValue;
+      return sum + this.computeLineCost(raw, 'incVat');
+    }, 0);
+  }
+
   get suggestedSellPrice(): number | null {
-    if (this.desiredMarginPercent == null || this.desiredMarginPercent < 0 || this.desiredMarginPercent >= 100) {
+    if (this.desiredMarginPercent == null || this.desiredMarginPercent < 0) {
       return null;
     }
-    return suggestedPriceFromMargin(this.portionCostExVat, this.desiredMarginPercent);
+    // Markup on Cost Total (with VAT), matching the line "Cost Total" field.
+    return suggestedPriceFromMargin(this.portionCostIncVat, this.desiredMarginPercent);
   }
 
   get selectedMenuItemPrice(): number | null {

@@ -1490,7 +1490,7 @@
     "expiryDate": "Expiry date",
     "expired": "Expired",
     "allergensLabel": "Allergens",
-    "desiredMargin": "Desired margin %",
+    "desiredMargin": "Desired markup %",
     "suggestedPrice": "Suggested menu price",
     "removeLine": "Remove line",
     "lineN": "Line {{n}}",
@@ -1518,6 +1518,7 @@
     "stockUom": "Stock UOM",
     "vatExclusive": "VAT excluded",
     "stockPurchaseTotal": "Stock purchase total",
-    "stockPurchaseTotalHint": "Amount paid for the Stock qty (e.g. 20 for 10 kg → 100 g costs 0.20)."
+    "stockPurchaseTotalHint": "Amount paid for the Stock qty (e.g. 20 for 10 kg → 100 g costs 0.20).",
+    "desiredMarginHint": "Markup on Cost Total (with VAT): price = Cost Total × (1 + %/100). Ex: 0.20 + 10% → 0.22; 0.238 + 10% → 0.262."
   }
 }
