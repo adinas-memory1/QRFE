@@ -146,8 +146,17 @@ export interface ExpiringIngredientDto {
   expiryDate: string;
   daysUntilExpiry: number;
   isExpired: boolean;
+  isExpiringSoon?: boolean;
   lotNumber?: string | null;
   supplier?: string | null;
+}
+
+export interface InventoryAlertSettingsDto {
+  lowStockAlertPercent?: number | null;
+  lowStockAlertEmail?: string | null;
+  expiryAlertDaysAhead: number;
+  expiryAlertEmail?: string | null;
+  defaultManagerEmail?: string | null;
 }
 
 export const UNIT_OF_MEASURE_OPTIONS: { value: number; labelKey: string }[] = [

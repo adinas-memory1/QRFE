@@ -6,6 +6,7 @@ import {
   IngredientConsumptionRow,
   IngredientDto,
   ExpiringIngredientDto,
+  InventoryAlertSettingsDto,
   LowStockIngredientDto,
   MenuItemPortionsDto,
   RecipeDto,
@@ -149,11 +150,37 @@ export class RecipeInventoryService {
     );
   }
 
-  listExpiringIngredients(restaurantId: string, daysAhead = 10): Observable<ExpiringIngredientDto[]> {
-    const params = new HttpParams().set('daysAhead', String(daysAhead));
+  listExpiringIngredients(restaurantId: string, daysAhead?: number): Observable<ExpiringIngredientDto[]> {
+    let params = new HttpParams();
+    if (daysAhead != null) {
+      params = params.set('daysAhead', String(daysAhead));
+    }
     return this.http.get<ExpiringIngredientDto[]>(
       `${this.apiUrl}/api/restaurants/${restaurantId}/admin/reports/expiring-ingredients`,
       { params, withCredentials: true },
+    );
+  }
+
+  getInventoryAlertSettings(restaurantId: string): Observable<InventoryAlertSettingsDto> {
+    return this.http.get<InventoryAlertSettingsDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/inventory-alert-settings`,
+      { withCredentials: true },
+    );
+  }
+
+  updateInventoryAlertSettings(
+    restaurantId: string,
+    body: {
+      lowStockAlertPercent: number | null;
+      lowStockAlertEmail: string | null;
+      expiryAlertDaysAhead: number;
+      expiryAlertEmail: string | null;
+    },
+  ): Observable<InventoryAlertSettingsDto> {
+    return this.http.put<InventoryAlertSettingsDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/inventory-alert-settings`,
+      body,
+      { withCredentials: true },
     );
   }
 }

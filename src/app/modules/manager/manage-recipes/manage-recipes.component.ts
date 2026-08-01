@@ -36,6 +36,7 @@ import {
   IngredientConsumptionRow,
   INGREDIENT_ALLERGEN_CODES,
   ExpiringIngredientDto,
+  InventoryAlertSettingsDto,
   LowStockIngredientDto,
   RecipeDto,
   UNIT_OF_MEASURE_OPTIONS,
@@ -50,7 +51,7 @@ import {
 } from '../../../core/models/recipe/recipe.models';
 
 type TabId = 'menu' | 'consumption' | 'stockAlerts' | 'expiryAlerts';
-const EXPIRY_ALERT_DAYS_AHEAD = 10;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'app-manage-recipes',
@@ -102,7 +103,16 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   lowStockAlerts: LowStockIngredientDto[] = [];
   expiryAlerts: ExpiringIngredientDto[] = [];
   alertsLoading = false;
+  alertSettingsLoading = false;
+  alertSettingsSaving = false;
   desiredMarginPercent: number | null = null;
+
+  /** Restaurant-level alert settings (stock % / emails / expiry days). */
+  stockAlertPercent: number | null = 20;
+  stockAlertEmail = '';
+  expiryAlertDaysAhead = 10;
+  expiryAlertEmail = '';
+  defaultManagerEmail: string | null = null;
 
   recipeForm: FormGroup;
   consumptionForm: FormGroup;
@@ -217,6 +227,16 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       return;
     }
     this.reloadMenuItems();
+    this.desiredMarginPercent = this.loadDesiredMarginPercent();
+    this.recipesApi
+      .getInventoryAlertSettings(this.restaurantId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (settings) => this.applyAlertSettings(settings),
+        error: () => {
+          /* keep defaults; settings load again on alert tabs */
+        },
+      });
   }
 
   ngOnDestroy(): void {
@@ -227,10 +247,43 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   setTab(tab: TabId): void {
     this.activeTab = tab;
     if (tab === 'stockAlerts') {
-      this.loadLowStockAlerts();
+      this.loadAlertSettingsThen(() => this.loadLowStockAlerts());
     } else if (tab === 'expiryAlerts') {
-      this.loadExpiryAlerts();
+      this.loadAlertSettingsThen(() => this.loadExpiryAlerts());
     }
+  }
+
+  private loadAlertSettingsThen(after: () => void): void {
+    if (!this.restaurantId) return;
+    this.alertSettingsLoading = true;
+    this.recipesApi
+      .getInventoryAlertSettings(this.restaurantId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (settings) => {
+          this.applyAlertSettings(settings);
+          this.alertSettingsLoading = false;
+          after();
+        },
+        error: () => {
+          this.alertSettingsLoading = false;
+          this.toast.error(this.transloco.translate('recipes.loadError'));
+          after();
+        },
+      });
+  }
+
+  private applyAlertSettings(settings: InventoryAlertSettingsDto): void {
+    this.defaultManagerEmail =
+      settings.defaultManagerEmail?.trim()
+      || this.auth.getUserSnapshot()?.email?.trim()
+      || null;
+    this.stockAlertPercent =
+      settings.lowStockAlertPercent == null ? 20 : Number(settings.lowStockAlertPercent);
+    this.expiryAlertDaysAhead =
+      settings.expiryAlertDaysAhead == null ? 10 : Number(settings.expiryAlertDaysAhead);
+    this.stockAlertEmail = (settings.lowStockAlertEmail?.trim() || this.defaultManagerEmail || '');
+    this.expiryAlertEmail = (settings.expiryAlertEmail?.trim() || this.defaultManagerEmail || '');
   }
 
   loadLowStockAlerts(): void {
@@ -255,7 +308,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     if (!this.restaurantId) return;
     this.alertsLoading = true;
     this.recipesApi
-      .listExpiringIngredients(this.restaurantId, EXPIRY_ALERT_DAYS_AHEAD)
+      .listExpiringIngredients(this.restaurantId, this.expiryAlertDaysAhead)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (rows) => {
@@ -265,6 +318,59 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
         error: () => {
           this.alertsLoading = false;
           this.toast.error(this.transloco.translate('recipes.loadError'));
+        },
+      });
+  }
+
+  saveStockAlertSettings(): void {
+    this.saveAlertSettings('stock');
+  }
+
+  saveExpiryAlertSettings(): void {
+    this.saveAlertSettings('expiry');
+  }
+
+  private saveAlertSettings(scope: 'stock' | 'expiry'): void {
+    if (!this.restaurantId) return;
+    const stockEmail = this.stockAlertEmail.trim();
+    const expiryEmail = this.expiryAlertEmail.trim();
+    if (stockEmail && !EMAIL_PATTERN.test(stockEmail)) {
+      this.toast.error(this.transloco.translate('recipes.alertEmailInvalid'));
+      return;
+    }
+    if (expiryEmail && !EMAIL_PATTERN.test(expiryEmail)) {
+      this.toast.error(this.transloco.translate('recipes.alertEmailInvalid'));
+      return;
+    }
+    const percent = this.stockAlertPercent == null ? null : Number(this.stockAlertPercent);
+    if (percent != null && (percent < 0 || percent > 100)) {
+      this.toast.error(this.transloco.translate('recipes.saveError'));
+      return;
+    }
+    const days = Math.min(365, Math.max(0, Number(this.expiryAlertDaysAhead) || 0));
+    this.alertSettingsSaving = true;
+    this.recipesApi
+      .updateInventoryAlertSettings(this.restaurantId, {
+        lowStockAlertPercent: percent,
+        lowStockAlertEmail: stockEmail || null,
+        expiryAlertDaysAhead: days,
+        expiryAlertEmail: expiryEmail || null,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (settings) => {
+          this.applyAlertSettings(settings);
+          this.alertSettingsSaving = false;
+          this.toast.success(this.transloco.translate('recipes.saved'));
+          if (scope === 'stock') {
+            this.loadLowStockAlerts();
+          } else {
+            this.loadExpiryAlerts();
+          }
+        },
+        error: () => {
+          this.alertSettingsSaving = false;
+          this.toast.error(this.transloco.translate('recipes.saveError'));
         },
       });
   }
@@ -360,7 +466,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   openRecipeForMenuItem(item: MenuItem): void {
     this.selectedMenuItemId = item.menuItemId;
     this.selectedLineIndex = null;
-    this.desiredMarginPercent = null;
+    this.desiredMarginPercent = this.loadDesiredMarginPercent();
     this.showRecipeModal = true;
     this.loadRecipe();
   }
@@ -372,13 +478,48 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       this.selectedLineIndex = null;
       this.recipe = null;
       this.recipeLines.clear();
-      this.desiredMarginPercent = null;
     }
   }
 
   closeRecipeModal(): void {
     this.showRecipeModal = false;
     this.onRecipeModalVisible(false);
+  }
+
+  onDesiredMarginChange(value: number | null): void {
+    this.desiredMarginPercent = value;
+    this.persistDesiredMarginPercent(value);
+  }
+
+  private desiredMarginStorageKey(): string | null {
+    return this.restaurantId ? `recipes.desiredMarginPercent.${this.restaurantId}` : null;
+  }
+
+  private loadDesiredMarginPercent(): number | null {
+    const key = this.desiredMarginStorageKey();
+    if (!key) return null;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw == null || raw === '') return null;
+      const n = Number(raw);
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private persistDesiredMarginPercent(value: number | null): void {
+    const key = this.desiredMarginStorageKey();
+    if (!key) return;
+    try {
+      if (value == null || value === ('' as unknown) || !Number.isFinite(Number(value))) {
+        localStorage.removeItem(key);
+        return;
+      }
+      localStorage.setItem(key, String(Number(value)));
+    } catch {
+      /* ignore quota / private mode */
+    }
   }
 
   selectLine(index: number): void {
@@ -420,7 +561,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
               expiryDate: line.expiryDate ?? '',
               purchaseDate: line.purchaseDate ?? '',
               supplier: line.supplier ?? '',
-              lowStockAlertPercent: line.lowStockAlertPercent ?? null,
             }));
           }
           if (this.recipeLines.length === 0) {
@@ -450,7 +590,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       expiryDate: [values?.expiryDate ?? ''],
       purchaseDate: [values?.purchaseDate ?? ''],
       supplier: [values?.supplier ?? ''],
-      lowStockAlertPercent: [values?.lowStockAlertPercent ?? null, [Validators.min(0), Validators.max(100)]],
     });
   }
 
@@ -535,6 +674,17 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     return expiry <= today;
   }
 
+  isLineExpiringSoon(index: number): boolean {
+    const g = this.recipeLines.at(index) as FormGroup | null;
+    const expiry = g?.get('expiryDate')?.value as string | null | undefined;
+    if (!expiry || this.isLineExpired(index)) return false;
+    const today = new Date();
+    const cutoff = new Date(today);
+    cutoff.setDate(today.getDate() + (Number(this.expiryAlertDaysAhead) || 10));
+    const expiryDate = new Date(expiry + 'T00:00:00');
+    return expiryDate <= cutoff;
+  }
+
   toggleAllergen(index: number, code: string, checked: boolean): void {
     const g = this.recipeLines.at(index) as FormGroup;
     const current = [...((g.get('allergens')?.value as string[]) ?? [])];
@@ -571,10 +721,6 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
         expiryDate: l.expiryDate || null,
         purchaseDate: l.purchaseDate || null,
         supplier: l.supplier?.trim() || null,
-        lowStockAlertPercent:
-          l.lowStockAlertPercent == null || l.lowStockAlertPercent === ('' as unknown)
-            ? null
-            : Number(l.lowStockAlertPercent),
       };
     });
 
@@ -667,5 +813,4 @@ interface LineFormValue {
   expiryDate: string;
   purchaseDate: string;
   supplier: string;
-  lowStockAlertPercent: number | null;
 }
