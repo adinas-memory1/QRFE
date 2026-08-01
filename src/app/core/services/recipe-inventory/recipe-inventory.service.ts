@@ -123,13 +123,10 @@ export class RecipeInventoryService {
     restaurantId: string,
     menuItemIds?: string[],
   ): Observable<MenuItemPortionsDto[]> {
-    let params = new HttpParams();
-    for (const id of menuItemIds ?? []) {
-      params = params.append('menuItemIds', id);
-    }
-    return this.http.get<MenuItemPortionsDto[]>(
+    return this.http.post<MenuItemPortionsDto[]>(
       `${this.apiUrl}/api/restaurants/${restaurantId}/admin/recipes/portions-remaining`,
-      { params, withCredentials: true },
+      { menuItemIds: menuItemIds ?? [] },
+      { withCredentials: true },
     );
   }
 

@@ -91,6 +91,8 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = [];
   categories: string[] = [];
   groupedMenuItems: { [category: string]: MenuItem[] } = {};
+  /** menuItemId -> portions remaining (only loaded for opened accordion categories). */
+  portionsByMenuItemId: Record<string, number | null | undefined> = {};
   selectedMenuItemId = '';
   selectedLineIndex: number | null = null;
   recipe: RecipeDto | null = null;
@@ -106,6 +108,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   showRecipeModal = false;
 
   private readonly destroy$ = new Subject<void>();
+  private readonly loadedPortionCategories = new Set<string>();
 
   constructor(
     private readonly fb: FormBuilder,
@@ -254,6 +257,52 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       });
   }
 
+  onCategoryAccordionToggle(cat: string, accordionItem: { visible: boolean; toggleItem: () => void }): void {
+    const willOpen = !accordionItem.visible;
+    accordionItem.toggleItem();
+    if (willOpen) {
+      this.loadPortionsForCategory(cat);
+    }
+  }
+
+  loadPortionsForCategory(cat: string): void {
+    if (!this.restaurantId || this.loadedPortionCategories.has(cat)) {
+      return;
+    }
+    const items = this.groupedMenuItems[cat] ?? [];
+    const ids = items.map((i) => i.menuItemId).filter(Boolean);
+    if (ids.length === 0) {
+      this.loadedPortionCategories.add(cat);
+      return;
+    }
+
+    this.recipesApi
+      .getPortionsRemaining(this.restaurantId, ids)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          const next = { ...this.portionsByMenuItemId };
+          for (const id of ids) {
+            next[id] = null;
+          }
+          for (const row of rows ?? []) {
+            next[row.menuItemId] = row.portionsRemaining;
+          }
+          this.portionsByMenuItemId = next;
+          this.loadedPortionCategories.add(cat);
+        },
+        error: () => {
+          // Leave badges empty for this category; allow retry on next open.
+          this.loadedPortionCategories.delete(cat);
+        },
+      });
+  }
+
+  private invalidatePortionsCache(): void {
+    this.loadedPortionCategories.clear();
+    this.portionsByMenuItemId = {};
+  }
+
   reloadMenuItems(): void {
     if (!this.restaurantId) return;
     const clientDate = new Date().toISOString().slice(0, 10);
@@ -273,6 +322,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
             this.restaurantCurrency = String(this.menuItems[0].menuItemPriceCurrency);
           }
           this.rebuildGroupedMenuItems();
+          this.invalidatePortionsCache();
         },
         error: () => this.toast.error(this.transloco.translate('recipes.loadError')),
       });
@@ -507,6 +557,10 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
           this.recipe = recipe;
           this.toast.success(this.transloco.translate('recipes.saved'));
           this.loadRecipe();
+          this.portionsByMenuItemId = {
+            ...this.portionsByMenuItemId,
+            [this.selectedMenuItemId]: recipe.portionsRemaining ?? null,
+          };
         },
         error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
       });
@@ -514,8 +568,9 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
 
   clearRecipe(): void {
     if (!this.restaurantId || !this.selectedMenuItemId) return;
+    const menuItemId = this.selectedMenuItemId;
     this.recipesApi
-      .deleteRecipe(this.restaurantId, this.selectedMenuItemId)
+      .deleteRecipe(this.restaurantId, menuItemId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -523,6 +578,9 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
           this.recipeLines.clear();
           this.addRecipeLine();
           this.toast.success(this.transloco.translate('recipes.saved'));
+          const next = { ...this.portionsByMenuItemId };
+          delete next[menuItemId];
+          this.portionsByMenuItemId = next;
         },
         error: () => this.toast.error(this.transloco.translate('recipes.saveError')),
       });

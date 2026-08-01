@@ -97,4 +97,14 @@ describe('RecipeInventoryService', () => {
     const params = http.get.calls.mostRecent().args[1]?.params as HttpParams;
     expect(params.get('daysAhead')).toBe('10');
   });
+
+  it('posts portions-remaining with menuItemIds in body', () => {
+    http.post.and.returnValue(of([]));
+    service.getPortionsRemaining('r1', ['m1', 'm2']).subscribe();
+    expect(http.post).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/recipes/portions-remaining`,
+      { menuItemIds: ['m1', 'm2'] },
+      { withCredentials: true },
+    );
+  });
 });

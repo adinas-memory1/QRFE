@@ -32,7 +32,7 @@
             <ng-template cTemplateId="accordionHeaderTemplate">
               <button
                 type="button"
-                (click)="accordionItem.toggleItem()"
+                (click)="onCategoryAccordionToggle(cat, accordionItem)"
                 [collapsed]="!accordionItem.visible"
                 cAccordionButton
               >
@@ -51,6 +51,16 @@
                       <span *ngIf="item.isAvailable === false" class="badge bg-secondary ms-2">
                         {{ 'menu.availability.unavailableBadge' | transloco }}
                       </span>
+                      @if (portionsByMenuItemId[item.menuItemId] != null) {
+                        <span
+                          class="badge ms-2"
+                          [class.bg-warning]="(portionsByMenuItemId[item.menuItemId] ?? 0) < 10"
+                          [class.text-dark]="(portionsByMenuItemId[item.menuItemId] ?? 0) < 10"
+                          [class.bg-info]="(portionsByMenuItemId[item.menuItemId] ?? 0) >= 10"
+                        >
+                          {{ 'recipes.portionsRemaining' | transloco }}: {{ portionsByMenuItemId[item.menuItemId] }}
+                        </span>
+                      }
                       <div class="text-body-secondary small">
                         {{ item.menuItemPriceAmount | number:'1.2-2' }} {{ currencyCode(item.menuItemPriceCurrency) }}
                         · {{ 'recipes.vatFromMenuItem' | transloco }}: {{ item.menuItemVatPercent ?? 19 }}%
