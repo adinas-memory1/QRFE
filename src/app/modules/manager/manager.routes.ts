@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { inventoryManagementGuard } from '../../core/auth/inventory-management.guard';
 
 
 export const routes: Routes = [
@@ -50,9 +51,17 @@ export const routes: Routes = [
       },
       {
         path: 'recipes',
+        canActivate: [inventoryManagementGuard],
         loadComponent: () =>
           import('./manage-recipes/manage-recipes.component').then(m => m.ManageRecipesComponent),
         data: { title: 'Recipes' }
+      },
+      {
+        path: 'stock',
+        canActivate: [inventoryManagementGuard],
+        loadComponent: () =>
+          import('./manage-stock/manage-stock.component').then(m => m.ManageStockComponent),
+        data: { title: 'Stock' }
       },
       {
         path: 'manage-bars',

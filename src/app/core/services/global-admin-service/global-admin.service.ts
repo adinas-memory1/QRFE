@@ -87,6 +87,17 @@ export class GlobalAdminService {
     return this.http.delete<DeleteRestaurantResponse>(`${this.base}/${id}`, this.creds);
   }
 
+  setInventoryManagement(
+    restaurantId: string,
+    enabled: boolean,
+  ): Observable<{ restaurantId: string; inventoryManagementEnabled: boolean }> {
+    return this.http.put<{ restaurantId: string; inventoryManagementEnabled: boolean }>(
+      `${this.base}/${restaurantId}/inventory-management`,
+      { enabled },
+      this.creds,
+    );
+  }
+
   listPrinterFleet(): Observable<GlobalAdminPrinterFleetItem[]> {
     return this.http.get<GlobalAdminPrinterFleetItem[]>(`${this.base}/printer-fleet`, this.creds);
   }

@@ -38,8 +38,8 @@
 
 .recipe-allergens-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.25rem 0.75rem;
 }
 
 .recipe-allergens-grid .form-check {
@@ -49,6 +49,14 @@
 
 .recipe-allergens-grid .form-check-label {
   word-break: break-word;
+}
+
+.recipes-ingredient-dropdown {
+  z-index: 1055;
+  max-height: 14rem;
+  overflow: auto;
+  top: calc(100% + 0.15rem);
+  left: 0;
 }
 
 @media (max-width: 575.98px) {

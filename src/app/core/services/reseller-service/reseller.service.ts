@@ -40,4 +40,15 @@ export class ResellerService {
       this.creds
     );
   }
+
+  setInventoryManagement(
+    restaurantId: string,
+    enabled: boolean,
+  ): Observable<{ restaurantId: string; inventoryManagementEnabled: boolean }> {
+    return this.http.put<{ restaurantId: string; inventoryManagementEnabled: boolean }>(
+      `${this.base}/restaurants/${restaurantId}/inventory-management`,
+      { enabled },
+      this.creds,
+    );
+  }
 }

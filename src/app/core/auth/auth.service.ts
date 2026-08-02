@@ -43,6 +43,11 @@ export function normalizeUserContext(raw: unknown): UserContextModel | null {
     'isOfflinePrimaryStaffDesignee',
     'IsOfflinePrimaryStaffDesignee',
   );
+  const inventoryManagementEnabled = readOptionalBool(
+    r,
+    'inventoryManagementEnabled',
+    'InventoryManagementEnabled',
+  );
 
   return {
     id,
@@ -56,6 +61,7 @@ export function normalizeUserContext(raw: unknown): UserContextModel | null {
     email: (r['email'] ?? r['Email'] ?? null) as string | null,
     ...(isOfflinePrimaryDevice !== undefined ? { isOfflinePrimaryDevice } : {}),
     ...(isOfflinePrimaryStaffDesignee !== undefined ? { isOfflinePrimaryStaffDesignee } : {}),
+    ...(inventoryManagementEnabled !== undefined ? { inventoryManagementEnabled } : {}),
   };
 }
 
@@ -87,6 +93,8 @@ function mergeUserContext(
     email: incoming.email ?? previous?.email ?? null,
     isOfflinePrimaryDevice: incoming.isOfflinePrimaryDevice ?? previous?.isOfflinePrimaryDevice ?? false,
     isOfflinePrimaryStaffDesignee: incoming.isOfflinePrimaryStaffDesignee ?? previous?.isOfflinePrimaryStaffDesignee ?? false,
+    inventoryManagementEnabled:
+      incoming.inventoryManagementEnabled ?? previous?.inventoryManagementEnabled ?? false,
   };
 }
 

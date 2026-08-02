@@ -34,7 +34,7 @@ import {
 } from '../../../core/models/menu/menu-item-categories';
 import {
   IngredientConsumptionRow,
-  INGREDIENT_ALLERGEN_CODES,
+  IngredientDto,
   ExpiringIngredientDto,
   InventoryAlertSettingsDto,
   LowStockIngredientDto,
@@ -42,12 +42,8 @@ import {
   UNIT_OF_MEASURE_OPTIONS,
   canConvertUom,
   effectiveQtyInStockUom,
-  normalizeIngredientName,
   normalizeUom,
-  splitVat,
-  stockPurchaseTotalFromUnitCost,
   suggestedPriceFromMargin,
-  unitCostFromStockPurchaseTotal,
 } from '../../../core/models/recipe/recipe.models';
 
 type TabId = 'menu' | 'consumption' | 'stockAlerts' | 'expiryAlerts';
@@ -87,7 +83,6 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 })
 export class ManageRecipesComponent implements OnInit, OnDestroy {
   readonly uomOptions = UNIT_OF_MEASURE_OPTIONS;
-  readonly allergenCodes = INGREDIENT_ALLERGEN_CODES;
   activeTab: TabId = 'menu';
   restaurantId: string | null = null;
   restaurantCurrency = 'RON';
@@ -106,6 +101,10 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   alertSettingsLoading = false;
   alertSettingsSaving = false;
   desiredMarginPercent: number | null = null;
+  applyingPrice = false;
+  catalogIngredients: IngredientDto[] = [];
+  ingredientSearchByLine: Record<number, string> = {};
+  ingredientDropdownOpen: number | null = null;
 
   /** Restaurant-level alert settings (stock % / emails / expiry days). */
   stockAlertPercent: number | null = 20;
@@ -160,30 +159,25 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       ?? 19;
   }
 
-  /** Sum of line costs ex-VAT (qty converted to stock UOM, with yield). */
+  /** Sum of line costs ex-VAT (qty converted to stock UOM, with yield) using CMP. */
   get portionCostExVat(): number {
     return this.recipeLines.controls.reduce((sum, ctrl) => {
       const g = ctrl as FormGroup;
       const raw = g.getRawValue() as LineFormValue;
-      return sum + this.computeLineCost(raw, 'exVat');
+      return sum + this.computeLineCost(raw);
     }, 0);
   }
 
-  /** Sum of line costs with VAT (Cost Total) — basis for suggested menu price markup. */
+  /** Sum of line costs with VAT — recipe lines use CMP as ex-VAT unit cost. */
   get portionCostIncVat(): number {
-    return this.recipeLines.controls.reduce((sum, ctrl) => {
-      const g = ctrl as FormGroup;
-      const raw = g.getRawValue() as LineFormValue;
-      return sum + this.computeLineCost(raw, 'incVat');
-    }, 0);
+    return this.portionCostExVat;
   }
 
   get suggestedSellPrice(): number | null {
     if (this.desiredMarginPercent == null || this.desiredMarginPercent < 0) {
       return null;
     }
-    // Markup on Cost Total (with VAT), matching the line "Cost Total" field.
-    return suggestedPriceFromMargin(this.portionCostIncVat, this.desiredMarginPercent);
+    return suggestedPriceFromMargin(this.portionCostExVat, this.desiredMarginPercent);
   }
 
   get selectedMenuItemPrice(): number | null {
@@ -227,6 +221,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       return;
     }
     this.reloadMenuItems();
+    this.reloadCatalogIngredients();
     this.desiredMarginPercent = this.loadDesiredMarginPercent();
     this.recipesApi
       .getInventoryAlertSettings(this.restaurantId)
@@ -237,6 +232,52 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
           /* keep defaults; settings load again on alert tabs */
         },
       });
+  }
+
+  private reloadCatalogIngredients(): void {
+    if (!this.restaurantId) return;
+    this.recipesApi
+      .listIngredients(this.restaurantId, false)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.catalogIngredients = rows ?? [];
+        },
+      });
+  }
+
+  filteredIngredientsForLine(lineIndex: number): IngredientDto[] {
+    const term = (this.ingredientSearchByLine[lineIndex] ?? '').trim().toLowerCase();
+    if (!term) return this.catalogIngredients.slice(0, 12);
+    return this.catalogIngredients
+      .filter((i) => i.name.toLowerCase().includes(term))
+      .slice(0, 12);
+  }
+
+  onIngredientSearch(lineIndex: number, term: string): void {
+    this.ingredientSearchByLine[lineIndex] = term;
+    this.ingredientDropdownOpen = lineIndex;
+    const g = this.recipeLines.at(lineIndex) as FormGroup | null;
+    g?.patchValue({ name: term, ingredientId: null }, { emitEvent: false });
+  }
+
+  selectIngredientForLine(lineIndex: number, ingredient: IngredientDto): void {
+    const g = this.recipeLines.at(lineIndex) as FormGroup | null;
+    if (!g) return;
+    g.patchValue({
+      ingredientId: ingredient.ingredientId,
+      name: ingredient.name,
+      stockUnitOfMeasure: normalizeUom(ingredient.unitOfMeasure),
+      unitCostAmount: ingredient.weightedAverageUnitCost ?? ingredient.unitCostAmount ?? 0,
+      currentStockQty: ingredient.currentStockQty,
+      yieldPercent: ingredient.yieldPercent ?? null,
+    });
+    this.ingredientSearchByLine[lineIndex] = ingredient.name;
+    this.ingredientDropdownOpen = null;
+  }
+
+  closeIngredientDropdown(): void {
+    this.ingredientDropdownOpen = null;
   }
 
   ngOnDestroy(): void {
@@ -491,6 +532,42 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     this.persistDesiredMarginPercent(value);
   }
 
+  applySuggestedPrice(): void {
+    if (!this.restaurantId || !this.selectedMenuItemId || this.suggestedSellPrice == null) {
+      return;
+    }
+    const amount = Math.round(this.suggestedSellPrice * 100) / 100;
+    this.applyingPrice = true;
+    this.menuApi
+      .updatePriceAmount(this.restaurantId, this.selectedMenuItemId, amount)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.applyingPrice = false;
+          const updated = res.menuItem;
+          const idx = this.menuItems.findIndex((m) => m.menuItemId === this.selectedMenuItemId);
+          if (idx >= 0 && updated) {
+            this.menuItems[idx] = {
+              ...this.menuItems[idx],
+              menuItemPriceAmount: updated.menuItemPriceAmount,
+            };
+            this.rebuildGroupedMenuItems();
+          }
+          if (this.recipe) {
+            this.recipe = {
+              ...this.recipe,
+              menuItemPriceAmount: updated?.menuItemPriceAmount ?? amount,
+            };
+          }
+          this.toast.success(this.transloco.translate('recipes.priceApplied'));
+        },
+        error: () => {
+          this.applyingPrice = false;
+          this.toast.error(this.transloco.translate('recipes.saveError'));
+        },
+      });
+  }
+
   private desiredMarginStorageKey(): string | null {
     return this.restaurantId ? `recipes.desiredMarginPercent.${this.restaurantId}` : null;
   }
@@ -541,27 +618,19 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
             this.restaurantCurrency = this.currencyCode(recipe.menuItemPriceCurrency);
           }
           this.recipeLines.clear();
-          for (const line of recipe.lines ?? []) {
+          this.ingredientSearchByLine = {};
+          for (const [idx, line] of (recipe.lines ?? []).entries()) {
             this.recipeLines.push(this.createLineGroup({
               ingredientId: line.ingredientId,
               name: line.ingredientName,
               unitOfMeasure: normalizeUom(line.unitOfMeasure),
               stockUnitOfMeasure: normalizeUom(line.stockUnitOfMeasure ?? line.unitOfMeasure),
               quantity: line.quantity,
-              stockPurchaseTotal: stockPurchaseTotalFromUnitCost(
-                Number(line.unitCostAmount) || 0,
-                Number(line.currentStockQty) || 0,
-              ),
+              unitCostAmount: Number(line.unitCostAmount) || 0,
               currentStockQty: line.currentStockQty,
-              vatPercent: line.vatPercent ?? 19,
-              vatInclusive: line.vatInclusive ?? false,
-              allergens: [...(line.allergens ?? [])],
               yieldPercent: line.yieldPercent ?? null,
-              lotNumber: line.lotNumber ?? '',
-              expiryDate: line.expiryDate ?? '',
-              purchaseDate: line.purchaseDate ?? '',
-              supplier: line.supplier ?? '',
             }));
+            this.ingredientSearchByLine[idx] = line.ingredientName;
           }
           if (this.recipeLines.length === 0) {
             this.addRecipeLine();
@@ -575,29 +644,21 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
   private createLineGroup(values?: Partial<LineFormValue>): FormGroup {
     const recipeUom = values?.unitOfMeasure ?? 4;
     return this.fb.group({
-      ingredientId: [values?.ingredientId ?? null],
+      ingredientId: [values?.ingredientId ?? null, Validators.required],
       name: [values?.name ?? '', Validators.required],
       unitOfMeasure: [recipeUom, Validators.required],
-      stockUnitOfMeasure: [values?.stockUnitOfMeasure ?? recipeUom, Validators.required],
+      stockUnitOfMeasure: [values?.stockUnitOfMeasure ?? recipeUom],
       quantity: [values?.quantity ?? 1, [Validators.required, Validators.min(0.0001)]],
-      stockPurchaseTotal: [values?.stockPurchaseTotal ?? 0, [Validators.required, Validators.min(0)]],
-      currentStockQty: [values?.currentStockQty ?? 0, [Validators.required, Validators.min(0)]],
-      vatPercent: [values?.vatPercent ?? 19, [Validators.required, Validators.min(0), Validators.max(100)]],
-      vatInclusive: [values?.vatInclusive ?? false],
-      allergens: [values?.allergens ?? []],
-      yieldPercent: [values?.yieldPercent ?? null, [Validators.min(0.0001), Validators.max(1000)]],
-      lotNumber: [values?.lotNumber ?? ''],
-      expiryDate: [values?.expiryDate ?? ''],
-      purchaseDate: [values?.purchaseDate ?? ''],
-      supplier: [values?.supplier ?? ''],
+      unitCostAmount: [values?.unitCostAmount ?? 0],
+      currentStockQty: [values?.currentStockQty ?? 0],
+      yieldPercent: [values?.yieldPercent ?? null],
     });
   }
 
   addRecipeLine(): void {
-    this.recipeLines.push(this.createLineGroup({
-      vatPercent: this.selectedMenuItemVatPercent,
-    }));
+    this.recipeLines.push(this.createLineGroup());
     this.selectedLineIndex = this.recipeLines.length - 1;
+    this.ingredientSearchByLine[this.selectedLineIndex] = '';
   }
 
   removeSelectedRecipeLine(): void {
@@ -610,6 +671,14 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
       return;
     }
     this.recipeLines.removeAt(index);
+    const nextSearch: Record<number, string> = {};
+    for (let i = 0; i < this.recipeLines.length; i++) {
+      const g = this.recipeLines.at(i) as FormGroup;
+      nextSearch[i] = this.ingredientSearchByLine[i < index ? i : i + 1]
+        ?? (g.get('name')?.value as string)
+        ?? '';
+    }
+    this.ingredientSearchByLine = nextSearch;
     if (this.recipeLines.length === 0) {
       this.selectedLineIndex = null;
       return;
@@ -617,115 +686,39 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     this.selectedLineIndex = Math.min(index, this.recipeLines.length - 1);
   }
 
-  setVatInclusive(index: number, inclusive: boolean): void {
-    const g = this.recipeLines.at(index) as FormGroup | null;
-    g?.get('vatInclusive')?.setValue(inclusive);
-  }
-
-  lineCostExVat(index: number): number {
-    const g = this.recipeLines.at(index) as FormGroup | null;
-    if (!g) return 0;
-    return this.computeLineCost(g.getRawValue() as LineFormValue, 'exVat');
-  }
-
-  lineCostIncVat(index: number): number {
-    const g = this.recipeLines.at(index) as FormGroup | null;
-    if (!g) return 0;
-    return this.computeLineCost(g.getRawValue() as LineFormValue, 'incVat');
-  }
-
-  private computeLineCost(raw: LineFormValue, mode: 'exVat' | 'incVat'): number {
+  private computeLineCost(raw: LineFormValue): number {
     const recipeUom = Number(raw.unitOfMeasure);
     const stockUom = Number(raw.stockUnitOfMeasure ?? raw.unitOfMeasure);
     if (!canConvertUom(recipeUom, stockUom)) {
       return 0;
     }
-    const unitCost = unitCostFromStockPurchaseTotal(
-      Number(raw.stockPurchaseTotal) || 0,
-      Number(raw.currentStockQty) || 0,
-    );
-    const split = splitVat(unitCost, Number(raw.vatPercent) || 0, !!raw.vatInclusive);
-    const unit = mode === 'exVat' ? split.exVat : split.incVat;
+    const unitCost = Number(raw.unitCostAmount) || 0;
     const qty = effectiveQtyInStockUom(
       Number(raw.quantity) || 0,
       recipeUom,
       stockUom,
       raw.yieldPercent,
     );
-    return unit * qty;
+    return unitCost * qty;
   }
 
-  /** Derived lei / stock UOM for display under the purchase-total field. */
-  lineUnitCost(index: number): number {
+  lineCostExVat(index: number): number {
     const g = this.recipeLines.at(index) as FormGroup | null;
     if (!g) return 0;
-    const raw = g.getRawValue() as LineFormValue;
-    return unitCostFromStockPurchaseTotal(
-      Number(raw.stockPurchaseTotal) || 0,
-      Number(raw.currentStockQty) || 0,
-    );
-  }
-
-  isLineExpired(index: number): boolean {
-    const g = this.recipeLines.at(index) as FormGroup | null;
-    const expiry = g?.get('expiryDate')?.value as string | null | undefined;
-    if (!expiry) return false;
-    const today = new Date().toISOString().slice(0, 10);
-    return expiry <= today;
-  }
-
-  isLineExpiringSoon(index: number): boolean {
-    const g = this.recipeLines.at(index) as FormGroup | null;
-    const expiry = g?.get('expiryDate')?.value as string | null | undefined;
-    if (!expiry || this.isLineExpired(index)) return false;
-    const today = new Date();
-    const cutoff = new Date(today);
-    cutoff.setDate(today.getDate() + (Number(this.expiryAlertDaysAhead) || 10));
-    const expiryDate = new Date(expiry + 'T00:00:00');
-    return expiryDate <= cutoff;
-  }
-
-  toggleAllergen(index: number, code: string, checked: boolean): void {
-    const g = this.recipeLines.at(index) as FormGroup;
-    const current = [...((g.get('allergens')?.value as string[]) ?? [])];
-    const next = checked
-      ? Array.from(new Set([...current, code]))
-      : current.filter((c) => c !== code);
-    g.get('allergens')?.setValue(next);
-  }
-
-  hasAllergen(index: number, code: string): boolean {
-    const g = this.recipeLines.at(index) as FormGroup | null;
-    const list = (g?.get('allergens')?.value as string[]) ?? [];
-    return list.includes(code);
+    return this.computeLineCost(g.getRawValue() as LineFormValue);
   }
 
   saveRecipe(): void {
     if (!this.restaurantId || !this.selectedMenuItemId || this.recipeForm.invalid) return;
-    const lines = this.recipeLines.getRawValue().map((l: LineFormValue) => {
-      const stockQty = Number(l.currentStockQty) || 0;
-      const purchaseTotal = Number(l.stockPurchaseTotal) || 0;
-      return {
-        ingredientId: l.ingredientId || undefined,
-        name: normalizeIngredientName(l.name),
-        unitOfMeasure: Number(l.unitOfMeasure),
-        stockUnitOfMeasure: Number(l.stockUnitOfMeasure ?? l.unitOfMeasure),
-        quantity: Number(l.quantity),
-        unitCostAmount: unitCostFromStockPurchaseTotal(purchaseTotal, stockQty),
-        currentStockQty: stockQty,
-        vatPercent: Number(l.vatPercent),
-        vatInclusive: !!l.vatInclusive,
-        allergens: (l.allergens ?? []) as string[],
-        yieldPercent: l.yieldPercent == null || l.yieldPercent === ('' as unknown) ? null : Number(l.yieldPercent),
-        lotNumber: l.lotNumber?.trim() || null,
-        expiryDate: l.expiryDate || null,
-        purchaseDate: l.purchaseDate || null,
-        supplier: l.supplier?.trim() || null,
-      };
-    });
+    const lines = this.recipeLines.getRawValue().map((l: LineFormValue) => ({
+      ingredientId: l.ingredientId || undefined,
+      name: (l.name ?? '').trim(),
+      unitOfMeasure: Number(l.unitOfMeasure),
+      quantity: Number(l.quantity),
+    }));
 
-    if (lines.some((l) => !l.name || !canConvertUom(l.unitOfMeasure, l.stockUnitOfMeasure))) {
-      this.toast.error(this.transloco.translate('recipes.saveError'));
+    if (lines.some((l) => !l.ingredientId || !l.name)) {
+      this.toast.error(this.transloco.translate('recipes.pickIngredientRequired'));
       return;
     }
 
@@ -737,6 +730,7 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
           this.recipe = recipe;
           this.toast.success(this.transloco.translate('recipes.saved'));
           this.loadRecipe();
+          this.reloadCatalogIngredients();
           this.portionsByMenuItemId = {
             ...this.portionsByMenuItemId,
             [this.selectedMenuItemId]: recipe.portionsRemaining ?? null,
@@ -802,15 +796,7 @@ interface LineFormValue {
   unitOfMeasure: number;
   stockUnitOfMeasure: number;
   quantity: number;
-  /** Total paid for currentStockQty (UI). Persisted as unitCost = total / stock. */
-  stockPurchaseTotal: number;
+  unitCostAmount: number;
   currentStockQty: number;
-  vatPercent: number;
-  vatInclusive: boolean;
-  allergens: string[];
   yieldPercent: number | null;
-  lotNumber: string;
-  expiryDate: string;
-  purchaseDate: string;
-  supplier: string;
 }

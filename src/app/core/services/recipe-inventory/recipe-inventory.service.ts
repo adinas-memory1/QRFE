@@ -7,10 +7,13 @@ import {
   IngredientDto,
   ExpiringIngredientDto,
   InventoryAlertSettingsDto,
+  InventoryCostingMethod,
+  InventorySettingsDto,
   LowStockIngredientDto,
   MenuItemPortionsDto,
   RecipeDto,
   RecipeLineInput,
+  StockItemDto,
   StockMovementDto,
   UnitOfMeasure,
 } from '../../models/recipe/recipe.models';
@@ -34,8 +37,8 @@ export class RecipeInventoryService {
     body: {
       name: string;
       unitOfMeasure: UnitOfMeasure | number;
-      unitCostAmount: number;
-      initialStockQty: number;
+      allergens?: string[];
+      yieldPercent?: number | null;
     },
   ): Observable<IngredientDto> {
     return this.http.post<IngredientDto>(
@@ -51,9 +54,9 @@ export class RecipeInventoryService {
     body: {
       name: string;
       unitOfMeasure: UnitOfMeasure | number;
-      unitCostAmount: number;
-      currentStockQty: number;
       isActive: boolean;
+      allergens?: string[];
+      yieldPercent?: number | null;
     },
   ): Observable<IngredientDto> {
     return this.http.put<IngredientDto>(
@@ -66,6 +69,48 @@ export class RecipeInventoryService {
   deactivateIngredient(restaurantId: string, ingredientId: string): Observable<void> {
     return this.http.delete<void>(
       `${this.apiUrl}/api/restaurants/${restaurantId}/admin/ingredients/${ingredientId}`,
+      { withCredentials: true },
+    );
+  }
+
+  listStockItems(restaurantId: string, ingredientId: string): Observable<StockItemDto[]> {
+    return this.http.get<StockItemDto[]>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/ingredients/${ingredientId}/stock-items`,
+      { withCredentials: true },
+    );
+  }
+
+  searchStockItems(restaurantId: string, search?: string, take = 50): Observable<StockItemDto[]> {
+    let params = new HttpParams().set('take', String(take));
+    if (search?.trim()) {
+      params = params.set('search', search.trim());
+    }
+    return this.http.get<StockItemDto[]>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-items`,
+      { params, withCredentials: true },
+    );
+  }
+
+  receiveStock(
+    restaurantId: string,
+    ingredientId: string,
+    body: {
+      quantity: number;
+      unitOfMeasure?: UnitOfMeasure | number | null;
+      unitPrice?: number | null;
+      totalPrice?: number | null;
+      vatPercent?: number;
+      vatInclusive?: boolean;
+      lotNumber?: string | null;
+      supplier?: string | null;
+      purchaseDate?: string | null;
+      expiryDate?: string | null;
+      note?: string | null;
+    },
+  ): Observable<IngredientDto> {
+    return this.http.post<IngredientDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/ingredients/${ingredientId}/receipts`,
+      body,
       { withCredentials: true },
     );
   }
@@ -179,6 +224,24 @@ export class RecipeInventoryService {
   ): Observable<InventoryAlertSettingsDto> {
     return this.http.put<InventoryAlertSettingsDto>(
       `${this.apiUrl}/api/restaurants/${restaurantId}/admin/inventory-alert-settings`,
+      body,
+      { withCredentials: true },
+    );
+  }
+
+  getInventorySettings(restaurantId: string): Observable<InventorySettingsDto> {
+    return this.http.get<InventorySettingsDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/inventory-settings`,
+      { withCredentials: true },
+    );
+  }
+
+  updateInventorySettings(
+    restaurantId: string,
+    body: { inventoryCostingMethod: InventoryCostingMethod | number },
+  ): Observable<InventorySettingsDto> {
+    return this.http.put<InventorySettingsDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/inventory-settings`,
       body,
       { withCredentials: true },
     );

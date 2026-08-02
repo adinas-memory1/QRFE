@@ -758,6 +758,12 @@
     "colType": "Type",
     "colTables": "Tables",
     "colManager": "Manager",
+    "colInventory": "Inventory",
+    "inventoryOn": "On",
+    "inventoryOff": "Off",
+    "inventoryEnabledMsg": "Inventory enabled for {{name}}.",
+    "inventoryDisabledMsg": "Inventory disabled for {{name}}.",
+    "inventoryToggleError": "Could not update inventory setting.",
     "settings": "Settings",
     "yes": "Yes",
     "no": "No",
@@ -870,6 +876,13 @@
     "colTables": "Tables",
     "colBars": "Bars",
     "colProvisioning": "Provisioning",
+    "colInventory": "Inventory",
+    "inventoryOn": "On",
+    "inventoryOff": "Off",
+    "inventoryUpdatedTitle": "Inventory updated",
+    "inventoryEnabledMsg": "Inventory enabled for {{name}}.",
+    "inventoryDisabledMsg": "Inventory disabled for {{name}}.",
+    "inventoryToggleError": "Could not update inventory setting.",
     "colActions": "Actions",
     "fieldName": "Restaurant name",
     "fieldType": "Restaurant type",
@@ -950,7 +963,9 @@
     "printerFleet": "Printer fleet",
     "resellers": "Resellers",
     "addRestaurant": "Add restaurant",
-    "recipes": "Recipes"
+    "recipes": "Recipes",
+    "stock": "Stock",
+    "inventory": "Inventory"
   },
   "header": {
     "settings": "Settings",
@@ -1395,8 +1410,8 @@
     "offline": "Cannot refresh while offline."
   },
   "recipes": {
-    "title": "Recipes & stock",
-    "subtitle": "Define recipes per dish, stock and unit cost on each ingredient line, then review consumption.",
+    "title": "Recipes",
+    "subtitle": "Link catalog ingredients to each dish. Stock receipts and costing live under Stock.",
     "tabs": {
       "ingredients": "Ingredients",
       "recipes": "Recipes",
@@ -1501,6 +1516,8 @@
     "allergensLabel": "Allergens",
     "desiredMargin": "Desired markup %",
     "suggestedPrice": "Suggested menu price",
+    "applyPrice": "Apply price",
+    "priceApplied": "Menu item price was updated.",
     "removeLine": "Remove line",
     "lineN": "Line {{n}}",
     "allergens": {
@@ -1528,6 +1545,49 @@
     "vatExclusive": "VAT excluded",
     "stockPurchaseTotal": "Stock purchase total",
     "stockPurchaseTotalHint": "Amount paid for the Stock qty (e.g. 20 for 10 kg → 100 g costs 0.20).",
-    "desiredMarginHint": "Markup on Cost Total (with VAT): price = Cost Total × (1 + %/100). Ex: 0.20 + 10% → 0.22; 0.238 + 10% → 0.262."
+    "desiredMarginHint": "Markup on Cost Total (with VAT): price = Cost Total × (1 + %/100). Ex: 0.20 + 10% → 0.22; 0.238 + 10% → 0.262.",
+    "searchIngredient": "Search ingredient from stock…",
+    "noIngredientMatch": "No matching ingredients. Create them under Stock.",
+    "pickIngredientRequired": "Select an ingredient from stock for each line.",
+    "lineCost": "Line cost"
+  },
+  "stock": {
+    "title": "Stock",
+    "subtitle": "Ingredient catalog, lots (receipts) and costing method for inventory deductions.",
+    "costingTitle": "Costing method",
+    "costingMethod": "Method",
+    "costingHint": "Used when deducting stock on closed orders (FIFO / LIFO / weighted average).",
+    "costing": {
+      "cmp": "CMP (weighted average)",
+      "fifo": "FIFO (oldest lots first)",
+      "lifo": "LIFO (newest lots first)"
+    },
+    "catalogTitle": "Ingredients",
+    "lotsTitle": "Lots",
+    "lotsFor": "Lots — {{name}}",
+    "addIngredient": "Add ingredient",
+    "editIngredient": "Edit ingredient",
+    "receipt": "Receipt",
+    "save": "Save",
+    "edit": "Edit",
+    "loading": "Loading…",
+    "loadError": "Could not load stock.",
+    "saveError": "Could not save.",
+    "saved": "Saved.",
+    "receiptSaved": "Receipt recorded.",
+    "searchPlaceholder": "Search ingredients…",
+    "emptyCatalog": "No ingredients yet.",
+    "emptyLots": "No lots yet. Use Receipt to add stock.",
+    "selectHint": "Select an ingredient to see lots.",
+    "cmp": "CMP",
+    "remaining": "Remaining",
+    "unitPrice": "Unit price",
+    "totalPrice": "Total price",
+    "totalPriceHint": "Optional; overrides unit price when set.",
+    "qty": "Quantity",
+    "note": "Note",
+    "inactive": "Inactive",
+    "active": "Active",
+    "low": "Low"
   }
 }

@@ -744,6 +744,12 @@
     "colType": "Tip",
     "colTables": "Mese",
     "colManager": "Manager",
+    "colInventory": "Gestiune",
+    "inventoryOn": "Activat",
+    "inventoryOff": "Dezactivat",
+    "inventoryEnabledMsg": "Gestiune activată pentru {{name}}.",
+    "inventoryDisabledMsg": "Gestiune dezactivată pentru {{name}}.",
+    "inventoryToggleError": "Nu s-a putut actualiza gestiunea.",
     "settings": "Setări",
     "yes": "Da",
     "no": "Nu",
@@ -856,6 +862,13 @@
     "colTables": "Mese",
     "colBars": "Baruri",
     "colProvisioning": "Provizionare",
+    "colInventory": "Gestiune",
+    "inventoryOn": "Activat",
+    "inventoryOff": "Dezactivat",
+    "inventoryUpdatedTitle": "Gestiune actualizată",
+    "inventoryEnabledMsg": "Gestiune activată pentru {{name}}.",
+    "inventoryDisabledMsg": "Gestiune dezactivată pentru {{name}}.",
+    "inventoryToggleError": "Nu s-a putut actualiza gestiunea.",
     "colActions": "Acțiuni",
     "fieldName": "Nume restaurant",
     "fieldType": "Tip restaurant",
@@ -936,7 +949,9 @@
     "printerFleet": "Flotă imprimante",
     "resellers": "Reselleri",
     "addRestaurant": "Adaugă restaurant",
-    "recipes": "Rețetar"
+    "recipes": "Rețetar",
+    "stock": "Stocuri",
+    "inventory": "Gestiune"
   },
   "header": {
     "settings": "Setări",
@@ -1408,8 +1423,8 @@
     "offline": "Nu se poate reîmprospăta offline."
   },
   "recipes": {
-    "title": "Rețetar & stoc",
-    "subtitle": "Definește rețete pe produs, stoc și preț pe fiecare linie de ingredient, apoi vezi consumul.",
+    "title": "Rețetar",
+    "subtitle": "Leagă ingredientele din catalog de fiecare preparat. Recepțiile și costul sunt în Stocuri.",
     "tabs": {
       "ingredients": "Ingrediente",
       "recipes": "Rețete",
@@ -1514,6 +1529,8 @@
     "allergensLabel": "Alergeni",
     "desiredMargin": "Marjă dorită %",
     "suggestedPrice": "Preț meniu sugerat",
+    "applyPrice": "Aplică preț",
+    "priceApplied": "Prețul produsului a fost actualizat.",
     "removeLine": "Șterge linie",
     "lineN": "Linia {{n}}",
     "allergens": {
@@ -1541,6 +1558,49 @@
     "vatExclusive": "TVA exclus",
     "stockPurchaseTotal": "Preț total stoc",
     "stockPurchaseTotalHint": "Suma plătită pentru cantitatea din Stoc (ex. 20 lei pentru 10 kg → 100 g costă 0,20 lei).",
-    "desiredMarginHint": "Adaos pe Cost Total (cu TVA): preț = Cost Total × (1 + %/100). Ex: 0,20 + 10% → 0,22; 0,238 + 10% → 0,262."
+    "desiredMarginHint": "Adaos pe Cost Total (cu TVA): preț = Cost Total × (1 + %/100). Ex: 0,20 + 10% → 0,22; 0,238 + 10% → 0,262.",
+    "searchIngredient": "Caută ingredient din stoc…",
+    "noIngredientMatch": "Niciun ingredient. Adaugă-le în Stocuri.",
+    "pickIngredientRequired": "Selectează un ingredient din stoc pe fiecare linie.",
+    "lineCost": "Cost linie"
+  },
+  "stock": {
+    "title": "Stocuri",
+    "subtitle": "Catalog ingrediente, loturi (recepții) și metoda de cost pentru consum.",
+    "costingTitle": "Metodă cost",
+    "costingMethod": "Metodă",
+    "costingHint": "Folosită la scăderea stocului la închiderea comenzilor (FIFO / LIFO / CMP).",
+    "costing": {
+      "cmp": "CMP (medie ponderată)",
+      "fifo": "FIFO (loturi vechi întâi)",
+      "lifo": "LIFO (loturi noi întâi)"
+    },
+    "catalogTitle": "Ingrediente",
+    "lotsTitle": "Loturi",
+    "lotsFor": "Loturi — {{name}}",
+    "addIngredient": "Adaugă ingredient",
+    "editIngredient": "Editează ingredient",
+    "receipt": "Recepție",
+    "save": "Salvează",
+    "edit": "Editează",
+    "loading": "Se încarcă…",
+    "loadError": "Nu s-a putut încărca stocul.",
+    "saveError": "Nu s-a putut salva.",
+    "saved": "Salvat.",
+    "receiptSaved": "Recepție înregistrată.",
+    "searchPlaceholder": "Caută ingrediente…",
+    "emptyCatalog": "Niciun ingredient încă.",
+    "emptyLots": "Niciun lot. Folosește Recepție pentru intrare.",
+    "selectHint": "Selectează un ingredient pentru loturi.",
+    "cmp": "CMP",
+    "remaining": "Rămas",
+    "unitPrice": "Preț unitar",
+    "totalPrice": "Preț total",
+    "totalPriceHint": "Opțional; înlocuiește prețul unitar dacă e setat.",
+    "qty": "Cantitate",
+    "note": "Notă",
+    "inactive": "Inactiv",
+    "active": "Activ",
+    "low": "Scăzut"
   }
 }

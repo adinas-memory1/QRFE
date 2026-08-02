@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { of } from 'rxjs';
 import { RecipeInventoryService } from './recipe-inventory.service';
@@ -32,11 +31,10 @@ describe('RecipeInventoryService', () => {
     service
       .upsertRecipe('r1', 'm1', [
         {
+          ingredientId: 'i1',
           name: 'Faina',
           unitOfMeasure: 0,
           quantity: 150,
-          unitCostAmount: 0.01,
-          currentStockQty: 10000,
         },
       ])
       .subscribe();
@@ -45,11 +43,10 @@ describe('RecipeInventoryService', () => {
       {
         lines: [
           {
+            ingredientId: 'i1',
             name: 'Faina',
             unitOfMeasure: 0,
             quantity: 150,
-            unitCostAmount: 0.01,
-            currentStockQty: 10000,
           },
         ],
       },
@@ -57,20 +54,32 @@ describe('RecipeInventoryService', () => {
     );
   });
 
-  it('updates ingredient including total stock', () => {
+  it('updates ingredient catalog fields', () => {
     http.put.and.returnValue(of({ ingredientId: 'i1' }));
     service
       .updateIngredient('r1', 'i1', {
         name: 'faina',
         unitOfMeasure: 0,
-        unitCostAmount: 1,
-        currentStockQty: 10000,
         isActive: true,
+        allergens: ['gluten'],
+        yieldPercent: 90,
       })
       .subscribe();
     expect(http.put).toHaveBeenCalledWith(
       `${environment.apiUrl}/api/restaurants/r1/admin/ingredients/i1`,
-      jasmine.objectContaining({ currentStockQty: 10000, unitCostAmount: 1 }),
+      jasmine.objectContaining({ isActive: true, yieldPercent: 90 }),
+      { withCredentials: true },
+    );
+  });
+
+  it('posts stock receipt', () => {
+    http.post.and.returnValue(of({ ingredientId: 'i1' }));
+    service
+      .receiveStock('r1', 'i1', { quantity: 10, unitPrice: 5, vatPercent: 19 })
+      .subscribe();
+    expect(http.post).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/ingredients/i1/receipts`,
+      jasmine.objectContaining({ quantity: 10, unitPrice: 5 }),
       { withCredentials: true },
     );
   });

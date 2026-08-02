@@ -91,8 +91,9 @@ export class DefaultLayoutComponent implements OnInit {
         const next = user?.restaurantName ?? this.auth.getRestaurantCtx()?.name ?? null;
         this.restaurantName = next;
         const role = user?.role ?? this.auth.getUserRole() ?? 'default';
-        if (role !== this.userRole) {
-          this.userRole = role;
+        const roleChanged = role !== this.userRole;
+        this.userRole = role;
+        if (roleChanged || role === 'manager') {
           this.refreshNavItems('user$');
         }
       });
@@ -201,11 +202,27 @@ export class DefaultLayoutComponent implements OnInit {
             url: '/manager/manage-menu',
             iconComponent: { name: 'cil-restaurant' }
           },
-          {
-            name: this.transloco.translate('nav.recipes'),
-            url: '/manager/recipes',
-            iconComponent: { name: 'cil-list' }
-          },
+          ...(this.auth.getUserSnapshot()?.inventoryManagementEnabled
+            ? [
+                {
+                  name: this.transloco.translate('nav.inventory'),
+                  url: '/manager/stock',
+                  iconComponent: { name: 'cil-basket' },
+                  children: [
+                    {
+                      name: this.transloco.translate('nav.stock'),
+                      url: '/manager/stock',
+                      iconComponent: { name: 'cil-storage' },
+                    },
+                    {
+                      name: this.transloco.translate('nav.recipes'),
+                      url: '/manager/recipes',
+                      iconComponent: { name: 'cil-list-numbered' },
+                    },
+                  ],
+                } as INavData,
+              ]
+            : []),
           {
             name: this.transloco.translate('nav.staff'),
             url: '/manager/manage-staff',

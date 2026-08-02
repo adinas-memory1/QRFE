@@ -27,6 +27,7 @@ export class ResellerDashboardComponent implements OnInit, OnDestroy {
   pageSize = 10;
   totalCount = 0;
   loading = false;
+  inventoryToggleId: string | null = null;
 
   constructor(
     private readonly reseller: ResellerService,
@@ -86,6 +87,32 @@ export class ResellerDashboardComponent implements OnInit, OnDestroy {
     if (page < 1 || page > this.totalPages || page === this.pageNumber || this.loading) return;
     this.pageNumber = page;
     this.loadPage();
+  }
+
+  toggleInventoryManagement(restaurant: RestaurantStatisticDTO): void {
+    const next = !restaurant.inventoryManagementEnabled;
+    this.inventoryToggleId = restaurant.restaurantId;
+    this.reseller
+      .setInventoryManagement(restaurant.restaurantId, next)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: res => {
+          restaurant.inventoryManagementEnabled = res.inventoryManagementEnabled;
+          this.inventoryToggleId = null;
+          this.toast.success(
+            this.transloco.translate(
+              res.inventoryManagementEnabled
+                ? 'resellerDashboard.inventoryEnabledMsg'
+                : 'resellerDashboard.inventoryDisabledMsg',
+              { name: restaurant.restaurantName },
+            ),
+          );
+        },
+        error: () => {
+          this.inventoryToggleId = null;
+          this.toast.error(this.transloco.translate('resellerDashboard.inventoryToggleError'));
+        },
+      });
   }
 
   ngOnDestroy(): void {
