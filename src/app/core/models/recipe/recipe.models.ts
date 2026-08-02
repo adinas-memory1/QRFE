@@ -56,6 +56,46 @@ export interface StockItemDto {
   createdOn: string;
 }
 
+export interface StockReceiptLineDto {
+  stockReceiptLineId: string;
+  ingredientId: string;
+  ingredientName: string;
+  stockItemId: string;
+  quantity: number;
+  unitOfMeasure: UnitOfMeasure;
+  unitPrice: number;
+  lineTotal: number;
+  vatPercent: number;
+  vatInclusive: boolean;
+  lotNumber?: string | null;
+  expiryDate?: string | null;
+  note?: string | null;
+}
+
+export interface StockReceiptDto {
+  stockReceiptId: string;
+  documentNumber: string;
+  supplier?: string | null;
+  receivedOn: string;
+  note?: string | null;
+  createdAt: string;
+  lines: StockReceiptLineDto[];
+  totalAmount: number;
+}
+
+export interface StockReceiptLineInput {
+  ingredientId: string;
+  quantity: number;
+  unitOfMeasure?: UnitOfMeasure | number | null;
+  unitPrice?: number | null;
+  totalPrice?: number | null;
+  vatPercent?: number;
+  vatInclusive?: boolean;
+  lotNumber?: string | null;
+  expiryDate?: string | null;
+  note?: string | null;
+}
+
 export interface RecipeLineDto {
   ingredientId: string;
   ingredientName: string;

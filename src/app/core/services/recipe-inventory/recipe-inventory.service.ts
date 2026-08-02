@@ -15,6 +15,8 @@ import {
   RecipeLineInput,
   StockItemDto,
   StockMovementDto,
+  StockReceiptDto,
+  StockReceiptLineInput,
   UnitOfMeasure,
 } from '../../models/recipe/recipe.models';
 
@@ -244,6 +246,44 @@ export class RecipeInventoryService {
       `${this.apiUrl}/api/restaurants/${restaurantId}/admin/inventory-settings`,
       body,
       { withCredentials: true },
+    );
+  }
+
+  createStockReceipt(
+    restaurantId: string,
+    body: {
+      supplier?: string | null;
+      receivedOn?: string | null;
+      note?: string | null;
+      documentNumber?: string | null;
+      lines: StockReceiptLineInput[];
+    },
+  ): Observable<StockReceiptDto> {
+    return this.http.post<StockReceiptDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-receipts`,
+      body,
+      { withCredentials: true },
+    );
+  }
+
+  listStockReceipts(
+    restaurantId: string,
+    opts?: { from?: string; to?: string; take?: number },
+  ): Observable<StockReceiptDto[]> {
+    let params = new HttpParams();
+    if (opts?.from) params = params.set('from', opts.from);
+    if (opts?.to) params = params.set('to', opts.to);
+    if (opts?.take != null) params = params.set('take', String(opts.take));
+    return this.http.get<StockReceiptDto[]>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-receipts`,
+      { params, withCredentials: true },
+    );
+  }
+
+  downloadStockReceiptPdf(restaurantId: string, stockReceiptId: string): Observable<Blob> {
+    return this.http.get(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-receipts/${stockReceiptId}/pdf`,
+      { responseType: 'blob', withCredentials: true },
     );
   }
 }

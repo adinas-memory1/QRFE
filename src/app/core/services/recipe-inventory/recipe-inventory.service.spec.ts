@@ -84,6 +84,51 @@ describe('RecipeInventoryService', () => {
     );
   });
 
+  it('creates multi-line NIR stock receipt', () => {
+    http.post.and.returnValue(of({ stockReceiptId: 'sr1', documentNumber: 'NIR-2026-0001' }));
+    service
+      .createStockReceipt('r1', {
+        supplier: 'Metro',
+        receivedOn: '2026-08-02',
+        lines: [
+          { ingredientId: 'i1', quantity: 10, unitPrice: 5, vatPercent: 19 },
+          { ingredientId: 'i2', quantity: 2, totalPrice: 40, vatPercent: 19 },
+        ],
+      })
+      .subscribe();
+    expect(http.post).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts`,
+      jasmine.objectContaining({
+        supplier: 'Metro',
+        lines: jasmine.any(Array),
+      }),
+      { withCredentials: true },
+    );
+  });
+
+  it('lists stock receipts with take', () => {
+    http.get.and.returnValue(of([]));
+    service.listStockReceipts('r1', { take: 20 }).subscribe();
+    expect(http.get).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts`,
+      jasmine.objectContaining({
+        withCredentials: true,
+        params: jasmine.any(HttpParams),
+      }),
+    );
+    const params = http.get.calls.mostRecent().args[1]?.params as HttpParams;
+    expect(params.get('take')).toBe('20');
+  });
+
+  it('downloads stock receipt PDF as blob', () => {
+    http.get.and.returnValue(of(new Blob(['pdf'])));
+    service.downloadStockReceiptPdf('r1', 'sr1').subscribe();
+    expect(http.get).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts/sr1/pdf`,
+      jasmine.objectContaining({ responseType: 'blob', withCredentials: true }),
+    );
+  });
+
   it('lists low-stock ingredients', () => {
     http.get.and.returnValue(of([]));
     service.listLowStockIngredients('r1').subscribe();

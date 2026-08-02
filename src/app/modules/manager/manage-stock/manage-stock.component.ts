@@ -15,7 +15,7 @@ import {
   ModalHeaderComponent,
   ModalTitleDirective,
 } from '@coreui/angular';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -26,6 +26,7 @@ import {
   INVENTORY_COSTING_OPTIONS,
   IngredientDto,
   StockItemDto,
+  StockReceiptDto,
   UNIT_OF_MEASURE_OPTIONS,
   normalizeCostingMethod,
   normalizeUom,
@@ -76,9 +77,14 @@ export class ManageStockComponent implements OnInit, OnDestroy {
 
   showCatalogModal = false;
   showReceiptModal = false;
+  showNirModal = false;
   catalogForm: FormGroup;
   receiptForm: FormGroup;
+  nirForm: FormGroup;
   editingIngredientId: string | null = null;
+  receipts: StockReceiptDto[] = [];
+  receiptsLoading = false;
+  lastCreatedReceipt: StockReceiptDto | null = null;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -109,6 +115,16 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       expiryDate: [''],
       note: [''],
     });
+    this.nirForm = this.fb.group({
+      supplier: [''],
+      receivedOn: [''],
+      note: [''],
+      lines: this.fb.array([this.createNirLineGroup()]),
+    });
+  }
+
+  get nirLines(): FormArray {
+    return this.nirForm.get('lines') as FormArray;
   }
 
   ngOnInit(): void {
@@ -134,6 +150,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
   reload(): void {
     if (!this.restaurantId) return;
     this.loading = true;
+    this.loadReceipts();
     this.api
       .listIngredients(this.restaurantId, true)
       .pipe(takeUntil(this.destroy$))
@@ -154,6 +171,23 @@ export class ManageStockComponent implements OnInit, OnDestroy {
         error: () => {
           this.loading = false;
           this.toast.error(this.transloco.translate('stock.loadError'));
+        },
+      });
+  }
+
+  loadReceipts(): void {
+    if (!this.restaurantId) return;
+    this.receiptsLoading = true;
+    this.api
+      .listStockReceipts(this.restaurantId, { take: 20 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.receipts = rows ?? [];
+          this.receiptsLoading = false;
+        },
+        error: () => {
+          this.receiptsLoading = false;
         },
       });
   }
@@ -288,6 +322,125 @@ export class ManageStockComponent implements OnInit, OnDestroy {
           this.reload();
         },
         error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+      });
+  }
+
+  openNir(): void {
+    while (this.nirLines.length > 0) this.nirLines.removeAt(0);
+    this.nirLines.push(this.createNirLineGroup(this.selected?.ingredientId));
+    this.nirForm.patchValue({
+      supplier: '',
+      receivedOn: new Date().toISOString().slice(0, 10),
+      note: '',
+    });
+    this.lastCreatedReceipt = null;
+    this.showNirModal = true;
+  }
+
+  createNirLineGroup(ingredientId?: string | null): FormGroup {
+    const ingredient = ingredientId
+      ? this.ingredients.find((i) => i.ingredientId === ingredientId)
+      : null;
+    return this.fb.group({
+      ingredientId: [ingredientId ?? '', Validators.required],
+      quantity: [1, [Validators.required, Validators.min(0.0001)]],
+      unitOfMeasure: [normalizeUom(ingredient?.unitOfMeasure ?? 4)],
+      unitPrice: [ingredient?.weightedAverageUnitCost ?? ingredient?.unitCostAmount ?? 0, [Validators.min(0)]],
+      totalPrice: [null as number | null],
+      vatPercent: [19, [Validators.min(0), Validators.max(100)]],
+      vatInclusive: [false],
+      lotNumber: [''],
+      expiryDate: [''],
+      note: [''],
+    });
+  }
+
+  addNirLine(): void {
+    this.nirLines.push(this.createNirLineGroup());
+  }
+
+  removeNirLine(index: number): void {
+    if (this.nirLines.length <= 1) return;
+    this.nirLines.removeAt(index);
+  }
+
+  onNirIngredientChange(index: number): void {
+    const group = this.nirLines.at(index) as FormGroup;
+    const id = String(group.get('ingredientId')?.value ?? '');
+    const ingredient = this.ingredients.find((i) => i.ingredientId === id);
+    if (!ingredient) return;
+    group.patchValue({
+      unitOfMeasure: normalizeUom(ingredient.unitOfMeasure),
+      unitPrice: ingredient.weightedAverageUnitCost ?? ingredient.unitCostAmount ?? 0,
+    });
+  }
+
+  saveNir(): void {
+    if (!this.restaurantId || this.nirForm.invalid) return;
+    const raw = this.nirForm.getRawValue() as {
+      supplier: string;
+      receivedOn: string;
+      note: string;
+      lines: Array<{
+        ingredientId: string;
+        quantity: number;
+        unitOfMeasure: number;
+        unitPrice: number;
+        totalPrice: number | null;
+        vatPercent: number;
+        vatInclusive: boolean;
+        lotNumber: string;
+        expiryDate: string;
+        note: string;
+      }>;
+    };
+
+    this.api
+      .createStockReceipt(this.restaurantId, {
+        supplier: raw.supplier || null,
+        receivedOn: raw.receivedOn || null,
+        note: raw.note || null,
+        lines: raw.lines.map((l) => ({
+          ingredientId: l.ingredientId,
+          quantity: Number(l.quantity),
+          unitOfMeasure: Number(l.unitOfMeasure),
+          unitPrice: l.totalPrice != null && String(l.totalPrice) !== '' ? null : Number(l.unitPrice),
+          totalPrice: l.totalPrice != null && String(l.totalPrice) !== '' ? Number(l.totalPrice) : null,
+          vatPercent: Number(l.vatPercent),
+          vatInclusive: !!l.vatInclusive,
+          lotNumber: l.lotNumber || null,
+          expiryDate: l.expiryDate || null,
+          note: l.note || null,
+        })),
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (receipt) => {
+          this.lastCreatedReceipt = receipt;
+          this.toast.success(
+            this.transloco.translate('stock.nirSaved', { number: receipt.documentNumber }),
+          );
+          this.reload();
+        },
+        error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+      });
+  }
+
+  downloadNirPdf(receipt: StockReceiptDto): void {
+    if (!this.restaurantId) return;
+    this.api
+      .downloadStockReceiptPdf(this.restaurantId, receipt.stockReceiptId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `NIR-${receipt.documentNumber}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        error: () => this.toast.error(this.transloco.translate('stock.pdfError')),
       });
   }
 

@@ -1601,6 +1601,20 @@
     "note": "Notă",
     "inactive": "Inactiv",
     "active": "Activ",
-    "low": "Scăzut"
+    "low": "Scăzut",
+    "newNir": "NIR nou",
+    "saveNir": "Salvează NIR",
+    "nirListTitle": "Note de intrare-recepție (NIR)",
+    "nirNumber": "Nr. NIR",
+    "nirDate": "Data recepției",
+    "nirLines": "Linii",
+    "nirTotal": "Total",
+    "nirSaved": "NIR {{number}} salvat.",
+    "downloadPdf": "Descarcă PDF",
+    "pdfError": "Nu s-a putut genera PDF-ul.",
+    "emptyNir": "Niciun NIR încă.",
+    "pickIngredient": "Alege ingredient",
+    "addLine": "Adaugă linie",
+    "removeLine": "Șterge"
   }
 }

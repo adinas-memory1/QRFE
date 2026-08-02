@@ -1588,6 +1588,20 @@
     "note": "Note",
     "inactive": "Inactive",
     "active": "Active",
-    "low": "Low"
+    "low": "Low",
+    "newNir": "New NIR",
+    "saveNir": "Save NIR",
+    "nirListTitle": "Goods receipt notes (NIR)",
+    "nirNumber": "NIR no.",
+    "nirDate": "Received on",
+    "nirLines": "Lines",
+    "nirTotal": "Total",
+    "nirSaved": "NIR {{number}} saved.",
+    "downloadPdf": "Download PDF",
+    "pdfError": "Could not generate PDF.",
+    "emptyNir": "No NIR documents yet.",
+    "pickIngredient": "Pick ingredient",
+    "addLine": "Add line",
+    "removeLine": "Remove"
   }
 }
