@@ -296,6 +296,13 @@ export class AuthService {
   }
 
   restoreSession(): Observable<UserContextModel | null> {
+    // If session is already live in memory, do not clobber it with storage
+    // (storage can lag behind ping — e.g. inventoryManagementEnabled).
+    const live = this.userSubject.value;
+    if (live?.id) {
+      return of(live);
+    }
+
     const user = readAuthUserCtx();
     if (user) {
       this.userSubject.next(user);

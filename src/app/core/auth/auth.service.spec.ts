@@ -27,6 +27,22 @@ describe('isHttpAuthFailure', () => {
 });
 
 describe('normalizeUserContext', () => {
+  it('maps inventoryManagementEnabled from ping/login payloads', () => {
+    expect(
+      normalizeUserContext({
+        id: '4',
+        role: 'manager',
+        inventoryManagementEnabled: true,
+      }),
+    ).toEqual(
+      jasmine.objectContaining({
+        id: '4',
+        role: 'manager',
+        inventoryManagementEnabled: true,
+      }),
+    );
+  });
+
   it('maps camelCase and PascalCase payloads', () => {
     expect(normalizeUserContext({ id: '1', role: 'staff', restaurantId: 'r1' })).toEqual({
       id: '1',
@@ -316,5 +332,51 @@ describe('AuthService offline session handling', () => {
 
     expect(service.getUserSnapshot()?.isOfflinePrimaryStaffDesignee).toBe(true);
     expect(service.getUserSnapshot()?.isOfflinePrimaryDevice).toBe(false);
+  });
+
+  it('setUser keeps inventoryManagementEnabled from ping after login omitted it', () => {
+    service.setUser({
+      id: '1',
+      role: 'manager',
+      restaurantId: 'r1',
+      restaurantName: 'Bistro',
+      restaurantType: 'Small',
+    });
+    expect(service.getUserSnapshot()?.inventoryManagementEnabled).toBe(false);
+
+    service.setUser({
+      id: '1',
+      role: 'manager',
+      restaurantId: 'r1',
+      restaurantName: 'Bistro',
+      restaurantType: 'Small',
+      inventoryManagementEnabled: true,
+    });
+    expect(service.getUserSnapshot()?.inventoryManagementEnabled).toBe(true);
+  });
+
+  it('restoreSession does not clobber live inventoryManagementEnabled with stale storage', () => {
+    service.setUser({
+      id: '1',
+      role: 'manager',
+      restaurantId: 'r1',
+      restaurantName: 'Bistro',
+      restaurantType: 'Small',
+      inventoryManagementEnabled: true,
+    });
+    writeAuthUserCtx({
+      id: '1',
+      role: 'manager',
+      restaurantId: 'r1',
+      restaurantName: 'Bistro',
+      restaurantType: 'Small',
+      inventoryManagementEnabled: false,
+    });
+
+    service.restoreSession().subscribe(u => {
+      expect(u?.inventoryManagementEnabled).toBe(true);
+    });
+
+    expect(service.getUserSnapshot()?.inventoryManagementEnabled).toBe(true);
   });
 });
