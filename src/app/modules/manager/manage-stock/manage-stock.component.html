@@ -41,13 +41,25 @@
         <c-card-body>
           <input
             cFormControl
-            class="mb-3"
+            class="mb-2"
             type="search"
             [(ngModel)]="searchTerm"
             (ngModelChange)="applyFilter()"
             [attr.placeholder]="'stock.searchPlaceholder' | transloco"
             autocomplete="off"
           />
+          <div class="form-check mb-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="showInactiveIngredients"
+              [(ngModel)]="showInactiveIngredients"
+              (ngModelChange)="reload()"
+            />
+            <label class="form-check-label" for="showInactiveIngredients">
+              {{ 'stock.showInactive' | transloco }}
+            </label>
+          </div>
           @if (loading) {
             <p class="text-body-secondary mb-0">{{ 'stock.loading' | transloco }}</p>
           } @else {
@@ -424,7 +436,7 @@
                   (change)="onNirIngredientChange(i, $event)"
                 >
                   <option value="">{{ 'stock.pickIngredient' | transloco }}</option>
-                  @for (ing of ingredients; track ing.ingredientId) {
+                  @for (ing of pickableIngredients; track ing.ingredientId) {
                     <option [value]="ing.ingredientId">{{ ing.name }}</option>
                   }
                 </select>

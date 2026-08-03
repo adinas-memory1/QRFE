@@ -87,6 +87,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
   lastCreatedReceipt: StockReceiptDto | null = null;
   nirError: string | null = null;
   nirSaving = false;
+  showInactiveIngredients = false;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -130,6 +131,11 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     return this.nirForm.get('lines') as FormArray;
   }
 
+  /** Only active ingredients in NIR / receipt pickers. */
+  get pickableIngredients(): IngredientDto[] {
+    return this.ingredients.filter((i) => i.isActive);
+  }
+
   ngOnInit(): void {
     const id = this.auth.getUserRestaurantId();
     this.restaurantId = Array.isArray(id) ? id[0] ?? null : id;
@@ -155,7 +161,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.loadReceipts();
     this.api
-      .listIngredients(this.restaurantId, true)
+      .listIngredients(this.restaurantId, this.showInactiveIngredients)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (rows) => {
@@ -167,8 +173,13 @@ export class ManageStockComponent implements OnInit, OnDestroy {
           this.loading = false;
           if (this.selected) {
             const refreshed = this.ingredients.find((i) => i.ingredientId === this.selected!.ingredientId);
-            this.selected = refreshed ?? null;
-            if (this.selected) this.loadLots(this.selected.ingredientId);
+            if (!refreshed || (!this.showInactiveIngredients && !refreshed.isActive)) {
+              this.selected = null;
+              this.lots = [];
+            } else {
+              this.selected = refreshed;
+              this.loadLots(this.selected.ingredientId);
+            }
           }
         },
         error: () => {
@@ -197,9 +208,12 @@ export class ManageStockComponent implements OnInit, OnDestroy {
 
   applyFilter(): void {
     const term = this.searchTerm.trim().toLowerCase();
+    const base = this.showInactiveIngredients
+      ? this.ingredients
+      : this.ingredients.filter((i) => i.isActive);
     this.filtered = !term
-      ? [...this.ingredients]
-      : this.ingredients.filter((i) => i.name.toLowerCase().includes(term));
+      ? [...base]
+      : base.filter((i) => i.name.toLowerCase().includes(term));
   }
 
   selectIngredient(row: IngredientDto): void {
@@ -297,8 +311,9 @@ export class ManageStockComponent implements OnInit, OnDestroy {
             this.selected = null;
             this.lots = [];
           }
+          this.ingredients = this.ingredients.filter((i) => i.ingredientId !== row.ingredientId);
+          this.applyFilter();
           this.toast.success(this.transloco.translate('stock.ingredientDeleted'));
-          this.reload();
         },
         error: () => this.toast.error(this.transloco.translate('stock.saveError')),
       });
