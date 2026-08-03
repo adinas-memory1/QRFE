@@ -99,6 +99,14 @@
                             >
                               {{ 'stock.delete' | transloco }}
                             </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="btn btn-link btn-sm p-0 text-body-secondary"
+                              (click)="reactivateIngredient(row); $event.stopPropagation()"
+                            >
+                              {{ 'stock.reactivate' | transloco }}
+                            </button>
                           }
                         </div>
                       </td>
