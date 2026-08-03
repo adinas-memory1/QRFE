@@ -75,6 +75,7 @@ export interface StockReceiptLineDto {
 export interface StockReceiptDto {
   stockReceiptId: string;
   documentNumber: string;
+  invoiceNumber?: string | null;
   supplier?: string | null;
   receivedOn: string;
   note?: string | null;

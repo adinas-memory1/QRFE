@@ -89,6 +89,7 @@ describe('RecipeInventoryService', () => {
     service
       .createStockReceipt('r1', {
         supplier: 'Metro',
+        invoiceNumber: 'F-99',
         receivedOn: '2026-08-02',
         lines: [
           { ingredientId: 'i1', quantity: 10, unitPrice: 5, vatPercent: 19 },
@@ -100,6 +101,7 @@ describe('RecipeInventoryService', () => {
       `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts`,
       jasmine.objectContaining({
         supplier: 'Metro',
+        invoiceNumber: 'F-99',
         lines: jasmine.any(Array),
       }),
       { withCredentials: true },

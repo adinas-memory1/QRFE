@@ -256,6 +256,7 @@ export class RecipeInventoryService {
       receivedOn?: string | null;
       note?: string | null;
       documentNumber?: string | null;
+      invoiceNumber?: string | null;
       lines: StockReceiptLineInput[];
     },
   ): Observable<StockReceiptDto> {

@@ -190,6 +190,7 @@
             <thead>
               <tr>
                 <th>{{ 'stock.nirNumber' | transloco }}</th>
+                <th>{{ 'stock.invoiceNumber' | transloco }}</th>
                 <th>{{ 'recipes.supplier' | transloco }}</th>
                 <th>{{ 'stock.nirDate' | transloco }}</th>
                 <th>{{ 'stock.nirLines' | transloco }}</th>
@@ -201,6 +202,7 @@
               @for (r of receipts; track r.stockReceiptId) {
                 <tr>
                   <td>{{ r.documentNumber }}</td>
+                  <td>{{ r.invoiceNumber || '—' }}</td>
                   <td>{{ r.supplier || '—' }}</td>
                   <td>{{ r.receivedOn }}</td>
                   <td>{{ r.lines?.length || 0 }}</td>
@@ -213,7 +215,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="6" class="text-body-secondary">{{ 'stock.emptyNir' | transloco }}</td>
+                  <td colspan="7" class="text-body-secondary">{{ 'stock.emptyNir' | transloco }}</td>
                 </tr>
               }
             </tbody>
@@ -371,15 +373,19 @@
       </div>
     }
     <form [formGroup]="nirForm" class="row g-2">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label cLabel>{{ 'recipes.supplier' | transloco }}</label>
         <input cFormControl type="text" formControlName="supplier" maxlength="120" />
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
+        <label cLabel>{{ 'stock.invoiceNumber' | transloco }}</label>
+        <input cFormControl type="text" formControlName="invoiceNumber" maxlength="80" />
+      </div>
+      <div class="col-md-3">
         <label cLabel>{{ 'stock.nirDate' | transloco }}</label>
         <input cFormControl type="date" formControlName="receivedOn" />
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label cLabel>{{ 'stock.note' | transloco }}</label>
         <input cFormControl type="text" formControlName="note" maxlength="500" />
       </div>
@@ -390,10 +396,14 @@
             <div class="row g-2 align-items-end">
               <div class="col-md-4">
                 <label cLabel>{{ 'recipes.cols.name' | transloco }}</label>
-                <select cSelect class="form-select" formControlName="ingredientId" (change)="onNirIngredientChange(i)">
-                  <option value="">{{ 'stock.pickIngredient' | transloco }}</option>
+                <select
+                  class="form-select"
+                  formControlName="ingredientId"
+                  (change)="onNirIngredientChange(i)"
+                >
+                  <option [ngValue]="null">{{ 'stock.pickIngredient' | transloco }}</option>
                   @for (ing of ingredients; track ing.ingredientId) {
-                    <option [value]="ing.ingredientId">{{ ing.name }}</option>
+                    <option [ngValue]="ing.ingredientId">{{ ing.name }}</option>
                   }
                 </select>
               </div>
@@ -457,7 +467,7 @@
     <button cButton color="secondary" variant="outline" type="button" (click)="showNirModal = false">
       {{ 'recipes.cancel' | transloco }}
     </button>
-    <button cButton color="primary" type="button" [disabled]="nirForm.invalid || !!lastCreatedReceipt" (click)="saveNir()">
+    <button cButton color="primary" type="button" [disabled]="!!lastCreatedReceipt" (click)="saveNir()">
       {{ 'stock.saveNir' | transloco }}
     </button>
   </c-modal-footer>
