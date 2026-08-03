@@ -85,6 +85,8 @@ export class ManageStockComponent implements OnInit, OnDestroy {
   receipts: StockReceiptDto[] = [];
   receiptsLoading = false;
   lastCreatedReceipt: StockReceiptDto | null = null;
+  nirError: string | null = null;
+  nirSaving = false;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -336,6 +338,8 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       note: '',
     });
     this.lastCreatedReceipt = null;
+    this.nirError = null;
+    this.nirSaving = false;
     this.showNirModal = true;
   }
 
@@ -344,12 +348,12 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       ? this.ingredients.find((i) => i.ingredientId === ingredientId)
       : null;
     return this.fb.group({
-      ingredientId: [ingredient?.ingredientId ?? null, Validators.required],
-      quantity: [1, [Validators.required, Validators.min(0.0001)]],
-      unitOfMeasure: [normalizeUom(ingredient?.unitOfMeasure ?? 4), Validators.required],
-      unitPrice: [ingredient?.weightedAverageUnitCost ?? ingredient?.unitCostAmount ?? 0, [Validators.min(0)]],
+      ingredientId: [ingredient?.ingredientId ?? ''],
+      quantity: [1],
+      unitOfMeasure: [normalizeUom(ingredient?.unitOfMeasure ?? 4)],
+      unitPrice: [ingredient?.weightedAverageUnitCost ?? ingredient?.unitCostAmount ?? 0],
       totalPrice: [null as number | null],
-      vatPercent: [19, [Validators.min(0), Validators.max(100)]],
+      vatPercent: [19],
       vatInclusive: [false],
       lotNumber: [''],
       expiryDate: [''],
@@ -366,9 +370,10 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.nirLines.removeAt(index);
   }
 
-  onNirIngredientChange(index: number): void {
+  onNirIngredientChange(index: number, event: Event): void {
     const group = this.nirLines.at(index) as FormGroup;
-    const id = String(group.get('ingredientId')?.value ?? '');
+    const id = String((event.target as HTMLSelectElement).value ?? '');
+    group.get('ingredientId')?.setValue(id, { emitEvent: false });
     const ingredient = this.ingredients.find((i) => i.ingredientId === id);
     if (!ingredient) return;
     group.patchValue({
@@ -378,24 +383,21 @@ export class ManageStockComponent implements OnInit, OnDestroy {
   }
 
   saveNir(): void {
-    if (!this.restaurantId) return;
-    this.nirForm.markAllAsTouched();
-    if (this.nirForm.invalid) {
-      this.toast.error(this.transloco.translate('stock.nirInvalid'));
-      return;
-    }
+    if (!this.restaurantId || this.nirSaving || this.lastCreatedReceipt) return;
+    this.nirError = null;
+
     const raw = this.nirForm.getRawValue() as {
       supplier: string;
       invoiceNumber: string;
       receivedOn: string;
       note: string;
       lines: Array<{
-        ingredientId: string | null;
-        quantity: number;
-        unitOfMeasure: number;
-        unitPrice: number;
-        totalPrice: number | null;
-        vatPercent: number;
+        ingredientId: string;
+        quantity: number | string | null;
+        unitOfMeasure: number | string | null;
+        unitPrice: number | string | null;
+        totalPrice: number | string | null;
+        vatPercent: number | string | null;
         vatInclusive: boolean;
         lotNumber: string;
         expiryDate: string;
@@ -403,26 +405,65 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       }>;
     };
 
-    const lines = raw.lines
-      .filter((l) => !!l.ingredientId)
-      .map((l) => ({
-        ingredientId: String(l.ingredientId),
-        quantity: Number(l.quantity),
-        unitOfMeasure: Number(l.unitOfMeasure),
-        unitPrice: l.totalPrice != null && String(l.totalPrice) !== '' ? null : Number(l.unitPrice),
-        totalPrice: l.totalPrice != null && String(l.totalPrice) !== '' ? Number(l.totalPrice) : null,
-        vatPercent: Number(l.vatPercent),
+    const lines: Array<{
+      ingredientId: string;
+      quantity: number;
+      unitOfMeasure: number;
+      unitPrice: number | null;
+      totalPrice: number | null;
+      vatPercent: number;
+      vatInclusive: boolean;
+      lotNumber: string | null;
+      expiryDate: string | null;
+      note: string | null;
+    }> = [];
+    for (const l of raw.lines ?? []) {
+      const ingredientId = String(l.ingredientId ?? '').trim();
+      if (!ingredientId) continue;
+
+      const quantity = Number(l.quantity);
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        this.nirError = this.transloco.translate('stock.nirInvalid');
+        return;
+      }
+
+      const totalRaw = l.totalPrice;
+      const hasTotal = totalRaw != null && String(totalRaw).trim() !== '';
+      const unitRaw = l.unitPrice;
+      const unitPrice = hasTotal
+        ? null
+        : Number(unitRaw == null || String(unitRaw).trim() === '' ? 0 : unitRaw);
+      const totalPrice = hasTotal ? Number(totalRaw) : null;
+
+      if (hasTotal && (!Number.isFinite(totalPrice!) || totalPrice! < 0)) {
+        this.nirError = this.transloco.translate('stock.nirInvalid');
+        return;
+      }
+      if (!hasTotal && (!Number.isFinite(unitPrice!) || unitPrice! < 0)) {
+        this.nirError = this.transloco.translate('stock.nirInvalid');
+        return;
+      }
+
+      lines.push({
+        ingredientId,
+        quantity,
+        unitOfMeasure: Number(l.unitOfMeasure ?? 4),
+        unitPrice,
+        totalPrice,
+        vatPercent: Number(l.vatPercent ?? 19),
         vatInclusive: !!l.vatInclusive,
         lotNumber: l.lotNumber || null,
         expiryDate: l.expiryDate || null,
         note: l.note || null,
-      }));
+      });
+    }
 
     if (lines.length === 0) {
-      this.toast.error(this.transloco.translate('stock.pickIngredientRequired'));
+      this.nirError = this.transloco.translate('stock.pickIngredientRequired');
       return;
     }
 
+    this.nirSaving = true;
     this.api
       .createStockReceipt(this.restaurantId, {
         supplier: raw.supplier || null,
@@ -434,13 +475,23 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (receipt) => {
+          this.nirSaving = false;
           this.lastCreatedReceipt = receipt;
+          this.nirError = null;
           this.toast.success(
             this.transloco.translate('stock.nirSaved', { number: receipt.documentNumber }),
           );
           this.reload();
         },
-        error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+        error: (err: { error?: { error?: string }; message?: string }) => {
+          this.nirSaving = false;
+          const apiMsg =
+            typeof err?.error?.error === 'string'
+              ? err.error.error
+              : this.transloco.translate('stock.saveError');
+          this.nirError = apiMsg;
+          this.toast.error(apiMsg);
+        },
       });
   }
 

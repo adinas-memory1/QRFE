@@ -9,7 +9,7 @@ import { ToastBaseComponent } from '../toast-base/toast-base.component';
   standalone: true,
   imports: [AsyncPipe, NgFor, ToasterComponent, ToastBaseComponent],
   template: `
-    <c-toaster position="top-end" class="p-3">
+    <c-toaster position="fixed" placement="top-end" class="p-3 app-toasts-host">
       <app-toast-base
         *ngFor="let toast of toastService.toasts$ | async; trackBy: trackById"
         [color]="toast.color || 'primary'"
@@ -21,7 +21,17 @@ import { ToastBaseComponent } from '../toast-base/toast-base.component';
         (visibleChange)="onDismiss($event, toast.id)"
       />
     </c-toaster>
-  `
+  `,
+  styles: [
+    `
+      :host {
+        display: contents;
+      }
+      .app-toasts-host {
+        z-index: 2100;
+      }
+    `,
+  ],
 })
 export class AppToastsComponent {
   constructor(public toastService: AppToastService) {}

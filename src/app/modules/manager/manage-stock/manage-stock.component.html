@@ -372,6 +372,9 @@
         </button>
       </div>
     }
+    @if (nirError) {
+      <div class="alert alert-danger" role="alert">{{ nirError }}</div>
+    }
     <form [formGroup]="nirForm" class="row g-2">
       <div class="col-md-3">
         <label cLabel>{{ 'recipes.supplier' | transloco }}</label>
@@ -399,11 +402,11 @@
                 <select
                   class="form-select"
                   formControlName="ingredientId"
-                  (change)="onNirIngredientChange(i)"
+                  (change)="onNirIngredientChange(i, $event)"
                 >
-                  <option [ngValue]="null">{{ 'stock.pickIngredient' | transloco }}</option>
+                  <option value="">{{ 'stock.pickIngredient' | transloco }}</option>
                   @for (ing of ingredients; track ing.ingredientId) {
-                    <option [ngValue]="ing.ingredientId">{{ ing.name }}</option>
+                    <option [value]="ing.ingredientId">{{ ing.name }}</option>
                   }
                 </select>
               </div>
@@ -413,7 +416,7 @@
               </div>
               <div class="col-6 col-md-2">
                 <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
-                <select cSelect class="form-select" formControlName="unitOfMeasure">
+                <select class="form-select" formControlName="unitOfMeasure">
                   @for (opt of uomOptions; track opt.value) {
                     <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
                   }
@@ -467,7 +470,13 @@
     <button cButton color="secondary" variant="outline" type="button" (click)="showNirModal = false">
       {{ 'recipes.cancel' | transloco }}
     </button>
-    <button cButton color="primary" type="button" [disabled]="!!lastCreatedReceipt" (click)="saveNir()">
+    <button
+      cButton
+      color="primary"
+      type="button"
+      [disabled]="!!lastCreatedReceipt || nirSaving"
+      (click)="saveNir()"
+    >
       {{ 'stock.saveNir' | transloco }}
     </button>
   </c-modal-footer>
