@@ -281,6 +281,29 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     });
   }
 
+  deleteIngredient(row: IngredientDto): void {
+    if (!this.restaurantId || !row.isActive) return;
+    const ok = window.confirm(
+      this.transloco.translate('stock.confirmDeleteIngredient', { name: row.name }),
+    );
+    if (!ok) return;
+
+    this.api
+      .deactivateIngredient(this.restaurantId, row.ingredientId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          if (this.selected?.ingredientId === row.ingredientId) {
+            this.selected = null;
+            this.lots = [];
+          }
+          this.toast.success(this.transloco.translate('stock.ingredientDeleted'));
+          this.reload();
+        },
+        error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+      });
+  }
+
   openReceipt(): void {
     if (!this.selected) return;
     this.receiptForm.reset({

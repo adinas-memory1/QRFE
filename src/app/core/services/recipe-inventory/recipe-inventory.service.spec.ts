@@ -72,6 +72,15 @@ describe('RecipeInventoryService', () => {
     );
   });
 
+  it('deactivates ingredient via DELETE', () => {
+    http.delete.and.returnValue(of(void 0));
+    service.deactivateIngredient('r1', 'i1').subscribe();
+    expect(http.delete).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/ingredients/i1`,
+      { withCredentials: true },
+    );
+  });
+
   it('posts stock receipt', () => {
     http.post.and.returnValue(of({ ingredientId: 'i1' }));
     service

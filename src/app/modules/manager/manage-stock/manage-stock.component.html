@@ -83,13 +83,24 @@
                       <td>{{ row.currentStockQty | number:'1.2-4' }} {{ uomLabel(row.unitOfMeasure) }}</td>
                       <td>{{ (row.weightedAverageUnitCost ?? row.unitCostAmount) | number:'1.2-4' }}</td>
                       <td>
-                        <button
-                          type="button"
-                          class="btn btn-link btn-sm p-0"
-                          (click)="openEditCatalog(row); $event.stopPropagation()"
-                        >
-                          {{ 'stock.edit' | transloco }}
-                        </button>
+                        <div class="d-flex gap-2 justify-content-end">
+                          <button
+                            type="button"
+                            class="btn btn-link btn-sm p-0"
+                            (click)="openEditCatalog(row); $event.stopPropagation()"
+                          >
+                            {{ 'stock.edit' | transloco }}
+                          </button>
+                          @if (row.isActive) {
+                            <button
+                              type="button"
+                              class="btn btn-link btn-sm p-0 text-danger"
+                              (click)="deleteIngredient(row); $event.stopPropagation()"
+                            >
+                              {{ 'stock.delete' | transloco }}
+                            </button>
+                          }
+                        </div>
                       </td>
                     </tr>
                   } @empty {
