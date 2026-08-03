@@ -11,4 +11,6 @@ export interface UserContextModel {
   email?: string | null;
   isOfflinePrimaryDevice?: boolean;
   isOfflinePrimaryStaffDesignee?: boolean;
+  /** Restaurant has Gestiune (recipes / stock) module enabled. */
+  inventoryManagementEnabled?: boolean;
 }

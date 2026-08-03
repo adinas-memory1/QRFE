@@ -49,6 +49,18 @@ export class MenuItemServiceService {
     return this.http.put<MenuItem>(`${this.apiUrl}/api/restaurants/${restaurantId}/admin/menu/${menuItemId}`, formData, { withCredentials: true });
   }
 
+  updatePriceAmount(
+    restaurantId: string,
+    menuItemId: string,
+    menuItemPriceAmount: number,
+  ): Observable<{ menuId: string; menuItem: MenuItem }> {
+    return this.http.patch<{ menuId: string; menuItem: MenuItem }>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/menu/${menuItemId}/price`,
+      { menuItemPriceAmount },
+      { withCredentials: true },
+    );
+  }
+
   delete(restaurantId: string, menuItemId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/api/restaurants/${restaurantId}/admin/menu/${menuItemId}`, { withCredentials: true });
   }

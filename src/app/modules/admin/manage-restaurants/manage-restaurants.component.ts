@@ -90,6 +90,7 @@ export class ManageRestaurantsComponent implements OnInit, OnDestroy {
 
   activeTab = 0;
   loading = false;
+  inventoryToggleId: string | null = null;
   repairSubmitting = false;
   editModalVisible = false;
   deleteModalVisible = false;
@@ -341,6 +342,38 @@ export class ManageRestaurantsComponent implements OnInit, OnDestroy {
     if (this.needsRepair(restaurant))
       return this.transloco.translate('manageRestaurants.provisioningIncomplete');
     return this.transloco.translate('manageRestaurants.provisioningComplete');
+  }
+
+  toggleInventoryManagement(restaurant: RestaurantStatisticDTO): void {
+    const next = !restaurant.inventoryManagementEnabled;
+    this.inventoryToggleId = restaurant.restaurantId;
+    this.globalAdmin
+      .setInventoryManagement(restaurant.restaurantId, next)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: res => {
+          restaurant.inventoryManagementEnabled = res.inventoryManagementEnabled;
+          this.inventoryToggleId = null;
+          this.addToast(
+            this.transloco.translate('manageRestaurants.inventoryUpdatedTitle'),
+            this.transloco.translate(
+              res.inventoryManagementEnabled
+                ? 'manageRestaurants.inventoryEnabledMsg'
+                : 'manageRestaurants.inventoryDisabledMsg',
+              { name: restaurant.baseRestaurantName || restaurant.restaurantName },
+            ),
+            'success',
+          );
+        },
+        error: err => {
+          this.inventoryToggleId = null;
+          this.addToast(
+            this.transloco.translate('manageRestaurants.errorTitle'),
+            err?.error?.message ?? this.transloco.translate('manageRestaurants.inventoryToggleError'),
+            'danger',
+          );
+        },
+      });
   }
 
   onEdit(restaurant: RestaurantStatisticDTO): void {

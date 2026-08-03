@@ -77,12 +77,14 @@ export class DefaultLayoutComponent implements OnInit {
   });
 
   private userRole = 'default';
+  private inventoryManagementEnabled = false;
 
   constructor(private auth: AuthService, public iconSet: IconSetService) {}
 
   ngOnInit(): void {
     this.auth.hydrateSessionFromStorageIfNeeded();
     this.userRole = this.auth.getUserRole() ?? 'default';
+    this.inventoryManagementEnabled = !!this.auth.getUserSnapshot()?.inventoryManagementEnabled;
     this.restaurantName = this.auth.getRestaurantCtx()?.name ?? null;
 
     this.auth.user$
@@ -91,8 +93,12 @@ export class DefaultLayoutComponent implements OnInit {
         const next = user?.restaurantName ?? this.auth.getRestaurantCtx()?.name ?? null;
         this.restaurantName = next;
         const role = user?.role ?? this.auth.getUserRole() ?? 'default';
-        if (role !== this.userRole) {
-          this.userRole = role;
+        const roleChanged = role !== this.userRole;
+        const inventoryChanged =
+          !!user?.inventoryManagementEnabled !== this.inventoryManagementEnabled;
+        this.userRole = role;
+        this.inventoryManagementEnabled = !!user?.inventoryManagementEnabled;
+        if (roleChanged || inventoryChanged || role === 'manager') {
           this.refreshNavItems('user$');
         }
       });
@@ -114,6 +120,14 @@ export class DefaultLayoutComponent implements OnInit {
       .subscribe(() => {
         this.refreshNavItems('lang-change');
       });
+
+    // Re-fetch flag after gadmin enables Gestiune while manager session is already open.
+    if (this.userRole === 'manager') {
+      this.auth
+        .pingSession(false)
+        .pipe(takeUntilDestroyed(this.destroyRef), catchError(() => of(null)))
+        .subscribe();
+    }
   }
 
   private refreshNavItems(_source: string): void {
@@ -201,6 +215,27 @@ export class DefaultLayoutComponent implements OnInit {
             url: '/manager/manage-menu',
             iconComponent: { name: 'cil-restaurant' }
           },
+          ...(this.inventoryManagementEnabled
+            ? [
+                {
+                  name: this.transloco.translate('nav.inventory'),
+                  url: '/manager/stock',
+                  iconComponent: { name: 'cil-basket' },
+                  children: [
+                    {
+                      name: this.transloco.translate('nav.stock'),
+                      url: '/manager/stock',
+                      iconComponent: { name: 'cil-basket' },
+                    },
+                    {
+                      name: this.transloco.translate('nav.recipes'),
+                      url: '/manager/recipes',
+                      iconComponent: { name: 'cil-list-numbered' },
+                    },
+                  ],
+                } as INavData,
+              ]
+            : []),
           {
             name: this.transloco.translate('nav.staff'),
             url: '/manager/manage-staff',

@@ -15,6 +15,7 @@ export interface RestaurantStatisticDTO {
   createdByUserId?: string | null;
   createdByRole?: string | null;
   createdByLabel?: string | null;
+  inventoryManagementEnabled?: boolean;
 }
 
 export interface ListRestaurantsResponse {

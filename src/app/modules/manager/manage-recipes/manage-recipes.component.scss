@@ -1,0 +1,76 @@
+.recipes-page {
+  max-width: 1100px;
+}
+
+.recipes-cost-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  background: var(--cui-tertiary-bg, #f8f9fa);
+  border-radius: 0.375rem;
+}
+
+.recipe-line-card {
+  cursor: pointer;
+  background: var(--cui-body-bg, #fff);
+}
+
+.recipe-line-remove {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.recipes-modal-footer {
+  display: block;
+}
+
+.recipes-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recipes-modal-actions > button {
+  flex: 1 1 calc(50% - 0.5rem);
+  min-width: 8.5rem;
+}
+
+.recipe-allergens-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.25rem 0.75rem;
+}
+
+.recipe-allergens-grid .form-check {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.recipe-allergens-grid .form-check-label {
+  word-break: break-word;
+}
+
+.recipes-ingredient-dropdown {
+  z-index: 1055;
+  max-height: 14rem;
+  overflow: auto;
+  top: calc(100% + 0.15rem);
+  left: 0;
+}
+
+@media (max-width: 575.98px) {
+  .recipe-line-card {
+    padding: 0.75rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .recipes-modal-actions > button {
+    flex: 0 1 auto;
+  }
+}
+
+.list-group-item.active strong {
+  color: inherit;
+}

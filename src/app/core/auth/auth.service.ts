@@ -43,6 +43,11 @@ export function normalizeUserContext(raw: unknown): UserContextModel | null {
     'isOfflinePrimaryStaffDesignee',
     'IsOfflinePrimaryStaffDesignee',
   );
+  const inventoryManagementEnabled = readOptionalBool(
+    r,
+    'inventoryManagementEnabled',
+    'InventoryManagementEnabled',
+  );
 
   return {
     id,
@@ -56,6 +61,7 @@ export function normalizeUserContext(raw: unknown): UserContextModel | null {
     email: (r['email'] ?? r['Email'] ?? null) as string | null,
     ...(isOfflinePrimaryDevice !== undefined ? { isOfflinePrimaryDevice } : {}),
     ...(isOfflinePrimaryStaffDesignee !== undefined ? { isOfflinePrimaryStaffDesignee } : {}),
+    ...(inventoryManagementEnabled !== undefined ? { inventoryManagementEnabled } : {}),
   };
 }
 
@@ -87,6 +93,8 @@ function mergeUserContext(
     email: incoming.email ?? previous?.email ?? null,
     isOfflinePrimaryDevice: incoming.isOfflinePrimaryDevice ?? previous?.isOfflinePrimaryDevice ?? false,
     isOfflinePrimaryStaffDesignee: incoming.isOfflinePrimaryStaffDesignee ?? previous?.isOfflinePrimaryStaffDesignee ?? false,
+    inventoryManagementEnabled:
+      incoming.inventoryManagementEnabled ?? previous?.inventoryManagementEnabled ?? false,
   };
 }
 
@@ -174,9 +182,9 @@ export class AuthService {
       headers,
       withCredentials: true,
     }).pipe(
-      tap((response) => {
-        this.nativeAuthTokens.captureFromAuthPayload(response);
-      }),
+      switchMap((response) =>
+        from(this.nativeAuthTokens.captureFromAuthPayloadAsync(response)).pipe(map(() => response)),
+      ),
     );
   }
 
@@ -288,6 +296,13 @@ export class AuthService {
   }
 
   restoreSession(): Observable<UserContextModel | null> {
+    // If session is already live in memory, do not clobber it with storage
+    // (storage can lag behind ping — e.g. inventoryManagementEnabled).
+    const live = this.userSubject.value;
+    if (live?.id) {
+      return of(live);
+    }
+
     const user = readAuthUserCtx();
     if (user) {
       this.userSubject.next(user);
@@ -415,9 +430,9 @@ export class AuthService {
             headers: refreshHeaders,
           })
           .pipe(
-            tap((raw) => {
-              this.nativeAuthTokens.captureFromAuthPayload(raw);
-            }),
+            switchMap((raw) =>
+              from(this.nativeAuthTokens.captureFromAuthPayloadAsync(raw)).pipe(map(() => raw)),
+            ),
             map(raw => this.resolveUserAfterRefresh(raw)),
             tap(user => {
               if (user) this.setUser(user);
@@ -427,6 +442,7 @@ export class AuthService {
               agentDebugLog('A2', 'auth.refreshUserContext', 'refresh-error', {
                 status: (err as HttpErrorResponse)?.status ?? null,
                 sentRefreshToken,
+                bodyHadRefresh: !!refreshToken,
                 willClear: isHttpAuthFailure(err) && sentRefreshToken,
               });
               if (isHttpAuthFailure(err) && sentRefreshToken) {

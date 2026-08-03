@@ -11,6 +11,7 @@ export interface MenuItem {
   menuItemVatPercent?: number;
   salesTaxCategory?: string;
   isAvailable?: boolean;
+  allergens?: string[];
 }
 
 export interface MenuResponse {

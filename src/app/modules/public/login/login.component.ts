@@ -114,6 +114,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.toast.error(this.transloco.translate('common.loginFailed'));
       return;
     }
+    // Prefer ping context (includes InventoryManagementEnabled); only keep login identity on mismatch.
     if (confirmed.id !== user.id) {
       // #region agent log
       agentDebugLog('A5', 'login.completeLogin', 'ping-user-mismatch-trust-login', {
@@ -123,7 +124,11 @@ export class LoginComponent implements OnInit, OnDestroy {
         pingEmail: confirmed.email ?? null,
       });
       // #endregion
-      this.authService.setUser(user);
+      this.authService.setUser({
+        ...user,
+        inventoryManagementEnabled:
+          confirmed.inventoryManagementEnabled ?? user.inventoryManagementEnabled,
+      });
     }
 
     const returnUrl = this.route.snapshot.queryParams['returnUrl'];

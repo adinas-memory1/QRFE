@@ -1,0 +1,483 @@
+<div class="container-fluid py-3 stock-page">
+  <h2 class="mb-3">{{ 'stock.title' | transloco }}</h2>
+  <p class="text-body-secondary mb-4">{{ 'stock.subtitle' | transloco }}</p>
+
+  <c-card class="mb-3">
+    <c-card-header>{{ 'stock.costingTitle' | transloco }}</c-card-header>
+    <c-card-body>
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-4">
+          <label cLabel>{{ 'stock.costingMethod' | transloco }}</label>
+          <select cSelect class="form-select" [(ngModel)]="costingMethod">
+            @for (opt of costingOptions; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+            }
+          </select>
+          <div class="form-text">{{ 'stock.costingHint' | transloco }}</div>
+        </div>
+        <div class="col-auto">
+          <button cButton color="primary" type="button" [disabled]="costingSaving" (click)="saveCostingMethod()">
+            {{ 'stock.save' | transloco }}
+          </button>
+        </div>
+      </div>
+    </c-card-body>
+  </c-card>
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <c-card>
+        <c-card-header class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+          <span>{{ 'stock.catalogTitle' | transloco }}</span>
+          <div class="d-flex gap-2 flex-wrap">
+            <button cButton color="success" size="sm" type="button" (click)="openNir()">
+              {{ 'stock.newNir' | transloco }}
+            </button>
+            <button cButton color="primary" size="sm" type="button" (click)="openCreateCatalog()">
+              {{ 'stock.addIngredient' | transloco }}
+            </button>
+          </div>
+        </c-card-header>
+        <c-card-body>
+          <input
+            cFormControl
+            class="mb-3"
+            type="search"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilter()"
+            [attr.placeholder]="'stock.searchPlaceholder' | transloco"
+            autocomplete="off"
+          />
+          @if (loading) {
+            <p class="text-body-secondary mb-0">{{ 'stock.loading' | transloco }}</p>
+          } @else {
+            <div class="table-responsive" style="max-height: 28rem; overflow: auto;">
+              <table class="table table-sm table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>{{ 'recipes.cols.name' | transloco }}</th>
+                    <th>{{ 'recipes.cols.stock' | transloco }}</th>
+                    <th>{{ 'stock.cmp' | transloco }}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of filtered; track row.ingredientId) {
+                    <tr
+                      role="button"
+                      [class.table-active]="selected?.ingredientId === row.ingredientId"
+                      (click)="selectIngredient(row)"
+                    >
+                      <td>
+                        {{ row.name }}
+                        @if (!row.isActive) {
+                          <span class="badge bg-secondary ms-1">{{ 'stock.inactive' | transloco }}</span>
+                        }
+                        @if (row.isLowStock) {
+                          <span class="badge bg-warning text-dark ms-1">{{ 'stock.low' | transloco }}</span>
+                        }
+                        @if (row.isExpired) {
+                          <span class="badge bg-danger ms-1">{{ 'recipes.expired' | transloco }}</span>
+                        }
+                      </td>
+                      <td>{{ row.currentStockQty | number:'1.2-4' }} {{ uomLabel(row.unitOfMeasure) }}</td>
+                      <td>{{ (row.weightedAverageUnitCost ?? row.unitCostAmount) | number:'1.2-4' }}</td>
+                      <td>
+                        <button
+                          type="button"
+                          class="btn btn-link btn-sm p-0"
+                          (click)="openEditCatalog(row); $event.stopPropagation()"
+                        >
+                          {{ 'stock.edit' | transloco }}
+                        </button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="4" class="text-body-secondary">{{ 'stock.emptyCatalog' | transloco }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </c-card-body>
+      </c-card>
+    </div>
+
+    <div class="col-lg-7">
+      <c-card>
+        <c-card-header class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+          <span>
+            @if (selected) {
+              {{ 'stock.lotsFor' | transloco: { name: selected.name } }}
+            } @else {
+              {{ 'stock.lotsTitle' | transloco }}
+            }
+          </span>
+          <button
+            cButton
+            color="success"
+            size="sm"
+            type="button"
+            [disabled]="!selected"
+            (click)="openReceipt()"
+          >
+            {{ 'stock.receipt' | transloco }}
+          </button>
+        </c-card-header>
+        <c-card-body>
+          @if (!selected) {
+            <p class="text-body-secondary mb-0">{{ 'stock.selectHint' | transloco }}</p>
+          } @else if (lotsLoading) {
+            <p class="text-body-secondary mb-0">{{ 'stock.loading' | transloco }}</p>
+          } @else {
+            <div class="mb-3 small text-body-secondary">
+              {{ 'stock.cmp' | transloco }}:
+              <strong>{{ (selected.weightedAverageUnitCost ?? selected.unitCostAmount) | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
+              · {{ 'recipes.cols.stock' | transloco }}:
+              <strong>{{ selected.currentStockQty | number:'1.2-4' }} {{ uomLabel(selected.unitOfMeasure) }}</strong>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th>{{ 'recipes.lotNumber' | transloco }}</th>
+                    <th>{{ 'recipes.supplier' | transloco }}</th>
+                    <th>{{ 'stock.remaining' | transloco }}</th>
+                    <th>{{ 'stock.unitPrice' | transloco }}</th>
+                    <th>{{ 'recipes.purchaseDate' | transloco }}</th>
+                    <th>{{ 'recipes.expiryDate' | transloco }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (lot of lots; track lot.stockItemId) {
+                    <tr [class.table-danger]="lot.isExpired">
+                      <td>{{ lot.lotNumber || '—' }}</td>
+                      <td>{{ lot.supplier || '—' }}</td>
+                      <td>{{ lot.remainingQty | number:'1.2-4' }} {{ uomLabel(lot.unitOfMeasure) }}</td>
+                      <td>{{ lot.unitPrice | number:'1.2-4' }}</td>
+                      <td>{{ lot.purchaseDate || '—' }}</td>
+                      <td>
+                        {{ lot.expiryDate || '—' }}
+                        @if (lot.isExpired) {
+                          <span class="badge bg-danger ms-1">{{ 'recipes.expired' | transloco }}</span>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="text-body-secondary">{{ 'stock.emptyLots' | transloco }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </c-card-body>
+      </c-card>
+    </div>
+  </div>
+
+  <c-card class="mt-3">
+    <c-card-header>{{ 'stock.nirListTitle' | transloco }}</c-card-header>
+    <c-card-body>
+      @if (receiptsLoading) {
+        <p class="text-body-secondary mb-0">{{ 'stock.loading' | transloco }}</p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>{{ 'stock.nirNumber' | transloco }}</th>
+                <th>{{ 'stock.invoiceNumber' | transloco }}</th>
+                <th>{{ 'recipes.supplier' | transloco }}</th>
+                <th>{{ 'stock.nirDate' | transloco }}</th>
+                <th>{{ 'stock.nirLines' | transloco }}</th>
+                <th>{{ 'stock.nirTotal' | transloco }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of receipts; track r.stockReceiptId) {
+                <tr>
+                  <td>{{ r.documentNumber }}</td>
+                  <td>{{ r.invoiceNumber || '—' }}</td>
+                  <td>{{ r.supplier || '—' }}</td>
+                  <td>{{ r.receivedOn }}</td>
+                  <td>{{ r.lines?.length || 0 }}</td>
+                  <td>{{ r.totalAmount | number:'1.2-2' }}</td>
+                  <td>
+                    <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="downloadNirPdf(r)">
+                      {{ 'stock.downloadPdf' | transloco }}
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="text-body-secondary">{{ 'stock.emptyNir' | transloco }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </c-card-body>
+  </c-card>
+</div>
+
+<c-modal [visible]="showCatalogModal" (visibleChange)="showCatalogModal = $event" alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>
+      {{ (editingIngredientId ? 'stock.editIngredient' : 'stock.addIngredient') | transloco }}
+    </h5>
+    <button cButtonClose (click)="showCatalogModal = false"></button>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="catalogForm" class="row g-2">
+      <div class="col-12">
+        <label cLabel>{{ 'recipes.ingredientName' | transloco }}</label>
+        <input cFormControl type="text" formControlName="name" maxlength="120" />
+      </div>
+      <div class="col-6">
+        <label cLabel>{{ 'recipes.stockUom' | transloco }}</label>
+        <select cSelect class="form-select" formControlName="unitOfMeasure">
+          @for (opt of uomOptions; track opt.value) {
+            <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6">
+        <label cLabel>{{ 'recipes.yieldPercent' | transloco }}</label>
+        <input cFormControl type="number" min="0.0001" max="1000" step="0.1" formControlName="yieldPercent" />
+      </div>
+      @if (editingIngredientId) {
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="ingActive" formControlName="isActive" />
+            <label class="form-check-label" for="ingActive">{{ 'stock.active' | transloco }}</label>
+          </div>
+        </div>
+      }
+      <div class="col-12">
+        <label cLabel class="d-block">{{ 'recipes.allergensLabel' | transloco }}</label>
+        <div class="d-flex flex-wrap gap-2">
+          @for (code of allergenCodes; track code) {
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [id]="'stock-alg-' + code"
+                [checked]="hasAllergen(code)"
+                (change)="toggleAllergen(code, $any($event.target).checked)"
+              />
+              <label class="form-check-label" [for]="'stock-alg-' + code">{{ allergenLabel(code) }}</label>
+            </div>
+          }
+        </div>
+      </div>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" variant="outline" type="button" (click)="showCatalogModal = false">
+      {{ 'recipes.cancel' | transloco }}
+    </button>
+    <button cButton color="primary" type="button" [disabled]="catalogForm.invalid" (click)="saveCatalog()">
+      {{ 'stock.save' | transloco }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+
+<c-modal [visible]="showReceiptModal" (visibleChange)="showReceiptModal = $event" alignment="center" size="lg">
+  <c-modal-header>
+    <h5 cModalTitle>{{ 'stock.receipt' | transloco }}</h5>
+    <button cButtonClose (click)="showReceiptModal = false"></button>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="receiptForm" class="row g-2">
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'stock.qty' | transloco }}</label>
+        <input cFormControl type="number" min="0.0001" step="0.0001" formControlName="quantity" />
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
+        <select cSelect class="form-select" formControlName="unitOfMeasure">
+          @for (opt of uomOptions; track opt.value) {
+            <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'stock.unitPrice' | transloco }}</label>
+        <input cFormControl type="number" min="0" step="0.01" formControlName="unitPrice" />
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'stock.totalPrice' | transloco }}</label>
+        <input cFormControl type="number" min="0" step="0.01" formControlName="totalPrice" />
+        <div class="form-text">{{ 'stock.totalPriceHint' | transloco }}</div>
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'recipes.ingredientVat' | transloco }}</label>
+        <input cFormControl type="number" min="0" max="100" step="0.1" formControlName="vatPercent" />
+      </div>
+      <div class="col-6 col-md-4 d-flex align-items-end">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="receiptVatInc" formControlName="vatInclusive" />
+          <label class="form-check-label" for="receiptVatInc">{{ 'recipes.vatInclusive' | transloco }}</label>
+        </div>
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'recipes.lotNumber' | transloco }}</label>
+        <input cFormControl type="text" formControlName="lotNumber" maxlength="80" />
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'recipes.supplier' | transloco }}</label>
+        <input cFormControl type="text" formControlName="supplier" maxlength="120" />
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'recipes.purchaseDate' | transloco }}</label>
+        <input cFormControl type="date" formControlName="purchaseDate" />
+      </div>
+      <div class="col-6 col-md-4">
+        <label cLabel>{{ 'recipes.expiryDate' | transloco }}</label>
+        <input cFormControl type="date" formControlName="expiryDate" />
+      </div>
+      <div class="col-12">
+        <label cLabel>{{ 'stock.note' | transloco }}</label>
+        <input cFormControl type="text" formControlName="note" maxlength="500" />
+      </div>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" variant="outline" type="button" (click)="showReceiptModal = false">
+      {{ 'recipes.cancel' | transloco }}
+    </button>
+    <button cButton color="primary" type="button" [disabled]="receiptForm.invalid" (click)="saveReceipt()">
+      {{ 'stock.save' | transloco }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+
+<c-modal [visible]="showNirModal" (visibleChange)="showNirModal = $event" alignment="center" size="xl">
+  <c-modal-header>
+    <h5 cModalTitle>{{ 'stock.newNir' | transloco }}</h5>
+    <button cButtonClose (click)="showNirModal = false"></button>
+  </c-modal-header>
+  <c-modal-body>
+    @if (lastCreatedReceipt) {
+      <div class="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span>{{ 'stock.nirSaved' | transloco: { number: lastCreatedReceipt.documentNumber } }}</span>
+        <button cButton color="success" size="sm" type="button" (click)="downloadNirPdf(lastCreatedReceipt)">
+          {{ 'stock.downloadPdf' | transloco }}
+        </button>
+      </div>
+    }
+    @if (nirError) {
+      <div class="alert alert-danger" role="alert">{{ nirError }}</div>
+    }
+    <form [formGroup]="nirForm" class="row g-2">
+      <div class="col-md-3">
+        <label cLabel>{{ 'recipes.supplier' | transloco }}</label>
+        <input cFormControl type="text" formControlName="supplier" maxlength="120" />
+      </div>
+      <div class="col-md-3">
+        <label cLabel>{{ 'stock.invoiceNumber' | transloco }}</label>
+        <input cFormControl type="text" formControlName="invoiceNumber" maxlength="80" />
+      </div>
+      <div class="col-md-3">
+        <label cLabel>{{ 'stock.nirDate' | transloco }}</label>
+        <input cFormControl type="date" formControlName="receivedOn" />
+      </div>
+      <div class="col-md-3">
+        <label cLabel>{{ 'stock.note' | transloco }}</label>
+        <input cFormControl type="text" formControlName="note" maxlength="500" />
+      </div>
+
+      <div class="col-12" formArrayName="lines">
+        @for (line of nirLines.controls; track $index; let i = $index) {
+          <div class="border rounded p-2 mb-2" [formGroupName]="i">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-4">
+                <label cLabel>{{ 'recipes.cols.name' | transloco }}</label>
+                <select
+                  class="form-select"
+                  formControlName="ingredientId"
+                  (change)="onNirIngredientChange(i, $event)"
+                >
+                  <option value="">{{ 'stock.pickIngredient' | transloco }}</option>
+                  @for (ing of ingredients; track ing.ingredientId) {
+                    <option [value]="ing.ingredientId">{{ ing.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'stock.qty' | transloco }}</label>
+                <input cFormControl type="number" min="0.0001" step="0.0001" formControlName="quantity" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
+                <select class="form-select" formControlName="unitOfMeasure">
+                  @for (opt of uomOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'stock.unitPrice' | transloco }}</label>
+                <input cFormControl type="number" min="0" step="0.01" formControlName="unitPrice" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'stock.totalPrice' | transloco }}</label>
+                <input cFormControl type="number" min="0" step="0.01" formControlName="totalPrice" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'recipes.ingredientVat' | transloco }}</label>
+                <input cFormControl type="number" min="0" max="100" step="0.1" formControlName="vatPercent" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'recipes.lotNumber' | transloco }}</label>
+                <input cFormControl type="text" formControlName="lotNumber" maxlength="80" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label cLabel>{{ 'recipes.expiryDate' | transloco }}</label>
+                <input cFormControl type="date" formControlName="expiryDate" />
+              </div>
+              <div class="col-auto">
+                <button
+                  cButton
+                  color="danger"
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  [disabled]="nirLines.length <= 1"
+                  (click)="removeNirLine(i)"
+                >
+                  {{ 'stock.removeLine' | transloco }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="col-12">
+        <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="addNirLine()">
+          {{ 'stock.addLine' | transloco }}
+        </button>
+      </div>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" variant="outline" type="button" (click)="showNirModal = false">
+      {{ 'recipes.cancel' | transloco }}
+    </button>
+    <button
+      cButton
+      color="primary"
+      type="button"
+      [disabled]="!!lastCreatedReceipt || nirSaving"
+      (click)="saveNir()"
+    >
+      {{ 'stock.saveNir' | transloco }}
+    </button>
+  </c-modal-footer>
+</c-modal>

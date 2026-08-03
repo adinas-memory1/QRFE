@@ -65,6 +65,7 @@
               <th>{{ 'manageRestaurants.colTables' | transloco }}</th>
               <th>{{ 'manageRestaurants.colBars' | transloco }}</th>
               <th>{{ 'manageRestaurants.colProvisioning' | transloco }}</th>
+              <th>{{ 'manageRestaurants.colInventory' | transloco }}</th>
               <th class="text-end">{{ 'manageRestaurants.colActions' | transloco }}</th>
             </tr>
           </thead>
@@ -78,6 +79,23 @@
                 <span [class.text-success]="!needsRepair(r)" [class.text-warning]="needsRepair(r)">
                   {{ provisioningLabel(r) }}
                 </span>
+              </td>
+              <td>
+                <button
+                  cButton
+                  [color]="r.inventoryManagementEnabled ? 'success' : 'secondary'"
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  [disabled]="inventoryToggleId === r.restaurantId"
+                  (click)="toggleInventoryManagement(r)"
+                >
+                  {{
+                    (r.inventoryManagementEnabled
+                      ? 'manageRestaurants.inventoryOn'
+                      : 'manageRestaurants.inventoryOff') | transloco
+                  }}
+                </button>
               </td>
               <td class="text-end">
                 <button cButton color="info" variant="outline" size="sm" class="me-1" type="button" (click)="onDetails(r)">

@@ -22,6 +22,7 @@
             <th>{{ 'resellerDashboard.colType' | transloco }}</th>
             <th>{{ 'resellerDashboard.colTables' | transloco }}</th>
             <th>{{ 'resellerDashboard.colManager' | transloco }}</th>
+            <th>{{ 'resellerDashboard.colInventory' | transloco }}</th>
             <th></th>
           </tr>
         </thead>
@@ -32,6 +33,23 @@
               <td>{{ r.restaurantType }}</td>
               <td>{{ r.numberOfTables }}</td>
               <td>{{ r.hasManager ? ('resellerDashboard.yes' | transloco) : ('resellerDashboard.no' | transloco) }}</td>
+              <td>
+                <button
+                  cButton
+                  [color]="r.inventoryManagementEnabled ? 'success' : 'secondary'"
+                  size="sm"
+                  variant="outline"
+                  type="button"
+                  [disabled]="inventoryToggleId === r.restaurantId"
+                  (click)="toggleInventoryManagement(r)"
+                >
+                  {{
+                    (r.inventoryManagementEnabled
+                      ? 'resellerDashboard.inventoryOn'
+                      : 'resellerDashboard.inventoryOff') | transloco
+                  }}
+                </button>
+              </td>
               <td class="text-end">
                 <a
                   cButton

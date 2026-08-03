@@ -1,0 +1,465 @@
+<div class="container-fluid py-3 recipes-page">
+  <h2 class="mb-3">{{ 'recipes.title' | transloco }}</h2>
+  <p class="text-body-secondary mb-4">{{ 'recipes.subtitle' | transloco }}</p>
+
+  <div class="btn-group mb-3 flex-wrap" role="group">
+    <button type="button" class="btn" [class.btn-primary]="activeTab === 'menu'" [class.btn-outline-primary]="activeTab !== 'menu'" (click)="setTab('menu')">
+      {{ 'recipes.tabs.recipes' | transloco }}
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="activeTab === 'consumption'" [class.btn-outline-primary]="activeTab !== 'consumption'" (click)="setTab('consumption')">
+      {{ 'recipes.tabs.consumption' | transloco }}
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="activeTab === 'stockAlerts'" [class.btn-outline-primary]="activeTab !== 'stockAlerts'" (click)="setTab('stockAlerts')">
+      {{ 'recipes.tabs.stockAlerts' | transloco }}
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="activeTab === 'expiryAlerts'" [class.btn-outline-primary]="activeTab !== 'expiryAlerts'" (click)="setTab('expiryAlerts')">
+      {{ 'recipes.tabs.expiryAlerts' | transloco }}
+    </button>
+  </div>
+
+  @if (activeTab === 'menu') {
+    <c-card>
+      <c-card-header>{{ 'recipes.pickMenuItemTitle' | transloco }}</c-card-header>
+      <c-card-body>
+        <p class="text-body-secondary small mb-3">{{ 'recipes.pickMenuItemHint' | transloco }}</p>
+        <c-accordion [flush]="true">
+          <c-accordion-item
+            *ngFor="let cat of categories"
+            #accordionItem="cAccordionItem"
+            [visible]="false"
+            [hidden]="!groupedMenuItems[cat]?.length"
+          >
+            <ng-template cTemplateId="accordionHeaderTemplate">
+              <button
+                type="button"
+                (click)="onCategoryAccordionToggle(cat, accordionItem)"
+                [collapsed]="!accordionItem.visible"
+                cAccordionButton
+              >
+                {{ cat }}
+              </button>
+            </ng-template>
+            <ng-template cTemplateId="accordionBodyTemplate">
+              <div class="accordion-body p-0">
+                <ul class="list-group list-group-flush">
+                  <li
+                    *ngFor="let item of groupedMenuItems[cat]"
+                    class="list-group-item d-flex justify-content-between align-items-center gap-2"
+                  >
+                    <div>
+                      <strong>{{ item.menuItemName }}</strong>
+                      <span *ngIf="item.isAvailable === false" class="badge bg-secondary ms-2">
+                        {{ 'menu.availability.unavailableBadge' | transloco }}
+                      </span>
+                      @if (portionsByMenuItemId[item.menuItemId] != null) {
+                        <span
+                          class="badge ms-2"
+                          [class.bg-warning]="(portionsByMenuItemId[item.menuItemId] ?? 0) < 10"
+                          [class.text-dark]="(portionsByMenuItemId[item.menuItemId] ?? 0) < 10"
+                          [class.bg-info]="(portionsByMenuItemId[item.menuItemId] ?? 0) >= 10"
+                        >
+                          {{ 'recipes.portionsRemaining' | transloco }}: {{ portionsByMenuItemId[item.menuItemId] }}
+                        </span>
+                      }
+                      <div class="text-body-secondary small">
+                        {{ item.menuItemPriceAmount | number:'1.2-2' }} {{ currencyCode(item.menuItemPriceCurrency) }}
+                        · {{ 'recipes.vatFromMenuItem' | transloco }}: {{ item.menuItemVatPercent ?? 19 }}%
+                      </div>
+                    </div>
+                    <button
+                      cButton
+                      color="primary"
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      (click)="openRecipeForMenuItem(item)"
+                    >
+                      {{ 'recipes.openIngredients' | transloco }}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </ng-template>
+          </c-accordion-item>
+        </c-accordion>
+      </c-card-body>
+    </c-card>
+  }
+
+  @if (activeTab === 'consumption') {
+    <c-card>
+      <c-card-header>{{ 'recipes.consumptionTitle' | transloco }}</c-card-header>
+      <c-card-body>
+        <form class="row g-2 align-items-end mb-3" [formGroup]="consumptionForm" (ngSubmit)="loadConsumption()">
+          <div class="col-auto">
+            <label cLabel>{{ 'recipes.startDate' | transloco }}</label>
+            <input cFormControl type="date" formControlName="startDate" />
+          </div>
+          <div class="col-auto">
+            <label cLabel>{{ 'recipes.endDate' | transloco }}</label>
+            <input cFormControl type="date" formControlName="endDate" />
+          </div>
+          <div class="col-auto">
+            <button cButton color="primary" type="submit">{{ 'recipes.loadReport' | transloco }}</button>
+          </div>
+        </form>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>{{ 'recipes.cols.name' | transloco }}</th>
+                <th>{{ 'recipes.cols.uom' | transloco }}</th>
+                <th>{{ 'recipes.cols.consumed' | transloco }}</th>
+                <th>{{ 'recipes.cols.estCost' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of consumption; track row.ingredientId) {
+                <tr>
+                  <td>{{ row.ingredientName }}</td>
+                  <td>{{ uomLabel(row.unitOfMeasure) }}</td>
+                  <td>{{ row.quantityConsumed | number:'1.2-4' }}</td>
+                  <td>{{ row.estimatedCostAmount | number:'1.2-2' }} {{ currencyCode(row.currency) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="text-body-secondary">{{ 'recipes.emptyConsumption' | transloco }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </c-card-body>
+    </c-card>
+  }
+
+  @if (activeTab === 'stockAlerts') {
+    <c-card>
+      <c-card-header>{{ 'recipes.stockAlertsTitle' | transloco }}</c-card-header>
+      <c-card-body>
+        <div class="row g-2 align-items-end mb-3">
+          <div class="col-sm-4 col-md-3">
+            <label cLabel>{{ 'recipes.lowStockAlertPercent' | transloco }}</label>
+            <input
+              cFormControl
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              [(ngModel)]="stockAlertPercent"
+              [disabled]="alertSettingsLoading || alertSettingsSaving"
+            />
+            <div class="form-text">{{ 'recipes.lowStockAlertPercentHint' | transloco }}</div>
+          </div>
+          <div class="col-sm-5 col-md-4">
+            <label cLabel>{{ 'recipes.alertEmail' | transloco }}</label>
+            <input
+              cFormControl
+              type="email"
+              [(ngModel)]="stockAlertEmail"
+              [disabled]="alertSettingsLoading || alertSettingsSaving"
+              [attr.placeholder]="defaultManagerEmail || ''"
+            />
+            <div class="form-text">{{ 'recipes.alertEmailHint' | transloco }}</div>
+          </div>
+          <div class="col-sm-3 col-md-2">
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="alertSettingsLoading || alertSettingsSaving"
+              (click)="saveStockAlertSettings()"
+            >
+              {{ 'recipes.save' | transloco }}
+            </button>
+          </div>
+        </div>
+
+        @if (alertsLoading || alertSettingsLoading) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.alertsLoading' | transloco }}</p>
+        } @else if (!lowStockAlerts.length) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.stockAlertsEmpty' | transloco }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>{{ 'recipes.cols.name' | transloco }}</th>
+                  <th>{{ 'recipes.cols.stock' | transloco }}</th>
+                  <th>{{ 'recipes.colStockPercent' | transloco }}</th>
+                  <th>{{ 'recipes.expiryDate' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of lowStockAlerts; track row.ingredientId) {
+                  <tr>
+                    <td>
+                      {{ row.name }}
+                      @if (row.isExpired) {
+                        <span class="badge bg-danger ms-1">{{ 'recipes.expired' | transloco }}</span>
+                      }
+                    </td>
+                    <td>{{ row.currentStockQty | number: '1.2-4' }} {{ uomLabel(row.unitOfMeasure) }}</td>
+                    <td>{{ row.stockPercentOfBaseline | number: '1.0-1' }}%</td>
+                    <td>{{ row.expiryDate || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </c-card-body>
+    </c-card>
+  }
+
+  @if (activeTab === 'expiryAlerts') {
+    <c-card>
+      <c-card-header>{{ 'recipes.expiryAlertsTitle' | transloco }}</c-card-header>
+      <c-card-body>
+        <div class="row g-2 align-items-end mb-3">
+          <div class="col-sm-4 col-md-3">
+            <label cLabel>{{ 'recipes.expiryAlertDaysAhead' | transloco }}</label>
+            <input
+              cFormControl
+              type="number"
+              min="0"
+              max="365"
+              step="1"
+              [(ngModel)]="expiryAlertDaysAhead"
+              [disabled]="alertSettingsLoading || alertSettingsSaving"
+            />
+            <div class="form-text">{{ 'recipes.expiryAlertDaysAheadHint' | transloco }}</div>
+          </div>
+          <div class="col-sm-5 col-md-4">
+            <label cLabel>{{ 'recipes.alertEmail' | transloco }}</label>
+            <input
+              cFormControl
+              type="email"
+              [(ngModel)]="expiryAlertEmail"
+              [disabled]="alertSettingsLoading || alertSettingsSaving"
+              [attr.placeholder]="defaultManagerEmail || ''"
+            />
+            <div class="form-text">{{ 'recipes.alertEmailHint' | transloco }}</div>
+          </div>
+          <div class="col-sm-3 col-md-2">
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="alertSettingsLoading || alertSettingsSaving"
+              (click)="saveExpiryAlertSettings()"
+            >
+              {{ 'recipes.save' | transloco }}
+            </button>
+          </div>
+        </div>
+
+        <p class="text-body-secondary small mb-3">{{ 'recipes.expiryAlertsHint' | transloco }}</p>
+        @if (alertsLoading || alertSettingsLoading) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.alertsLoading' | transloco }}</p>
+        } @else if (!expiryAlerts.length) {
+          <p class="text-body-secondary mb-0">{{ 'recipes.expiryAlertsEmpty' | transloco }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>{{ 'recipes.cols.name' | transloco }}</th>
+                  <th>{{ 'recipes.expiryDate' | transloco }}</th>
+                  <th>{{ 'recipes.daysUntilExpiry' | transloco }}</th>
+                  <th>{{ 'recipes.cols.stock' | transloco }}</th>
+                  <th>{{ 'recipes.lotNumber' | transloco }}</th>
+                  <th>{{ 'recipes.supplier' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of expiryAlerts; track row.ingredientId) {
+                  <tr>
+                    <td>
+                      {{ row.name }}
+                      @if (row.isExpired) {
+                        <span class="badge bg-danger ms-1">{{ 'recipes.expired' | transloco }}</span>
+                      } @else if (row.isExpiringSoon) {
+                        <span class="badge bg-warning text-dark ms-1">{{ 'recipes.expiringSoon' | transloco }}</span>
+                      }
+                    </td>
+                    <td>{{ row.expiryDate }}</td>
+                    <td>{{ row.daysUntilExpiry }}</td>
+                    <td>{{ (row.remainingQty ?? row.currentStockQty) | number: '1.2-4' }} {{ uomLabel(row.unitOfMeasure) }}</td>
+                    <td>{{ row.lotNumber || '—' }}</td>
+                    <td>{{ row.supplier || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </c-card-body>
+    </c-card>
+  }
+</div>
+
+<c-modal [visible]="showRecipeModal" (visibleChange)="onRecipeModalVisible($event)" alignment="center" size="xl" scrollable>
+  <c-modal-header>
+    <h5 cModalTitle>
+      @if (selectedMenuItemPrice != null) {
+        {{ 'recipes.recipeForWithPrice' | transloco: {
+          name: selectedMenuItemName,
+          price: (selectedMenuItemPrice | number:'1.2-2'),
+          currency: restaurantCurrency
+        } }}
+      } @else {
+        {{ 'recipes.recipeFor' | transloco: { name: selectedMenuItemName } }}
+      }
+    </h5>
+    <button cButtonClose (click)="closeRecipeModal()"></button>
+  </c-modal-header>
+  <c-modal-body>
+    <p class="text-body-secondary small">{{ 'recipes.qtyPerPortionHint' | transloco }}</p>
+    <p class="text-body-secondary small mb-3">{{ 'recipes.orderItemCostHint' | transloco }}</p>
+
+    <div class="mb-3 recipes-cost-summary">
+      <div>{{ 'recipes.vatFromMenuItem' | transloco }}:
+        <strong>{{ selectedMenuItemVatPercent }}%</strong>
+        <span class="text-body-secondary small"> ({{ 'recipes.vatFromMenuItemHint' | transloco }})</span>
+      </div>
+      <div>{{ 'recipes.portionCost' | transloco }} (= {{ 'recipes.oneOrderItemCost' | transloco }}):
+        <strong>{{ portionCostExVat | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
+        <span class="text-body-secondary small"> ({{ 'recipes.exVat' | transloco }})</span>
+      </div>
+      <div>{{ 'recipes.foodCostPercent' | transloco }}: <strong>{{ liveFoodCostPercent ?? '—' }}{{ liveFoodCostPercent != null ? '%' : '' }}</strong>
+        <div class="form-text">{{ 'recipes.foodCostPercentHint' | transloco }}</div>
+      </div>
+      <div>{{ 'recipes.portionsRemaining' | transloco }}: <strong>{{ livePortionsRemaining ?? '—' }}</strong></div>
+
+      <div class="row g-2 align-items-end mt-2">
+        <div class="col-sm-4">
+          <label cLabel>{{ 'recipes.desiredMargin' | transloco }}</label>
+          <input
+            cFormControl
+            type="number"
+            min="0"
+            max="1000"
+            step="0.1"
+            [(ngModel)]="desiredMarginPercent"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onDesiredMarginChange($event)"
+          />
+          <div class="form-text">{{ 'recipes.desiredMarginHint' | transloco }}</div>
+        </div>
+        @if (suggestedSellPrice != null) {
+          <div class="col-sm-8">
+            <div class="small text-body-secondary">{{ 'recipes.suggestedPrice' | transloco }}</div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <strong>{{ suggestedSellPrice | number:'1.2-2' }} {{ restaurantCurrency }}</strong>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                [disabled]="applyingPrice"
+                (click)="applySuggestedPrice()"
+              >
+                {{ 'recipes.applyPrice' | transloco }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <form [formGroup]="recipeForm">
+      <div formArrayName="lines">
+        @for (line of recipeLines.controls; track $index; let i = $index) {
+          <div
+            class="recipe-line-card mb-3 p-3 border rounded"
+            [class.border-primary]="selectedLineIndex === i"
+            [formGroupName]="i"
+            (click)="selectLine(i)"
+          >
+            <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <strong>{{ 'recipes.lineN' | transloco: { n: i + 1 } }}</strong>
+              </div>
+              <button
+                type="button"
+                class="btn-close recipe-line-remove"
+                [attr.aria-label]="'recipes.removeLine' | transloco"
+                (click)="removeRecipeLine(i); $event.stopPropagation()"
+              ></button>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-12 col-sm-6 col-md-5 position-relative">
+                <label cLabel>{{ 'recipes.ingredientName' | transloco }}</label>
+                <input
+                  cFormControl
+                  type="search"
+                  autocomplete="off"
+                  [ngModel]="ingredientSearchByLine[i] ?? line.get('name')?.value"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="onIngredientSearch(i, $event)"
+                  (focus)="ingredientDropdownOpen = i"
+                  (blur)="closeIngredientDropdown()"
+                  [attr.placeholder]="'recipes.searchIngredient' | transloco"
+                />
+                @if (ingredientDropdownOpen === i) {
+                  <div class="list-group position-absolute w-100 shadow-sm recipes-ingredient-dropdown">
+                    @for (opt of filteredIngredientsForLine(i); track opt.ingredientId) {
+                      <button
+                        type="button"
+                        class="list-group-item list-group-item-action py-2"
+                        (mousedown)="selectIngredientForLine(i, opt); $event.preventDefault()"
+                      >
+                        <div class="fw-semibold">{{ opt.name }}</div>
+                        <div class="small text-body-secondary">
+                          {{ opt.currentStockQty | number:'1.2-4' }} {{ uomLabel(opt.unitOfMeasure) }}
+                          · CMP {{ (opt.weightedAverageUnitCost ?? opt.unitCostAmount) | number:'1.2-4' }}
+                        </div>
+                      </button>
+                    } @empty {
+                      <div class="list-group-item text-body-secondary small">{{ 'recipes.noIngredientMatch' | transloco }}</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-6 col-sm-3 col-md-3">
+                <label cLabel>{{ 'recipes.cols.uom' | transloco }}</label>
+                <select cSelect class="form-select" formControlName="unitOfMeasure">
+                  @for (opt of uomOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.labelKey | transloco }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-6 col-sm-3 col-md-4">
+                <label cLabel>{{ 'recipes.cols.qtyPerPortion' | transloco }}</label>
+                <input cFormControl type="number" step="0.0001" min="0.0001" formControlName="quantity" />
+              </div>
+            </div>
+            <div class="small text-body-secondary mt-2">
+              {{ 'recipes.lineCost' | transloco }}:
+              <strong>{{ lineCostExVat(i) | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
+              · {{ 'recipes.cols.stock' | transloco }}:
+              {{ line.get('currentStockQty')?.value | number:'1.2-4' }}
+              {{ uomLabel(line.get('stockUnitOfMeasure')?.value ?? line.get('unitOfMeasure')?.value) }}
+            </div>
+          </div>
+        }
+      </div>
+    </form>
+  </c-modal-body>
+  <c-modal-footer class="recipes-modal-footer">
+    <div class="recipes-modal-actions w-100">
+      <button cButton color="secondary" variant="outline" type="button" (click)="addRecipeLine()">{{ 'recipes.addLine' | transloco }}</button>
+      <button
+        cButton
+        color="warning"
+        variant="outline"
+        type="button"
+        (click)="removeSelectedRecipeLine()"
+        [disabled]="recipeLines.length === 0"
+      >
+        {{ 'recipes.removeLine' | transloco }}
+      </button>
+      <button cButton color="danger" variant="outline" type="button" (click)="clearRecipe()">{{ 'recipes.clearRecipe' | transloco }}</button>
+      <button cButton color="secondary" variant="outline" type="button" (click)="closeRecipeModal()">{{ 'recipes.cancel' | transloco }}</button>
+      <button cButton color="primary" type="button" (click)="saveRecipe()">{{ 'recipes.saveRecipe' | transloco }}</button>
+    </div>
+  </c-modal-footer>
+</c-modal>
