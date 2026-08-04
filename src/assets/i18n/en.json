@@ -1600,6 +1600,8 @@
     "initialStockHint": "Optional opening stock in the selected UOM. Use Receipt or NIR for priced lots later.",
     "initialStockReceiptNote": "Opening stock on create",
     "note": "Note",
+    "documentNote": "Document note",
+    "lineNote": "Line note",
     "inactive": "Inactive",
     "active": "Active",
     "low": "Low",

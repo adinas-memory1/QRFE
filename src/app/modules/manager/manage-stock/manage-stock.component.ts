@@ -121,6 +121,13 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     return this.ingredients.filter((i) => i.isActive);
   }
 
+  get costingColumnLabelKey(): string {
+    return (
+      this.costingOptions.find((o) => o.value === this.costingMethod)?.labelKey ??
+      'stock.costing.cmp'
+    );
+  }
+
   ngOnInit(): void {
     const id = this.auth.getUserRestaurantId();
     this.restaurantId = Array.isArray(id) ? id[0] ?? null : id;
@@ -357,7 +364,6 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       unitPrice: [ingredient?.weightedAverageUnitCost ?? ingredient?.unitCostAmount ?? 0],
       totalPrice: [null as number | null],
       vatPercent: [19],
-      vatInclusive: [false],
       lotNumber: [''],
       purchaseDate: [purchase],
       expiryDate: [''],
@@ -403,7 +409,6 @@ export class ManageStockComponent implements OnInit, OnDestroy {
         unitPrice: number | string | null;
         totalPrice: number | string | null;
         vatPercent: number | string | null;
-        vatInclusive: boolean;
         lotNumber: string;
         purchaseDate: string;
         expiryDate: string;
@@ -418,7 +423,6 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       unitPrice: number | null;
       totalPrice: number | null;
       vatPercent: number;
-      vatInclusive: boolean;
       lotNumber: string | null;
       purchaseDate: string | null;
       expiryDate: string | null;
@@ -435,12 +439,14 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       }
 
       const totalRaw = l.totalPrice;
-      const hasTotal = totalRaw != null && String(totalRaw).trim() !== '';
+      const totalNum =
+        totalRaw == null || String(totalRaw).trim() === '' ? null : Number(totalRaw);
+      const hasTotal = totalNum != null && Number.isFinite(totalNum) && totalNum > 0;
       const unitRaw = l.unitPrice;
       const unitPrice = hasTotal
         ? null
         : Number(unitRaw == null || String(unitRaw).trim() === '' ? 0 : unitRaw);
-      const totalPrice = hasTotal ? Number(totalRaw) : null;
+      const totalPrice = hasTotal ? totalNum! : null;
 
       if (hasTotal && (!Number.isFinite(totalPrice!) || totalPrice! < 0)) {
         this.nirError = this.transloco.translate('stock.nirInvalid');
@@ -458,7 +464,6 @@ export class ManageStockComponent implements OnInit, OnDestroy {
         unitPrice,
         totalPrice,
         vatPercent: Number(l.vatPercent ?? 19),
-        vatInclusive: !!l.vatInclusive,
         lotNumber: l.lotNumber || null,
         purchaseDate: l.purchaseDate || raw.receivedOn || null,
         expiryDate: l.expiryDate || null,

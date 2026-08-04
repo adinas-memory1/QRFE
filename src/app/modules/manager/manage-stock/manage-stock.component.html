@@ -64,7 +64,7 @@
                   <tr>
                     <th>{{ 'recipes.cols.name' | transloco }}</th>
                     <th>{{ 'recipes.cols.stock' | transloco }}</th>
-                    <th>{{ 'stock.cmp' | transloco }}</th>
+                    <th>{{ costingColumnLabelKey | transloco }}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -356,7 +356,7 @@
         <input cFormControl type="date" formControlName="receivedOn" />
       </div>
       <div class="col-md-3">
-        <label cLabel>{{ 'stock.note' | transloco }}</label>
+        <label cLabel>{{ 'stock.documentNote' | transloco }}</label>
         <input cFormControl type="text" formControlName="note" maxlength="500" />
       </div>
 
@@ -414,14 +414,8 @@
                 <input cFormControl type="date" formControlName="expiryDate" />
               </div>
               <div class="col-6 col-md-2">
-                <label cLabel>{{ 'stock.note' | transloco }}</label>
+                <label cLabel>{{ 'stock.lineNote' | transloco }}</label>
                 <input cFormControl type="text" formControlName="note" maxlength="500" />
-              </div>
-              <div class="col-6 col-md-2 d-flex align-items-end">
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" [id]="'nir-vat-' + i" formControlName="vatInclusive" />
-                  <label class="form-check-label" [for]="'nir-vat-' + i">{{ 'recipes.vatInclusive' | transloco }}</label>
-                </div>
               </div>
               <div class="col-auto">
                 <button
