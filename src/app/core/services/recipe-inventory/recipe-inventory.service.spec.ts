@@ -127,15 +127,15 @@ describe('RecipeInventoryService', () => {
   });
 
   it('updates stock receipt lot metadata', () => {
-    http.put.and.returnValue(of({ stockReceiptId: 'sr1', documentNumber: 'NIR-2026-0001' }));
+    http.post.and.returnValue(of({ stockReceiptId: 'sr1', documentNumber: 'NIR-2026-0001' }));
     service
       .updateStockReceipt('r1', 'sr1', {
         supplier: 'Metro',
         lines: [{ stockReceiptLineId: 'l1', lotNumber: 'LOT-42' }],
       })
       .subscribe();
-    expect(http.put).toHaveBeenCalledWith(
-      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts/sr1`,
+    expect(http.post).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts/sr1/update`,
       jasmine.objectContaining({
         lines: [{ stockReceiptLineId: 'l1', lotNumber: 'LOT-42' }],
       }),

@@ -286,8 +286,8 @@ export class RecipeInventoryService {
       lines: StockReceiptLineUpdateInput[];
     },
   ): Observable<StockReceiptDto> {
-    return this.http.put<StockReceiptDto>(
-      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-receipts/${stockReceiptId}`,
+    return this.http.post<StockReceiptDto>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-receipts/${stockReceiptId}/update`,
       body,
       { withCredentials: true },
     );
