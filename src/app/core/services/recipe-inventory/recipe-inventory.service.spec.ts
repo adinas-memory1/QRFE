@@ -101,7 +101,7 @@ describe('RecipeInventoryService', () => {
         invoiceNumber: 'F-99',
         receivedOn: '2026-08-02',
         lines: [
-          { ingredientId: 'i1', quantity: 10, unitPrice: 5, vatPercent: 19 },
+          { ingredientId: 'i1', quantity: 10, unitPrice: 5, vatPercent: 19, lotNumber: 'LOT-1' },
           { ingredientId: 'i2', quantity: 2, totalPrice: 40, vatPercent: 19 },
         ],
       })
@@ -112,6 +112,32 @@ describe('RecipeInventoryService', () => {
         supplier: 'Metro',
         invoiceNumber: 'F-99',
         lines: jasmine.any(Array),
+      }),
+      { withCredentials: true },
+    );
+  });
+
+  it('gets stock receipt by id', () => {
+    http.get.and.returnValue(of({ stockReceiptId: 'sr1', documentNumber: 'NIR-2026-0001', lines: [] }));
+    service.getStockReceipt('r1', 'sr1').subscribe();
+    expect(http.get).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts/sr1`,
+      { withCredentials: true },
+    );
+  });
+
+  it('updates stock receipt lot metadata', () => {
+    http.put.and.returnValue(of({ stockReceiptId: 'sr1', documentNumber: 'NIR-2026-0001' }));
+    service
+      .updateStockReceipt('r1', 'sr1', {
+        supplier: 'Metro',
+        lines: [{ stockReceiptLineId: 'l1', lotNumber: 'LOT-42' }],
+      })
+      .subscribe();
+    expect(http.put).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts/sr1`,
+      jasmine.objectContaining({
+        lines: [{ stockReceiptLineId: 'l1', lotNumber: 'LOT-42' }],
       }),
       { withCredentials: true },
     );

@@ -245,9 +245,14 @@
                   <td>{{ r.lines?.length || 0 }}</td>
                   <td>{{ r.totalAmount | number:'1.2-2' }}</td>
                   <td>
-                    <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="downloadNirPdf(r)">
-                      {{ 'stock.downloadPdf' | transloco }}
-                    </button>
+                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                      <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="openEditNir(r)">
+                        {{ 'stock.edit' | transloco }}
+                      </button>
+                      <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="downloadNirPdf(r)">
+                        {{ 'stock.downloadPdf' | transloco }}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               } @empty {
@@ -327,7 +332,9 @@
 
 <c-modal [visible]="showNirModal" (visibleChange)="showNirModal = $event" alignment="center" size="xl">
   <c-modal-header>
-    <h5 cModalTitle>{{ 'stock.newNir' | transloco }}</h5>
+    <h5 cModalTitle>
+      {{ (editingReceiptId ? 'stock.editNir' : 'stock.newNir') | transloco }}
+    </h5>
     <button cButtonClose (click)="showNirModal = false"></button>
   </c-modal-header>
   <c-modal-body>
@@ -361,21 +368,62 @@
       </div>
 
       <div class="col-12" formArrayName="lines">
-        @for (line of nirLines.controls; track $index; let i = $index) {
-          <div class="border rounded p-2 mb-2" [formGroupName]="i">
+        @for (line of nirLines.controls; track line.get('lineKey')?.value; let i = $index) {
+          <div
+            class="nir-line-card mb-3 p-3 border rounded"
+            [class.border-primary]="selectedNirLineIndex === i"
+            [formGroupName]="i"
+            (click)="selectNirLine(i)"
+          >
+            <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+              <strong>{{ 'recipes.lineN' | transloco: { n: i + 1 } }}</strong>
+              @if (!editingReceiptId) {
+                <button
+                  type="button"
+                  class="btn-close nir-line-remove"
+                  [attr.aria-label]="'stock.removeLine' | transloco"
+                  [disabled]="nirLines.length <= 1"
+                  (click)="removeNirLine(i); $event.stopPropagation()"
+                ></button>
+              }
+            </div>
+
             <div class="row g-2 align-items-end">
-              <div class="col-md-4">
+              <div class="col-12 col-md-4 position-relative">
                 <label cLabel>{{ 'recipes.cols.name' | transloco }}</label>
-                <select
-                  class="form-select"
-                  formControlName="ingredientId"
-                  (change)="onNirIngredientChange(i, $event)"
-                >
-                  <option value="">{{ 'stock.pickIngredient' | transloco }}</option>
-                  @for (ing of pickableIngredients; track ing.ingredientId) {
-                    <option [value]="ing.ingredientId">{{ ing.name }}</option>
+                @if (line.get('readOnly')?.value) {
+                  <input cFormControl type="text" formControlName="name" readonly />
+                } @else {
+                  <input
+                    cFormControl
+                    type="search"
+                    autocomplete="off"
+                    [ngModel]="nirIngredientSearchByLine[i] ?? line.get('name')?.value"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onNirIngredientSearch(i, $event)"
+                    (focus)="nirIngredientDropdownOpen = i"
+                    (blur)="closeNirIngredientDropdown()"
+                    [attr.placeholder]="'recipes.searchIngredient' | transloco"
+                  />
+                  @if (nirIngredientDropdownOpen === i) {
+                    <div class="list-group position-absolute w-100 shadow-sm nir-ingredient-dropdown">
+                      @for (opt of filteredIngredientsForNirLine(i); track opt.ingredientId) {
+                        <button
+                          type="button"
+                          class="list-group-item list-group-item-action py-2"
+                          (mousedown)="selectNirIngredientForLine(i, opt); $event.preventDefault()"
+                        >
+                          <div class="fw-semibold">{{ opt.name }}</div>
+                          <div class="small text-body-secondary">
+                            {{ opt.currentStockQty | number:'1.2-4' }} {{ uomLabel(opt.unitOfMeasure) }}
+                          </div>
+                        </button>
+                      } @empty {
+                        <div class="list-group-item text-body-secondary small">{{ 'recipes.noIngredientMatch' | transloco }}</div>
+                      }
+                    </div>
                   }
-                </select>
+                }
               </div>
               <div class="col-6 col-md-2">
                 <label cLabel>{{ 'stock.qty' | transloco }}</label>
@@ -413,32 +461,32 @@
                 <label cLabel>{{ 'recipes.expiryDate' | transloco }}</label>
                 <input cFormControl type="date" formControlName="expiryDate" />
               </div>
-              <div class="col-6 col-md-2">
+              <div class="col-12 col-md-4">
                 <label cLabel>{{ 'stock.lineNote' | transloco }}</label>
                 <input cFormControl type="text" formControlName="note" maxlength="500" />
-              </div>
-              <div class="col-auto">
-                <button
-                  cButton
-                  color="danger"
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  [disabled]="nirLines.length <= 1"
-                  (click)="removeNirLine(i)"
-                >
-                  {{ 'stock.removeLine' | transloco }}
-                </button>
               </div>
             </div>
           </div>
         }
       </div>
-      <div class="col-12">
-        <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="addNirLine()">
-          {{ 'stock.addLine' | transloco }}
-        </button>
-      </div>
+      @if (!editingReceiptId) {
+        <div class="col-12 d-flex flex-wrap gap-2">
+          <button cButton color="secondary" variant="outline" size="sm" type="button" (click)="addNirLine()">
+            {{ 'stock.addLine' | transloco }}
+          </button>
+          <button
+            cButton
+            color="warning"
+            variant="outline"
+            size="sm"
+            type="button"
+            (click)="removeSelectedNirLine()"
+            [disabled]="nirLines.length === 0"
+          >
+            {{ 'stock.removeLine' | transloco }}
+          </button>
+        </div>
+      }
     </form>
   </c-modal-body>
   <c-modal-footer>
@@ -449,10 +497,10 @@
       cButton
       color="primary"
       type="button"
-      [disabled]="!!lastCreatedReceipt || nirSaving"
+      [disabled]="(!editingReceiptId && !!lastCreatedReceipt) || nirSaving"
       (click)="saveNir()"
     >
-      {{ 'stock.saveNir' | transloco }}
+      {{ (editingReceiptId ? 'stock.save' : 'stock.saveNir') | transloco }}
     </button>
   </c-modal-footer>
 </c-modal>

@@ -68,6 +68,15 @@ export interface StockReceiptLineDto {
   vatPercent: number;
   vatInclusive: boolean;
   lotNumber?: string | null;
+  purchaseDate?: string | null;
+  expiryDate?: string | null;
+  note?: string | null;
+}
+
+export interface StockReceiptLineUpdateInput {
+  stockReceiptLineId: string;
+  lotNumber?: string | null;
+  purchaseDate?: string | null;
   expiryDate?: string | null;
   note?: string | null;
 }

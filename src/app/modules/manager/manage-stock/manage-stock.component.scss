@@ -3,3 +3,18 @@
     --cui-table-bg: var(--cui-primary-bg-subtle, rgba(50, 31, 219, 0.08));
   }
 }
+
+.nir-line-card {
+  cursor: pointer;
+}
+
+.nir-ingredient-dropdown {
+  z-index: 1060;
+  max-height: 14rem;
+  overflow: auto;
+}
+
+.nir-line-remove:disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
