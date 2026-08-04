@@ -420,6 +420,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       vatPercent: number;
       vatInclusive: boolean;
       lotNumber: string | null;
+      purchaseDate: string | null;
       expiryDate: string | null;
       note: string | null;
     }> = [];
