@@ -278,6 +278,19 @@
           }
         </select>
       </div>
+      @if (!editingIngredientId) {
+        <div class="col-6">
+          <label cLabel>{{ 'recipes.initialStock' | transloco }}</label>
+          <input
+            cFormControl
+            type="number"
+            min="0"
+            step="0.0001"
+            formControlName="initialQuantity"
+          />
+          <div class="form-text">{{ 'stock.initialStockHint' | transloco }}</div>
+        </div>
+      }
       <div class="col-6">
         <label cLabel>{{ 'recipes.yieldPercent' | transloco }}</label>
         <input cFormControl type="number" min="0.0001" max="1000" step="0.1" formControlName="yieldPercent" />

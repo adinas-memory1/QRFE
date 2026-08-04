@@ -1592,6 +1592,8 @@
     "totalPrice": "Total price",
     "totalPriceHint": "Optional; overrides unit price when set.",
     "qty": "Quantity",
+    "initialStockHint": "Optional opening stock in the selected UOM. Use Receipt or NIR for priced lots later.",
+    "initialStockReceiptNote": "Opening stock on create",
     "note": "Note",
     "inactive": "Inactive",
     "active": "Active",

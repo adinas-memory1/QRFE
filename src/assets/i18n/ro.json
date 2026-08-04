@@ -1605,6 +1605,8 @@
     "totalPrice": "Preț total",
     "totalPriceHint": "Opțional; înlocuiește prețul unitar dacă e setat.",
     "qty": "Cantitate",
+    "initialStockHint": "Stoc inițial opțional, în UM aleasă. Pentru loturi cu preț folosește Recepție sau NIR.",
+    "initialStockReceiptNote": "Stoc inițial la creare",
     "note": "Notă",
     "inactive": "Inactiv",
     "active": "Activ",

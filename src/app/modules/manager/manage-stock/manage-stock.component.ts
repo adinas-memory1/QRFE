@@ -16,7 +16,7 @@ import {
   ModalTitleDirective,
 } from '@coreui/angular';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { of, Subject, switchMap, takeUntil } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
 import { RecipeInventoryService } from '../../../core/services/recipe-inventory/recipe-inventory.service';
@@ -101,6 +101,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.catalogForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(120)]],
       unitOfMeasure: [4, Validators.required],
+      initialQuantity: [null as number | null, [Validators.min(0)]],
       yieldPercent: [null as number | null],
       allergens: [[] as string[]],
       isActive: [true],
@@ -244,6 +245,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.catalogForm.reset({
       name: '',
       unitOfMeasure: 4,
+      initialQuantity: null,
       yieldPercent: null,
       allergens: [],
       isActive: true,
@@ -268,6 +270,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     const raw = this.catalogForm.getRawValue() as {
       name: string;
       unitOfMeasure: number;
+      initialQuantity: number | null;
       yieldPercent: number | null;
       allergens: string[];
       isActive: boolean;
@@ -278,21 +281,51 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       allergens: raw.allergens ?? [],
       yieldPercent: raw.yieldPercent,
     };
-    const req = this.editingIngredientId
-      ? this.api.updateIngredient(this.restaurantId, this.editingIngredientId, {
+
+    if (this.editingIngredientId) {
+      this.api
+        .updateIngredient(this.restaurantId, this.editingIngredientId, {
           ...body,
           isActive: raw.isActive,
         })
-      : this.api.createIngredient(this.restaurantId, body);
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.showCatalogModal = false;
+            this.toast.success(this.transloco.translate('stock.saved'));
+            this.reload();
+          },
+          error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+        });
+      return;
+    }
 
-    req.pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.showCatalogModal = false;
-        this.toast.success(this.transloco.translate('stock.saved'));
-        this.reload();
-      },
-      error: () => this.toast.error(this.transloco.translate('stock.saveError')),
-    });
+    const initialQty = Number(raw.initialQuantity);
+    const hasInitialStock = Number.isFinite(initialQty) && initialQty > 0;
+
+    this.api
+      .createIngredient(this.restaurantId, body)
+      .pipe(
+        switchMap((created) => {
+          if (!hasInitialStock) return of(created);
+          return this.api.receiveStock(this.restaurantId!, created.ingredientId, {
+            quantity: initialQty,
+            unitOfMeasure: raw.unitOfMeasure,
+            unitPrice: 0,
+            vatPercent: 19,
+            note: this.transloco.translate('stock.initialStockReceiptNote'),
+          });
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: () => {
+          this.showCatalogModal = false;
+          this.toast.success(this.transloco.translate('stock.saved'));
+          this.reload();
+        },
+        error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+      });
   }
 
   deleteIngredient(row: IngredientDto): void {
