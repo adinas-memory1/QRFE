@@ -16,7 +16,7 @@ import {
   ModalTitleDirective,
 } from '@coreui/angular';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { of, Subject, switchMap, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
 import { RecipeInventoryService } from '../../../core/services/recipe-inventory/recipe-inventory.service';
@@ -76,10 +76,8 @@ export class ManageStockComponent implements OnInit, OnDestroy {
   lotsLoading = false;
 
   showCatalogModal = false;
-  showReceiptModal = false;
   showNirModal = false;
   catalogForm: FormGroup;
-  receiptForm: FormGroup;
   nirForm: FormGroup;
   editingIngredientId: string | null = null;
   receipts: StockReceiptDto[] = [];
@@ -101,23 +99,9 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.catalogForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(120)]],
       unitOfMeasure: [4, Validators.required],
-      initialQuantity: [null as number | null, [Validators.min(0)]],
       yieldPercent: [null as number | null],
       allergens: [[] as string[]],
       isActive: [true],
-    });
-    this.receiptForm = this.fb.group({
-      quantity: [1, [Validators.required, Validators.min(0.0001)]],
-      unitOfMeasure: [4],
-      unitPrice: [0, [Validators.min(0)]],
-      totalPrice: [null as number | null],
-      vatPercent: [19, [Validators.min(0), Validators.max(100)]],
-      vatInclusive: [false],
-      lotNumber: [''],
-      supplier: [''],
-      purchaseDate: [''],
-      expiryDate: [''],
-      note: [''],
     });
     this.nirForm = this.fb.group({
       supplier: [''],
@@ -132,7 +116,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     return this.nirForm.get('lines') as FormArray;
   }
 
-  /** Only active ingredients in NIR / receipt pickers. */
+  /** Active catalog entries for NIR line pickers. */
   get pickableIngredients(): IngredientDto[] {
     return this.ingredients.filter((i) => i.isActive);
   }
@@ -245,7 +229,6 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.catalogForm.reset({
       name: '',
       unitOfMeasure: 4,
-      initialQuantity: null,
       yieldPercent: null,
       allergens: [],
       isActive: true,
@@ -270,7 +253,6 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     const raw = this.catalogForm.getRawValue() as {
       name: string;
       unitOfMeasure: number;
-      initialQuantity: number | null;
       yieldPercent: number | null;
       allergens: string[];
       isActive: boolean;
@@ -282,50 +264,21 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       yieldPercent: raw.yieldPercent,
     };
 
-    if (this.editingIngredientId) {
-      this.api
-        .updateIngredient(this.restaurantId, this.editingIngredientId, {
+    const req = this.editingIngredientId
+      ? this.api.updateIngredient(this.restaurantId, this.editingIngredientId, {
           ...body,
           isActive: raw.isActive,
         })
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.showCatalogModal = false;
-            this.toast.success(this.transloco.translate('stock.saved'));
-            this.reload();
-          },
-          error: () => this.toast.error(this.transloco.translate('stock.saveError')),
-        });
-      return;
-    }
+      : this.api.createIngredient(this.restaurantId, body);
 
-    const initialQty = Number(raw.initialQuantity);
-    const hasInitialStock = Number.isFinite(initialQty) && initialQty > 0;
-
-    this.api
-      .createIngredient(this.restaurantId, body)
-      .pipe(
-        switchMap((created) => {
-          if (!hasInitialStock) return of(created);
-          return this.api.receiveStock(this.restaurantId!, created.ingredientId, {
-            quantity: initialQty,
-            unitOfMeasure: raw.unitOfMeasure,
-            unitPrice: 0,
-            vatPercent: 19,
-            note: this.transloco.translate('stock.initialStockReceiptNote'),
-          });
-        }),
-        takeUntil(this.destroy$),
-      )
-      .subscribe({
-        next: () => {
-          this.showCatalogModal = false;
-          this.toast.success(this.transloco.translate('stock.saved'));
-          this.reload();
-        },
-        error: () => this.toast.error(this.transloco.translate('stock.saveError')),
-      });
+    req.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.showCatalogModal = false;
+        this.toast.success(this.transloco.translate('stock.saved'));
+        this.reload();
+      },
+      error: () => this.toast.error(this.transloco.translate('stock.saveError')),
+    });
   }
 
   deleteIngredient(row: IngredientDto): void {
@@ -372,60 +325,18 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       });
   }
 
-  openReceipt(): void {
-    if (!this.selected) return;
-    this.receiptForm.reset({
-      quantity: 1,
-      unitOfMeasure: normalizeUom(this.selected.unitOfMeasure),
-      unitPrice: this.selected.weightedAverageUnitCost ?? this.selected.unitCostAmount ?? 0,
-      totalPrice: null,
-      vatPercent: 19,
-      vatInclusive: false,
-      lotNumber: '',
-      supplier: '',
-      purchaseDate: new Date().toISOString().slice(0, 10),
-      expiryDate: '',
-      note: '',
-    });
-    this.showReceiptModal = true;
-  }
-
-  saveReceipt(): void {
-    if (!this.restaurantId || !this.selected || this.receiptForm.invalid) return;
-    const raw = this.receiptForm.getRawValue();
-    this.api
-      .receiveStock(this.restaurantId, this.selected.ingredientId, {
-        quantity: Number(raw.quantity),
-        unitOfMeasure: Number(raw.unitOfMeasure),
-        unitPrice: raw.totalPrice != null && raw.totalPrice !== '' ? null : Number(raw.unitPrice),
-        totalPrice:
-          raw.totalPrice != null && raw.totalPrice !== '' ? Number(raw.totalPrice) : null,
-        vatPercent: Number(raw.vatPercent),
-        vatInclusive: !!raw.vatInclusive,
-        lotNumber: raw.lotNumber || null,
-        supplier: raw.supplier || null,
-        purchaseDate: raw.purchaseDate || null,
-        expiryDate: raw.expiryDate || null,
-        note: raw.note || null,
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.showReceiptModal = false;
-          this.toast.success(this.transloco.translate('stock.receiptSaved'));
-          this.reload();
-        },
-        error: () => this.toast.error(this.transloco.translate('stock.saveError')),
-      });
-  }
-
   openNir(): void {
+    this.openNirForIngredient(this.selected?.ingredientId);
+  }
+
+  openNirForIngredient(ingredientId?: string | null): void {
+    const today = new Date().toISOString().slice(0, 10);
     while (this.nirLines.length > 0) this.nirLines.removeAt(0);
-    this.nirLines.push(this.createNirLineGroup(this.selected?.ingredientId));
+    this.nirLines.push(this.createNirLineGroup(ingredientId, today));
     this.nirForm.patchValue({
       supplier: '',
       invoiceNumber: '',
-      receivedOn: new Date().toISOString().slice(0, 10),
+      receivedOn: today,
       note: '',
     });
     this.lastCreatedReceipt = null;
@@ -434,10 +345,11 @@ export class ManageStockComponent implements OnInit, OnDestroy {
     this.showNirModal = true;
   }
 
-  createNirLineGroup(ingredientId?: string | null): FormGroup {
+  createNirLineGroup(ingredientId?: string | null, purchaseDate?: string): FormGroup {
     const ingredient = ingredientId
       ? this.ingredients.find((i) => i.ingredientId === ingredientId)
       : null;
+    const purchase = purchaseDate ?? new Date().toISOString().slice(0, 10);
     return this.fb.group({
       ingredientId: [ingredient?.ingredientId ?? ''],
       quantity: [1],
@@ -447,13 +359,15 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       vatPercent: [19],
       vatInclusive: [false],
       lotNumber: [''],
+      purchaseDate: [purchase],
       expiryDate: [''],
       note: [''],
     });
   }
 
   addNirLine(): void {
-    this.nirLines.push(this.createNirLineGroup());
+    const receivedOn = String(this.nirForm.get('receivedOn')?.value ?? '');
+    this.nirLines.push(this.createNirLineGroup(undefined, receivedOn || undefined));
   }
 
   removeNirLine(index: number): void {
@@ -491,6 +405,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
         vatPercent: number | string | null;
         vatInclusive: boolean;
         lotNumber: string;
+        purchaseDate: string;
         expiryDate: string;
         note: string;
       }>;
@@ -544,6 +459,7 @@ export class ManageStockComponent implements OnInit, OnDestroy {
         vatPercent: Number(l.vatPercent ?? 19),
         vatInclusive: !!l.vatInclusive,
         lotNumber: l.lotNumber || null,
+        purchaseDate: l.purchaseDate || raw.receivedOn || null,
         expiryDate: l.expiryDate || null,
         note: l.note || null,
       });
@@ -646,5 +562,9 @@ export class ManageStockComponent implements OnInit, OnDestroy {
 
   allergenLabel(code: string): string {
     return this.transloco.translate(`recipes.allergens.${code}`);
+  }
+
+  lotStatus(lot: StockItemDto): 'active' | 'depleted' {
+    return lot.remainingQty > 0 ? 'active' : 'depleted';
   }
 }

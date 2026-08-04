@@ -93,6 +93,7 @@ export interface StockReceiptLineInput {
   vatPercent?: number;
   vatInclusive?: boolean;
   lotNumber?: string | null;
+  purchaseDate?: string | null;
   expiryDate?: string | null;
   note?: string | null;
 }
