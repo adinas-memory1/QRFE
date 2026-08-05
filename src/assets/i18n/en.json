@@ -1618,6 +1618,8 @@
     "nirUpdated": "NIR {{number}} updated.",
     "nirEditHint": "You can edit the document header and lot fields (lot no., purchase/expiry dates, line note). Quantity and prices stay fixed after receipt.",
     "lotFieldsEditable": "Lot details (editable)",
+    "confirmDeleteNir": "Delete NIR {{number}}? Unused lots will be removed from stock. Deletion is blocked if any lot was already consumed.",
+    "nirDeleted": "NIR deleted.",
     "nirInvalid": "Complete at least one line with an ingredient and quantity.",
     "downloadPdf": "Download PDF",
     "pdfError": "Could not generate PDF.",

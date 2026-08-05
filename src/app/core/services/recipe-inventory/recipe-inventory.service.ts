@@ -293,6 +293,13 @@ export class RecipeInventoryService {
     );
   }
 
+  deleteStockReceipt(restaurantId: string, stockReceiptId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/api/restaurants/${restaurantId}/admin/stock-receipts/${stockReceiptId}`,
+      { withCredentials: true },
+    );
+  }
+
   listStockReceipts(
     restaurantId: string,
     opts?: { from?: string; to?: string; take?: number },

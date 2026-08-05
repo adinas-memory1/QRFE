@@ -1631,6 +1631,8 @@
     "nirUpdated": "NIR {{number}} actualizat.",
     "nirEditHint": "Poți modifica antetul documentului și datele lot (nr. lot, date achiziție/expirare, notă linie). Cantitatea și prețurile rămân fixe după recepție.",
     "lotFieldsEditable": "Date lot (editabile)",
+    "confirmDeleteNir": "Ștergi NIR {{number}}? Loturile neconsumate vor fi eliminate din stoc. Dacă un lot a fost deja consumat, ștergerea este blocată.",
+    "nirDeleted": "NIR șters.",
     "nirInvalid": "Completează cel puțin o linie cu ingredient și cantitate.",
     "downloadPdf": "Descarcă PDF",
     "pdfError": "Nu s-a putut genera PDF-ul.",

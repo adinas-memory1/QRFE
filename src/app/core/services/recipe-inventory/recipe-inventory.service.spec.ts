@@ -143,6 +143,15 @@ describe('RecipeInventoryService', () => {
     );
   });
 
+  it('deletes stock receipt', () => {
+    http.delete.and.returnValue(of(void 0));
+    service.deleteStockReceipt('r1', 'sr1').subscribe();
+    expect(http.delete).toHaveBeenCalledWith(
+      `${environment.apiUrl}/api/restaurants/r1/admin/stock-receipts/sr1`,
+      { withCredentials: true },
+    );
+  });
+
   it('lists stock receipts with take', () => {
     http.get.and.returnValue(of([]));
     service.listStockReceipts('r1', { take: 20 }).subscribe();

@@ -709,6 +709,38 @@ export class ManageStockComponent implements OnInit, OnDestroy {
       });
   }
 
+  deleteNir(receipt: StockReceiptDto): void {
+    if (!this.restaurantId) return;
+    const ok = window.confirm(
+      this.transloco.translate('stock.confirmDeleteNir', { number: receipt.documentNumber }),
+    );
+    if (!ok) return;
+
+    this.api
+      .deleteStockReceipt(this.restaurantId, receipt.stockReceiptId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          if (this.editingReceiptId === receipt.stockReceiptId) {
+            this.showNirModal = false;
+            this.editingReceiptId = null;
+          }
+          if (this.lastCreatedReceipt?.stockReceiptId === receipt.stockReceiptId) {
+            this.lastCreatedReceipt = null;
+          }
+          this.toast.success(this.transloco.translate('stock.nirDeleted'));
+          this.reload();
+        },
+        error: (err: { error?: { error?: string }; status?: number }) => {
+          const apiMsg =
+            typeof err?.error?.error === 'string'
+              ? err.error.error
+              : this.transloco.translate('stock.saveError');
+          this.toast.error(apiMsg);
+        },
+      });
+  }
+
   saveCostingMethod(): void {
     if (!this.restaurantId) return;
     this.costingSaving = true;
