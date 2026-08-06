@@ -1385,6 +1385,10 @@
         "q": "What do manager dashboards show?",
         "a": "KPI cards and charts aggregate closed-order revenue, staff logins, and traffic views over rolling UTC windows so you can compare the last 30 days with the previous 30. Figures respect your restaurant currency."
       },
+      "recipePortionsRemaining": {
+        "q": "How are «Portions remaining» calculated in recipes?",
+        "a": "For each recipe line, the system divides current stock by the quantity per portion (converted to the stock unit of measure, adjusted for yield when set) and rounds down to whole portions. The product's «Portions remaining» is the minimum of those values—the ingredient with the least stock relative to the recipe is the bottleneck. Example: flour allows 50 portions, mozzarella 37, sauce 83 → we show 37."
+      },
       "bookings": {
         "q": "Are table reservations supported?",
         "a": "Bookings/reservations are available in the staff and manager flows so you can list, edit, or cancel holds alongside service. They use the same authenticated APIs as the rest of the product."
@@ -1438,9 +1442,10 @@
     "addLine": "Add line",
     "saveRecipe": "Save recipe",
     "clearRecipe": "Clear recipe",
+    "menuSellPrice": "Menu price",
     "portionCost": "Portion cost",
     "foodCostPercent": "Ingredient cost share %",
-    "foodCostPercentHint": "Share of ingredient cost (ex-VAT) in the menu sell price: (Portion cost ex-VAT ÷ Menu price) × 100. E.g. cost 0.20 / price 0.50 = 40%.",
+    "foodCostPercentHint": "Share of ingredient cost (ex-VAT) in the menu sell price (ex-VAT): (Portion cost ex-VAT ÷ Menu price ex-VAT) × 100. E.g. cost 0.20 / price 0.42 = 47.6%.",
     "portionsRemaining": "Portions remaining",
     "startDate": "Start",
     "endDate": "End",

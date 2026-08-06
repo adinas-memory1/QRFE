@@ -43,6 +43,7 @@ import {
   canConvertUom,
   effectiveQtyInStockUom,
   normalizeUom,
+  splitVat,
   suggestedPriceFromMargin,
 } from '../../../core/models/recipe/recipe.models';
 
@@ -168,28 +169,35 @@ export class ManageRecipesComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  /** Sum of line costs with VAT — recipe lines use CMP as ex-VAT unit cost. */
+  /** Sum of line costs with menu-item VAT — ingredient CMP is ex-VAT. */
   get portionCostIncVat(): number {
-    return this.portionCostExVat;
+    return splitVat(this.portionCostExVat, this.selectedMenuItemVatPercent, false).incVat;
   }
 
   get suggestedSellPrice(): number | null {
     if (this.desiredMarginPercent == null || this.desiredMarginPercent < 0) {
       return null;
     }
-    return suggestedPriceFromMargin(this.portionCostExVat, this.desiredMarginPercent);
+    return suggestedPriceFromMargin(this.portionCostIncVat, this.desiredMarginPercent);
   }
 
+  /** Menu sell price (stored VAT-inclusive). */
   get selectedMenuItemPrice(): number | null {
     const price = this.recipe?.menuItemPriceAmount ?? this.selectedMenuItem?.menuItemPriceAmount;
     return price != null && price > 0 ? Number(price) : null;
   }
 
-  /** Food cost % from live form costs vs menu item sell price. */
-  get liveFoodCostPercent(): number | null {
+  get selectedMenuItemPriceExVat(): number | null {
     const price = this.selectedMenuItemPrice;
-    if (price == null || price <= 0) return null;
-    return Math.round((this.portionCostExVat / price) * 10000) / 100;
+    if (price == null) return null;
+    return splitVat(price, this.selectedMenuItemVatPercent, true).exVat;
+  }
+
+  /** Food cost % from live ex-VAT costs vs ex-VAT menu sell price. */
+  get liveFoodCostPercent(): number | null {
+    const priceExVat = this.selectedMenuItemPriceExVat;
+    if (priceExVat == null || priceExVat <= 0) return null;
+    return Math.round((this.portionCostExVat / priceExVat) * 10000) / 100;
   }
 
   /** Min portions remaining from live stock / effective qty per line. */

@@ -42,6 +42,7 @@ const FAQ_ITEM_IDS = [
   'orderEditsBlockedDuringPayment',
   'moveOrderConstraints',
   'dashboardReporting',
+  'recipePortionsRemaining',
   'bookings',
   'languages',
   'subscriptionStripe'

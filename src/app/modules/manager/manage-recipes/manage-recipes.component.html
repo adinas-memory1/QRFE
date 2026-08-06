@@ -137,7 +137,7 @@
     <c-card>
       <c-card-header>{{ 'recipes.stockAlertsTitle' | transloco }}</c-card-header>
       <c-card-body>
-        <div class="row g-2 align-items-end mb-3">
+        <div class="row g-2 align-items-end mb-1 recipes-alert-settings-row">
           <div class="col-sm-4 col-md-3">
             <label cLabel>{{ 'recipes.lowStockAlertPercent' | transloco }}</label>
             <input
@@ -149,7 +149,6 @@
               [(ngModel)]="stockAlertPercent"
               [disabled]="alertSettingsLoading || alertSettingsSaving"
             />
-            <div class="form-text">{{ 'recipes.lowStockAlertPercentHint' | transloco }}</div>
           </div>
           <div class="col-sm-5 col-md-4">
             <label cLabel>{{ 'recipes.alertEmail' | transloco }}</label>
@@ -160,17 +159,25 @@
               [disabled]="alertSettingsLoading || alertSettingsSaving"
               [attr.placeholder]="defaultManagerEmail || ''"
             />
-            <div class="form-text">{{ 'recipes.alertEmailHint' | transloco }}</div>
           </div>
           <div class="col-sm-3 col-md-2">
+            <label cLabel class="recipes-alert-settings-btn-label" aria-hidden="true">&nbsp;</label>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn btn-primary w-100"
               [disabled]="alertSettingsLoading || alertSettingsSaving"
               (click)="saveStockAlertSettings()"
             >
               {{ 'recipes.save' | transloco }}
             </button>
+          </div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-sm-4 col-md-3">
+            <div class="form-text mb-0">{{ 'recipes.lowStockAlertPercentHint' | transloco }}</div>
+          </div>
+          <div class="col-sm-5 col-md-4">
+            <div class="form-text mb-0">{{ 'recipes.alertEmailHint' | transloco }}</div>
           </div>
         </div>
 
@@ -215,7 +222,7 @@
     <c-card>
       <c-card-header>{{ 'recipes.expiryAlertsTitle' | transloco }}</c-card-header>
       <c-card-body>
-        <div class="row g-2 align-items-end mb-3">
+        <div class="row g-2 align-items-end mb-1 recipes-alert-settings-row">
           <div class="col-sm-4 col-md-3">
             <label cLabel>{{ 'recipes.expiryAlertDaysAhead' | transloco }}</label>
             <input
@@ -227,7 +234,6 @@
               [(ngModel)]="expiryAlertDaysAhead"
               [disabled]="alertSettingsLoading || alertSettingsSaving"
             />
-            <div class="form-text">{{ 'recipes.expiryAlertDaysAheadHint' | transloco }}</div>
           </div>
           <div class="col-sm-5 col-md-4">
             <label cLabel>{{ 'recipes.alertEmail' | transloco }}</label>
@@ -238,17 +244,25 @@
               [disabled]="alertSettingsLoading || alertSettingsSaving"
               [attr.placeholder]="defaultManagerEmail || ''"
             />
-            <div class="form-text">{{ 'recipes.alertEmailHint' | transloco }}</div>
           </div>
           <div class="col-sm-3 col-md-2">
+            <label cLabel class="recipes-alert-settings-btn-label" aria-hidden="true">&nbsp;</label>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn btn-primary w-100"
               [disabled]="alertSettingsLoading || alertSettingsSaving"
               (click)="saveExpiryAlertSettings()"
             >
               {{ 'recipes.save' | transloco }}
             </button>
+          </div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-sm-4 col-md-3">
+            <div class="form-text mb-0">{{ 'recipes.expiryAlertDaysAheadHint' | transloco }}</div>
+          </div>
+          <div class="col-sm-5 col-md-4">
+            <div class="form-text mb-0">{{ 'recipes.alertEmailHint' | transloco }}</div>
           </div>
         </div>
 
@@ -321,9 +335,21 @@
         <strong>{{ selectedMenuItemVatPercent }}%</strong>
         <span class="text-body-secondary small"> ({{ 'recipes.vatFromMenuItemHint' | transloco }})</span>
       </div>
+      @if (selectedMenuItemPrice != null) {
+        <div>{{ 'recipes.menuSellPrice' | transloco }}:
+          <strong>{{ selectedMenuItemPrice | number:'1.2-2' }} {{ restaurantCurrency }}</strong>
+          <span class="text-body-secondary small"> ({{ 'recipes.vatInclusive' | transloco }})</span>
+          ·
+          <strong>{{ selectedMenuItemPriceExVat | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
+          <span class="text-body-secondary small"> ({{ 'recipes.exVat' | transloco }})</span>
+        </div>
+      }
       <div>{{ 'recipes.portionCost' | transloco }} (= {{ 'recipes.oneOrderItemCost' | transloco }}):
         <strong>{{ portionCostExVat | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
         <span class="text-body-secondary small"> ({{ 'recipes.exVat' | transloco }})</span>
+        ·
+        <strong>{{ portionCostIncVat | number:'1.2-4' }} {{ restaurantCurrency }}</strong>
+        <span class="text-body-secondary small"> ({{ 'recipes.costIncVat' | transloco }})</span>
       </div>
       <div>{{ 'recipes.foodCostPercent' | transloco }}: <strong>{{ liveFoodCostPercent ?? '—' }}{{ liveFoodCostPercent != null ? '%' : '' }}</strong>
         <div class="form-text">{{ 'recipes.foodCostPercentHint' | transloco }}</div>

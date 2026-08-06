@@ -1398,6 +1398,10 @@
         "q": "Ce arată dashboard-urile pentru manager?",
         "a": "KPI-uri și grafice agregă venit din comenzi închise, logări staff și trafic pe ferestre UTC rulante (ex. 30 zile vs 30 zile anterioare), în moneda restaurantului."
       },
+      "recipePortionsRemaining": {
+        "q": "Cum se calculează «Porții rămase» în rețetar?",
+        "a": "Pentru fiecare ingredient din rețetă, sistemul calculează câte porții complete poți face din stocul curent: stoc ÷ cantitatea pe porție (convertită în aceeași unitate de măsură ca stocul, cu randament dacă e setat). Rezultatul se rotunjește în jos. «Porții rămase» pentru produs este minimul acestor valori — ingredientul cu cel mai puțin stoc relativ la rețetă limitează tot preparatul. Exemplu: făină permite 50 de porții, mozzarella 37, sos 83 → afișăm 37."
+      },
       "orderEditsBlockedDuringPayment": {
         "q": "De ce nu pot fi adăugate sau modificate produse cât timp oaspetele plătește cu cardul?",
         "a": "Când oaspetele începe checkout-ul cu cardul, comanda este blocată ca să evităm totaluri inconsistente. Personalul nu poate adăuga produse sau modifica cantități până când plata se finalizează sau checkout-ul este anulat."
@@ -1451,9 +1455,10 @@
     "addLine": "Adaugă linie",
     "saveRecipe": "Salvează rețeta",
     "clearRecipe": "Șterge rețeta",
+    "menuSellPrice": "Preț meniu",
     "portionCost": "Cost porție",
     "foodCostPercent": "Pondere cost ingrediente %",
-    "foodCostPercentHint": "Ponderea costului de ingrediente (fără TVA) în prețul de vânzare al produsului: (Cost porție fără TVA ÷ Preț meniu) × 100. Ex: cost 0,20 / preț 0,50 = 40%.",
+    "foodCostPercentHint": "Ponderea costului de ingrediente (fără TVA) în prețul de vânzare al produsului (fără TVA): (Cost porție fără TVA ÷ Preț meniu fără TVA) × 100. Ex: cost 0,20 / preț 0,42 = 47,6%.",
     "portionsRemaining": "Porții rămase",
     "startDate": "Început",
     "endDate": "Sfârșit",

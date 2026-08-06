@@ -215,27 +215,6 @@ export class DefaultLayoutComponent implements OnInit {
             url: '/manager/manage-menu',
             iconComponent: { name: 'cil-restaurant' }
           },
-          ...(this.inventoryManagementEnabled
-            ? [
-                {
-                  name: this.transloco.translate('nav.inventory'),
-                  url: '/manager/stock',
-                  iconComponent: { name: 'cil-basket' },
-                  children: [
-                    {
-                      name: this.transloco.translate('nav.stock'),
-                      url: '/manager/stock',
-                      iconComponent: { name: 'cil-basket' },
-                    },
-                    {
-                      name: this.transloco.translate('nav.recipes'),
-                      url: '/manager/recipes',
-                      iconComponent: { name: 'cil-list-numbered' },
-                    },
-                  ],
-                } as INavData,
-              ]
-            : []),
           {
             name: this.transloco.translate('nav.staff'),
             url: '/manager/manage-staff',
@@ -246,6 +225,27 @@ export class DefaultLayoutComponent implements OnInit {
             url: '/manager/manage-qrs',
             iconComponent: { name: 'cil-qr-code' }
           },
+          ...(this.inventoryManagementEnabled
+            ? [
+                {
+                  name: this.transloco.translate('nav.inventory'),
+                  url: '/manager/stock',
+                  iconComponent: { name: 'cil-basket' },
+                  children: [
+                    {
+                      name: this.transloco.translate('nav.stock'),
+                      url: '/manager/stock',
+                      iconComponent: { name: 'cil-loop1' },
+                    },
+                    {
+                      name: this.transloco.translate('nav.recipes'),
+                      url: '/manager/recipes',
+                      iconComponent: { name: 'cil-list-numbered' },
+                    },
+                  ],
+                } as INavData,
+              ]
+            : []),
           {
             title: true,
             name: this.transloco.translate('sidebar.reports')
